@@ -44,12 +44,12 @@ class EmployerProfile(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employer_profile')
     company_name = models.CharField(max_length = 100)
-    company_type = models.CharField(max_length=20, choices=COMPANY_TYPE_CHOICES, null=True, blank=True)
-    business_permit = models.FileField(upload_to='business_permits/', null=True, blank=True)
+    company_type = models.CharField(max_length=20, choices=COMPANY_TYPE_CHOICES)
+    business_permit = models.FileField(upload_to='business_permits/' )
     email = models.EmailField(unique=True) 
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
-    company_address = models.CharField(max_length=255, null=True, blank=True)
-    contact_person = models.CharField(max_length=100, null=True, blank=True)
+    phone_number = models.CharField(max_length=20)
+    company_address = models.CharField(max_length=255)
+    contact_person = models.CharField(max_length=100)
     verification_status = models.CharField(max_length=20, choices=VARIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -115,23 +115,23 @@ class ApplicantProfile(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='applicant_profile')
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100, null=True, blank=True)
+    middle_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    date_of_birth = models.DateField(null=True, blank=True)
-    age = models.PositiveIntegerField(null=True, blank=True)
-    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, null=True, blank=True)
-    sex = models.CharField(max_length=10, null=True, blank=True)
-    contact_number = models.CharField(max_length=20, null=True, blank=True)
-    barangay = models.CharField(max_length=100, null=True, blank=True)
-    municipality = models.CharField(max_length=100, null=True, blank=True)
-    province = models.CharField(max_length=100, null=True, blank=True)
-    zip_code = models.CharField(max_length=10, null=True, blank=True)
-    region = models.CharField(max_length=100, null=True, blank=True)
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
-    resume = models.FileField(upload_to='resumes/', null=True, blank=True)
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', null=True, blank=True)
-    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', null=True, blank=True)
-    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES, null=True, blank=True)
+    date_of_birth = models.DateField()
+    age = models.PositiveIntegerField()
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
+    sex = models.CharField(max_length=10)
+    contact_number = models.CharField(max_length=20)
+    barangay = models.CharField(max_length=100)
+    municipality = models.CharField(max_length=100)
+    province = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=10)
+    region = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=20)
+    resume = models.FileField(upload_to='resumes/')
+    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/')
+    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/')
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
     skills = models.ManyToManyField('ApplicantSkills', blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
@@ -183,6 +183,109 @@ class OfferedJobs(models.Model):
     date_offered = models.DateTimeField(auto_now_add = True)
     status = models.CharField(max_length = 20, choices = APPLICATION_STATUS, default = 'pending')
     remarks = models.TextField(null = True, blank = True)
+
+class GovernmentInternshipProgram(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=10)
+    date_of_birth = models.DateField()
+    phone_number = models.CharField(max_length=20)
+    barangay = models.CharField(max_length=100,)
+    municipality = models.CharField(max_length=100,)
+    province = models.CharField(max_length=100,)
+    region = models.CharField(max_length=100,)
+    zip_code = models.CharField(max_length=10,)
+    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_done = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.phone_number}"
+    
+class TupadBeneficiary(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=10)
+    date_of_birth = models.DateField()
+    phone_number = models.CharField(max_length=20)
+    barangay = models.CharField(max_length=100,)
+    municipality = models.CharField(max_length=100,)
+    province = models.CharField(max_length=100,)
+    region = models.CharField(max_length=100,)
+    zip_code = models.CharField(max_length=10,)
+    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_done = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.phone_number}"
+    
+    
+class DisplacedInformalLaborProgram(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=10)
+    date_of_birth = models.DateField()
+    phone_number = models.CharField(max_length=20)
+    barangay = models.CharField(max_length=100,)
+    municipality = models.CharField(max_length=100,)
+    province = models.CharField(max_length=100,)
+    region = models.CharField(max_length=100,)
+    zip_code = models.CharField(max_length=10,)
+    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_done = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.phone_number}"
+    
+
+class SpecialProgramForEmploymentOfStudents(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=10)
+    date_of_birth = models.DateField()
+    phone_number = models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
+    college_program = models.CharField(max_length=100)
+    school_name = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100,)
+    municipality = models.CharField(max_length=100,)
+    province = models.CharField(max_length=100,)
+    region = models.CharField(max_length=100,)
+    zip_code = models.CharField(max_length=10,)
+    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_done = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.phone_number}"
+    
+
+    
+    
+
+
 
 
     
