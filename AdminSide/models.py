@@ -282,6 +282,33 @@ class SpecialProgramForEmploymentOfStudents(models.Model):
         return f"{self.first_name} {self.last_name} - {self.phone_number}"
     
 
+class PESOActivities(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    activity_name = models.CharField(max_length=100)
+    activity_description = models.TextField()
+    number_of_participants = models.PositiveIntegerField()
+    activity_date = models.DateField()
+    activity_time = models.TimeField()
+    activity_location = models.CharField(max_length=255)
+    organizer = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='added_activities')
+
+    def __str__(self):
+        return f"{self.activity_name} - {self.activity_date}"
+    
+class AuditLog(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='audit_logs')
+    action = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.action} - {self.timestamp}"
+    
     
     
 
