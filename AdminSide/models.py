@@ -18,6 +18,7 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
 
     def __str__(self):
