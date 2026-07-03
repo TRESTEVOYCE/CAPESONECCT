@@ -72,6 +72,7 @@ class ApplicantProfile(models.Model):
     applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', null=True, blank=True)
     education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES, null=True, blank=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
+    skills = models.ManyToManyField('ApplicantSkills', blank=True, related_name='applicants')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -79,7 +80,40 @@ class ApplicantProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
     
-  
+class ApplicantSkills(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE, related_name='skills')
+    skill_name = models.CharField(max_length=100)
+
+class EmployerProfile(models.Model):
+
+    COMPANY_TYPE_CHOICES = (
+        ('private', 'Private'),
+        ('government', 'Government'),
+        ('non_profit', 'Non-Profit'),
+        ('other', 'Other'),
+    )
+
+    VARIFICATION_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    )
 
 
- 
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employer_profile')
+    company_name = models.CharField(max_length = 100)
+    company_type = models.CharField(max_length=20, choices=COMPANY_TYPE_CHOICES, null=True, blank=True)
+    business_permit = models.FileField(upload_to='business_permits/', null=True, blank=True)
+    email = models.EmailField(unique=True) 
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    company_address = models.CharField(max_length=255, null=True, blank=True)
+    contact_person = models.CharField(max_length=100, null=True, blank=True)
+    verification_status = models.CharField(max_length=20, choices=VARIFICATION_STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.company_name} - {self.user.email}"
+    
