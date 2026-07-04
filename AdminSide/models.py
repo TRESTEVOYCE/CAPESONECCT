@@ -9,6 +9,8 @@ class User(AbstractUser):
         ('admin','Admin'),
         ('applicant','Applicant'),
         ('employer','Employer'),
+        ('peso','PESO'),
+        ('mswdo','MSWDO'),
     )
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=150, unique=True)
