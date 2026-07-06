@@ -87,6 +87,10 @@ class Jobs(models.Model):
     def __str__(self):
         return f"{self.job_title} - {self.employer.company_name}"
     
+class ApplicantSkills(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    skill_name = models.CharField(max_length=100)
+    
 class ApplicantProfile(models.Model):
 
     CIVIL_STATUS_CHOICES = (
@@ -130,12 +134,12 @@ class ApplicantProfile(models.Model):
     zip_code = models.CharField(max_length=10)
     region = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
+    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     resume = models.FileField(upload_to='resumes/')
     curriculum_vitae = models.FileField(upload_to='curriculum_vitae/')
     applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/')
     education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
-    skills = models.ManyToManyField('ApplicantSkills', blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -143,11 +147,6 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
-    
-class ApplicantSkills(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE, related_name='skills')
-    skill_name = models.CharField(max_length=100)
 
 
 class AppliedJobs(models.Model):
