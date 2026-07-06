@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-4#oy!-)#h)x%h$v7^^8@hkehlvp7b&tl$u9-*zq@v#9dgr2yc(
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 AUTH_USER_MODEL = 'AdminSide.User'
+
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'AdminSide',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
+
 
 TEMPLATES = [
     {
