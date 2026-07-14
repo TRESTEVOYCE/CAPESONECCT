@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Postings - CAPESONNECT{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- HEADER STATUS ROW -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Job Postings</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1">
+                <span class="text-slate-700 font-bold">{{ total_active }} active vacancies</span> 
+                <span class="mx-1.5">•</span> 
+                <span class="text-amber-600 font-bold">{{ total_pending }} pending approval</span>
+            </p>
+        </div>
+        <button onclick="toggleModal(true)" class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2.5 rounded-md flex items-center gap-2 shadow transition">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            Post New Vacancy
+        </button>
+    </div>
+
+    <!-- FILTER BAR & DATABASE GRID TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+            <div class="relative flex-1 min-w-[280px]">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+                </span>
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search by title, employer, ID..." 
+                       class="w-full bg-white pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#112954]">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <select name="sector" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                    <option value="All">All Sectors</option>
+                    {% for key, val in jobs.model.SECTOR_CHOICES %}
+                        <option value="{{ key }}" {% if selected_sector == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                    <option value="All">All Status</option>
+                    <option value="Active" {% if selected_status == "Active" %}selected{% endif %}>Active</option>
+                    <option value="Pending" {% if selected_status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Filled" {% if selected_status == "Filled" %}selected{% endif %}>Filled</option>
+                    <option value="Closed" {% if selected_status == "Closed" %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        <th class="py-3 px-4">ID</th>
+                        <th class="py-3 px-4">Job Title / Employer</th>
+                        <th class="py-3 px-4">Sector</th>
+                        <th class="py-3 px-4 text-center">Vacancies</th>
+                        <th class="py-3 px-4">Salary</th>
+                        <th class="py-3 px-4">Deadline</th>
+                        <th class="py-3 px-4 text-center">Status</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
+                    {% for job in jobs %}
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="py-4 px-4 font-bold text-blue-600 whitespace-nowrap">{{ job.formatted_job_id }}</td>
+                        
+                        <td class="py-4 px-4">
+                            <div class="font-bold text-slate-800 text-[13px] leading-tight mb-1">{{ job.job_title }}</div>
+                            <div class="flex flex-col space-y-0.5 text-[11px] text-slate-400 font-medium">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-building text-[10px]"></i> {{ job.employer.company_name }}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-location-dot text-[10px] pl-0.5"></i> {{ job.job_location }}
+                                </span>
+                            </div>
+                        </td>
+                        
+                        <td class="py-4 px-4 font-medium text-slate-500">{{ job.sector }}</td>
+                        <td class="py-4 px-4 text-center font-bold text-slate-800">{{ job.vacancy }}</td>
+                        <td class="py-4 px-4 font-semibold text-slate-600">₱{{ job.salary|floatformat:0 }}</td>
+                        
+                        <td class="py-4 px-4 text-slate-400 font-medium whitespace-nowrap">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-regular fa-clock text-[11px]"></i>
+                                {{ job.job_posting_expiry|date:"M d, Y" }}
+                            </span>
+                        </td>
+                        
+                        <td class="py-4 px-4 text-center">
+                            {% if job.status == 'Active' %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700">Active</span>
+                            {% elif job.status == 'Pending' %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">Pending</span>
+                            {% elif job.status == 'Filled' %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700">Filled</span>
+                            {% else %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500">Closed</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="py-4 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            {% if job.status == 'Pending' %}
+                                <button class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-extrabold px-3 py-1 rounded transition">Approve</button>
+                            {% elif job.status == 'Active' %}
+                                <button class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-extrabold px-3 py-1 rounded transition">Close</button>
+                            {% endif %}
+                            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1 rounded transition">View</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No job vacancies found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-400 font-mono">
+            Showing {{ total_results }} of {{ total_results }} entries
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ADD FORM -->
+<div id="vacancyModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200">
+        <div class="px-6 py-4 bg-[#112954] text-white flex items-center justify-between">
+            <h3 class="font-bold text-sm">Post Direct Vacancy</h3>
+            <button onclick="toggleModal(false)" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form method="POST" action="" class="p-6 space-y-4 text-xs">
+            {% csrf_token %}
+            <div>
+                <label class="block font-bold text-slate-600 mb-1">Job Title</label>
+                <input type="text" name="job_title" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Sector</label>
+                    <select name="sector" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
+                        <option value="BPO / IT">BPO / IT</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Construction">Construction</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Hospitality">Hospitality</option>
+                        <option value="Manufacturing">Manufacturing</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Job Type</label>
+                    <select name="job_type" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
+                        <option value="full_time">Full Time</option>
+                        <option value="part_time">Part Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Location</label>
+                    <input type="text" name="job_location" value="Manila" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Vacancies</label>
+                    <input type="number" name="vacancy" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div class="col-span-2">
+                    <label class="block font-bold text-slate-600 mb-1">Offer Salary (PHP)</label>
+                    <input type="number" name="salary" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div class="col-span-2">
+                    <label class="block font-bold text-slate-600 mb-1">Description summary</label>
+                    <textarea name="job_description" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <button type="button" onclick="toggleModal(false)" class="px-4 py-2 bg-slate-100 rounded-lg font-bold">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-[#112954] text-white rounded-lg font-bold">Post Vacancy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleModal(show) {
+        document.getElementById('vacancyModal').classList.toggle('hidden', !show);
+    }
+</script>
+{% endblock %}

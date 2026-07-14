@@ -68,8 +68,32 @@ class Jobs(models.Model):
         ('contract', 'Contract'),
         ('internship', 'Internship'),
     )
+    
+    SECTOR_CHOICES = (
+        ('BPO / IT', 'BPO / IT Services'),
+        ('Finance', 'Finance and Insurance'),
+        ('Administrative', 'Administrative & Support Services'),
+        ('Hospitality', 'Hospitality / Tourism / Food Service'),
+        ('Wholesale & Retail', 'Wholesale & Retail Trade (Sales)'),
+        ('Logistics', 'Transportation and Storage'),
+        ('Manufacturing', 'Manufacturing / Production'),
+        ('Construction', 'Construction and Trades (SMAW, Engineering)'),
+        ('Power & Energy', 'Electricity, Gas, and Water Supply'),
+        ('Healthcare', 'Healthcare and Social Work'),
+        ('Education', 'Education / Academic Institutions'),
+        ('Public Sector', 'Government / Public Administration'),
+        ('Agriculture', 'Agriculture, Forestry, and Fishing'),
+    )
 
+    STATUS_CHOICES = (
+            ('Active', 'Active'),
+            ('Pending', 'Pending'),
+            ('Filled', 'Filled'),
+            ('Closed', 'Closed'),
+        )
+    
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    job_id_number = models.PositiveIntegerField(unique=True, null=True, blank=True)
     job_title = models.CharField(max_length=100)
     job_description = models.TextField()
     job_requirements = models.TextField()
@@ -78,11 +102,18 @@ class Jobs(models.Model):
     vacancy = models.PositiveIntegerField()
     salary = models.DecimalField(max_digits=10, decimal_places=2)
     employer = models.ForeignKey(EmployerProfile, on_delete=models.CASCADE, related_name='jobs')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     time_posted = models.DateTimeField(auto_now_add=True)
     job_posting_expiry = models.DateTimeField()
     job_location = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def formatted_job_id(self):
+        if self.job_id_number:
+            return f"JP-{self.job_id_number:04d}"
+        return "JP-NEW"
 
     def __str__(self):
         return f"{self.job_title} - {self.employer.company_name}"
@@ -309,11 +340,3 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.action} - {self.timestamp}"
-    
-    
-    
-
-
-
-
-    

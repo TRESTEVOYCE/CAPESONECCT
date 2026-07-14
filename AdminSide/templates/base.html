@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CAPESONNECT{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Dashboard Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex overflow-hidden bg-[#f4f6f9] font-sans antialiased">
+
+    <!-- 1. FULL HEIGHT STICKY SIDEBAR (Spans top to bottom) -->
+   <aside class="w-64 bg-[#112954] text-white flex flex-col justify-between shrink-0 h-full border-r border-slate-800 z-50">
+    
+    <div class="flex flex-col overflow-y-auto flex-1">
+        <div class="p-4 bg-[#0d2042] flex items-center space-x-3 border-b border-slate-800 shrink-0">
+            <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg"
+                 alt="PESO Logo" 
+                 class="h-12 w-12 object-contain">
+            <div>
+                <h2 class="text-xs font-bold tracking-wider uppercase">CAPESONNECT</h2>
+                <p class="text-sm font-small text-slate-500 mt-1">
+                    PESO — Carigara
+                </p>
+            </div>
+        </div>
+
+        <div class="px-2 py-2 space-y-1">
+            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Navigation</p>
+            
+            <a href="{% url 'AdminSide:dashboard' %}" 
+               class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'dashboard' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <span class="flex items-center space-x-3">
+                    <i class="fa-solid fa-table-columns w-4 {% if request.resolver_match.url_name == 'dashboard' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                    <span>Dashboard</span>
+                </span>
+            </a>
+
+            <a href="{% url 'AdminSide:job_postings_list' %}" 
+               class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'job_postings_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <span class="flex items-center space-x-3">
+                    <i class="fa-solid fa-briefcase w-4 {% if request.resolver_match.url_name == 'job_postings_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                    <span>Job Postings</span>
+                </span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'applicants_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-users w-4 {% if request.resolver_match.url_name == 'applicants_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>Applicants</span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'employers_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-building w-4 {% if request.resolver_match.url_name == 'employers_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>Employers</span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'referrals_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-file-invoice w-4 {% if request.resolver_match.url_name == 'referrals_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>Applications & Referrals</span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'special_programs' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-graduation-cap w-4 {% if request.resolver_match.url_name == 'special_programs' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>Special Programs</span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'reports' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-chart-line w-4 {% if request.resolver_match.url_name == 'reports' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>Reports</span>
+            </a>
+
+            <a href="#" 
+               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
+               {% if request.resolver_match.url_name == 'user_management' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-user-gear w-4 {% if request.resolver_match.url_name == 'user_management' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+                <span>User Management</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="p-3 border-t border-slate-800 bg-[#0d2042] shrink-0">
+        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-all duration-200">
+            <i class="fa-solid fa-right-from-bracket w-4"></i>
+            <span>Sign Out</span>
+        </a>
+    </div>
+</aside>
+
+    <!-- RIGHT CONTAINER: Holds Topbar, Main Scrollable Content, and Footer -->
+    <div class="flex-1 flex flex-col overflow-hidden relative h-full">
+
+        <!-- 2. STICKY TOPBAR -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-40 shadow-sm">
+            <div class="flex items-center space-x-3">
+                <div class="flex flex-col">
+                    <span class="text-[12px] text-slate-400 font-bold uppercase tracking-tighter">A web-based PESO Job Matching and Management System</span>
+                </div>
+            </div>
+
+            <!-- Account / Context Action items on top-right -->
+            <div class="flex items-center space-x-4">
+                <span class="bg-blue-50 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full border border-blue-100 flex items-center gap-1.5">
+                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                    Admin Session
+                </span>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-slate-700">
+                            {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Maria Andres{% endif %}
+                        </p>
+                        <p class="text-[10px] text-slate-400 font-medium">PESO Administrator</p>
+                    </div>
+                    <div class="h-8 w-8 bg-[#112954] text-white rounded-full flex items-center justify-center font-bold text-xs">
+                        MA
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 3. MAIN CONTAINER SCROLLABLE -->
+        <main class="flex-1 overflow-y-auto p-6 pb-16 bg-[#f8fafc]">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <!-- 4. STICKY FOOTER CONTAINER -->
+        <footer class="h-9 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between px-6 text-[10px] text-slate-400 z-40">
+            <div>
+                <span>PESO Employment MIS v1.0</span>
+                <span class="mx-1.5 text-slate-200">•</span>
+                <span class="font-semibold text-slate-500">Municipality Government of Carigara</span>
+            </div>
+            <div>
+                <span>Powered by <span class="font-bold text-[#112954]">PESO DOLE</span></span>
+                <span class="mx-1 text-slate-200">•</span>
+                <span>2026</span>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
