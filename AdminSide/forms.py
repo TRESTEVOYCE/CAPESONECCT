@@ -1,4 +1,4 @@
-from .models import User,GovernmentInternshipProgram,TupadBeneficiary,DisplacedInformalLaborProgram,SpecialProgramForEmploymentOfStudents
+from .models import User,SpecialProgramBeneficiaries
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
@@ -12,22 +12,8 @@ class CustomAuthenticationForm(AuthenticationForm):
         model = User
         fields = ('email', 'password')
 
-class GovernmentInternshipProgramForm(forms.ModelForm):
+class SpecialProgramBeneferiariesForm(forms.ModelForm):
     class Meta:
-        model = GovernmentInternshipProgram
+        model = SpecialProgramBeneficiaries
         fields = ('first_name','middle_name','last_name','email','phone_number','address','city','state','zip_code','daily_salary','start_date','end_date')
 
-class TupadBeneficiaryForm(forms.ModelForm):
-    class Meta:
-        model = TupadBeneficiary
-        fields = ('first_name','middle_name','last_name','email','phone_number','address','city','state','zip_code','daily_salary','start_date','end_date')
-
-class DisplacedInformalLaborProgramForm(forms.ModelForm):
-    class Meta:
-        model = DisplacedInformalLaborProgram
-        fields = ('first_name','middle_name','last_name','email','phone_number','address','city','state','zip_code','daily_salary','start_date','end_date')
-
-class SpecialProgramForEmploymentOfStudentsForm(forms.ModelForm):
-    class Meta:
-        model = SpecialProgramForEmploymentOfStudents
-        fields = ('first_name','middle_name','last_name','email','phone_number','address','city','state','zip_code','daily_salary','start_date','end_date')
