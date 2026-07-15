@@ -185,78 +185,20 @@ class OfferedJobs(models.Model):
     status = models.CharField(max_length = 20, choices = APPLICATION_STATUS, default = 'pending')
     remarks = models.TextField(null = True, blank = True)
 
-class GovernmentInternshipProgram(models.Model):
-
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
-    
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
-class TupadBeneficiary(models.Model):
-
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
+        return f"{self.applicant} {self.offered_job}"
     
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
-    
-class DisplacedInformalLaborProgram(models.Model):
+class SpecialProgramBeneficiaries(models.Model):
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
-    
+    SPECIAL_PROGRAM_CHOICES = (
+        ('TUPAD','TUPAD'),
+        ('Government_Internship_Program','government internship program'),
+        ('Special_Program_For_Employment_Of_Students','special program for employment of students'),
+        ('DisplacedInformalLaborProgram','DisplacedInformalLaborProgram'),
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
-
-class SpecialProgramForEmploymentOfStudents(models.Model):
+    )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable =False)
     first_name = models.CharField(max_length=100)
@@ -276,11 +218,13 @@ class SpecialProgramForEmploymentOfStudents(models.Model):
     daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
     start_date = models.DateField()
     end_date = models.DateField()
+    type_of_program = models.CharField(max_length=50,choices=SPECIAL_PROGRAM_CHOICES)
     is_done = models.BooleanField(default=False)
     
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.phone_number}"
+    
     
 
 class PESOActivities(models.Model):
