@@ -202,14 +202,12 @@ class SpecialProgramBeneficiaries(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable =False)
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100,blank=True,null=True)
     last_name = models.CharField(max_length=100)
     sex = models.CharField(max_length=10)
     date_of_birth = models.DateField()
     phone_number = models.CharField(max_length=20)
     email = models.EmailField(unique=True)
-    college_program = models.CharField(max_length=100)
-    school_name = models.CharField(max_length=100)
     barangay = models.CharField(max_length=100,)
     municipality = models.CharField(max_length=100,)
     province = models.CharField(max_length=100,)
@@ -223,7 +221,7 @@ class SpecialProgramBeneficiaries(models.Model):
     
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
+        return f"{self.first_name} {self.last_name} - {self.uuid}"
     
     
 
