@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
@@ -123,7 +124,6 @@ class ApplicantSkills(models.Model):
     skill_name = models.CharField(max_length=100)
     
 class ApplicantProfile(models.Model):
-
     CIVIL_STATUS_CHOICES = (
         ('single', 'Single'),
         ('married', 'Married'),
@@ -145,36 +145,61 @@ class ApplicantProfile(models.Model):
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     )
+    
+    SEX_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
 
-
-
-
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='applicant_profile')
+    applicant_sequence = models.IntegerField(unique=True, editable=False, null=True)
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
+    last_name = models.CharField(max_length=100) 
     date_of_birth = models.DateField()
-    age = models.PositiveIntegerField()
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
-    sex = models.CharField(max_length=10)
-    contact_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20)
     barangay = models.CharField(max_length=100)
     municipality = models.CharField(max_length=100)
     province = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
     region = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=20)
-    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
-    resume = models.FileField(upload_to='resumes/')
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/')
-    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/')
+    zip_code = models.CharField(max_length=10)
+
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
+    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    
     education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
+
+    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def age(self):
+        today = date.today()
+        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+
+    @property
+    def formatted_id(self):
+        """Returns the systematic string ID format padded with leading zeros (e.g., AP-0001)."""
+        if self.applicant_sequence:
+            # :04d ensures the number is always 4 digits wide, padding with zeros if necessary
+            return f"AP-{self.applicant_sequence:04d}"
+        return "AP-PENDING"
+
+    def save(self, *args, **kwargs):
+        """Overrides saving mechanisms to start sequencing at 1 instead of 1241."""
+        if not self.applicant_sequence:
+            max_id = ApplicantProfile.objects.aggregate(models.Max('applicant_sequence'))['applicant_sequence__max']
+            # System initializes sequence values beginning at 1 instead of 1241
+            self.applicant_sequence = (max_id + 1) if max_id else 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
@@ -216,104 +241,189 @@ class OfferedJobs(models.Model):
     status = models.CharField(max_length = 20, choices = APPLICATION_STATUS, default = 'pending')
     remarks = models.TextField(null = True, blank = True)
 
-class GovernmentInternshipProgram(models.Model):
+class Beneficiaries(models.Model):
+    """
+    Abstract base model containing fields shared by all program beneficiaries.
+    Prevents database schema redundancy.
+    """
+    SEX_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+    )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     date_of_birth = models.DateField()
     phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
+    
+    # Address details matching local configuration requirements
+    barangay = models.CharField(max_length=100)
+    municipality = models.CharField(max_length=100)
+    province = models.CharField(max_length=100)
+    region = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=10)
+    
+    # Employment tracking indicators requested by the Monitoring Report
+    daily_salary = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateField()
     end_date = models.DateField()
     is_done = models.BooleanField(default=False)
     
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class SpecialProgramForEmploymentOfStudents(Beneficiaries):
+    """
+    Maps to Report Section 2.1 (SPES Tracking).
+    Includes educational subdivisions required by the dashboard breakdown.
+    """
+    SPES_EDUCATION_CHOICES = (
+        ('elementary', 'Elementary'),
+        ('juniors_hs', 'Junior High School'),
+        ('senior_hs', 'Senior High School'),
+        ('college', 'College'),
+        ('tech_voc', 'Tech-Voc'),
+    )
+    
+    education_level = models.CharField(max_length=20, choices=SPES_EDUCATION_CHOICES)
+    is_out_of_school_youth = models.BooleanField(default=False) # Report field 2.1.1.2
+    has_graduated = models.BooleanField(default=False)          # Report field 2.1.2
+    has_nc_certification = models.BooleanField(default=False)   # Report field 2.1.3
+    is_absorbed_by_employer = models.BooleanField(default=False)# Report field 2.1.4
+    
+    school_name = models.CharField(max_length=100, blank=True, null=True)
+    college_program = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
-class TupadBeneficiary(models.Model):
+        return f"[SPES] {self.first_name} {self.last_name}"
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
+
+class GovernmentInternshipProgram(Beneficiaries):
+    """
+    Maps to Report Section 2.2 (GIP Tracking).
+    """
+    GIP_EDUCATION_CHOICES = (
+        ('als', 'Alternative Learning System'),
+        ('juniors_hs', 'Junior High School'),
+        ('senior_hs', 'Senior High School'),
+        ('tech_voc', 'Tech-Voc'),
+        ('college', 'College'),
+    )
     
+    education_level = models.CharField(max_length=20, choices=GIP_EDUCATION_CHOICES)
+    has_nc_certification = models.BooleanField(default=False)   # Report field 2.2.2
+    is_absorbed_by_agency = models.BooleanField(default=False)  # Report field 2.2.3
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
-    
-class DisplacedInformalLaborProgram(models.Model):
+        return f"[GIP] {self.first_name} {self.last_name}"
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
+
+class TupadBeneficiary(Beneficiaries):
+    """
+    Maps to Report Section 4.2 (TUPAD Emergency Employment Projects).
+    """
+    PROJECT_DURATION_CHOICES = (
+        ('short', 'Short-term (10-30 days)'), # Report field 4.2.1.1
+        ('long', 'Long-term (31-90 days)'),   # Report field 4.2.1.2
+    )
     
+    project_type = models.CharField(max_length=10, choices=PROJECT_DURATION_CHOICES, default='short')
+    project_name = models.CharField(max_length=150, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
+        return f"[TUPAD] {self.first_name} {self.last_name}"
 
-class SpecialProgramForEmploymentOfStudents(models.Model):
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable =False)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    sex = models.CharField(max_length=10)
-    date_of_birth = models.DateField()
-    phone_number = models.CharField(max_length=20)
-    email = models.EmailField(unique=True)
-    college_program = models.CharField(max_length=100)
-    school_name = models.CharField(max_length=100)
-    barangay = models.CharField(max_length=100,)
-    municipality = models.CharField(max_length=100,)
-    province = models.CharField(max_length=100,)
-    region = models.CharField(max_length=100,)
-    zip_code = models.CharField(max_length=10,)
-    daily_salary = models.DecimalField(max_digits=10, decimal_places=2,)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_done = models.BooleanField(default=False)
+class DisplacedInformalLaborProgram(Beneficiaries):
+    """
+    Maps to Report Section 4.1 (DILP Individual/Group Formation Projects).
+    """
+    DILP_PROJECT_CHOICES = (
+        ('individual', 'Individual Project'),
+        ('group', 'Group Project'),
+    )
     
+    CLASSIFICATION_CHOICES = (
+        ('formation', 'Formation Project'),
+        ('enhancement', 'Enhancement Project'),
+        ('restoration', 'Restoration Project'),
+    )
+    
+    project_category = models.CharField(max_length=15, choices=DILP_PROJECT_CHOICES, default='individual')
+    project_classification = models.CharField(max_length=15, choices=CLASSIFICATION_CHOICES, default='formation')
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.phone_number}"
-    
+        return f"[DILP] {self.first_name} {self.last_name}"
 
+class JobStartBeneficiary(Beneficiaries):  # <-- FIXED: Changed from models.Model to Beneficiaries
+    """
+    Tracks beneficiaries under the JobStart Philippines Program (Section 2.3).
+    Inherits all core demographic, address, salary, and timeline tracking fields 
+    from the abstract Beneficiaries base model.
+    """
+    PHASE_CHOICES = [
+        ('full_cycle', 'Full Cycle (LST + TST + Internship)'),
+        ('lst_only', 'Life Skills Training Only'),
+    ]
+    
+    STAGE_CHOICES = [
+        ('registered', 'Registered / Screened'),
+        ('lst_ongoing', 'Life Skills Training Ongoing'),
+        ('lst_completed', 'Life Skills Training Completed'),
+        ('tst_ongoing', 'Technical Skills Training Ongoing'),
+        ('tst_completed', 'Technical Skills Training Completed'),
+        ('internship', 'On Paid Internship'),
+    ]
+
+    # Unique JobStart operational lifecycle tracks
+    program_cycle_type = models.CharField(
+        max_length=20, 
+        choices=PHASE_CHOICES, 
+        default='full_cycle',
+        help_text="Indicates if the beneficiary takes the full track or LST component only."
+    )
+    current_phase = models.CharField(
+        max_length=20, 
+        choices=STAGE_CHOICES, 
+        default='registered'
+    )
+    
+    # Technical & Partner Matching Indicators
+    technical_training_course = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True, 
+        help_text="e.g., Contact Center Services NC II, Customer Service, Hospitality"
+    )
+    partner_employer = models.CharField(
+        max_length=150, 
+        blank=True, 
+        null=True, 
+        help_text="The private establishment hosting the technical training or internship phase."
+    )
+    
+    # Outcome / Placement Status
+    is_placed_or_employed = models.BooleanField(
+        default=False,
+        help_text="True if the participant secured wage employment during or immediately after the program."
+    )
+
+    class Meta:
+        verbose_name = "JobStart Participant"
+        verbose_name_plural = "JobStart Participants"
+        db_table = "peso_jobstart_beneficiaries"
+
+    def __str__(self):
+        # These fields now correctly resolve via structural inheritance
+        return f"{self.first_name} {self.last_name} - JobStart ({self.get_current_phase_display()})"
+    
 class PESOActivities(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable =False)

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicants Registry - CAPESONNECT{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- HEADER STATUS ROW -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Applicants Registry</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1">
+                <span class="text-slate-700 font-bold">{{ kpi.total|default:0 }} registered applicants</span> 
+                <span class="mx-1.5">•</span> 
+                <span class="text-amber-600 font-bold">{{ kpi.pending|default:0 }} pending approval</span>
+            </p>
+        </div>
+        <button onclick="toggleModal(true)" class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2.5 rounded-md flex items-center gap-2 shadow transition">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            Register Applicant
+        </button>
+    </div>
+
+    <!-- ALERT MESSAGING NOTIFICATIONS -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 text-xs rounded-xl bg-green-50 border border-green-200 text-green-800 shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- FILTER BAR & DATABASE GRID TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+            <div class="relative flex-1 min-w-[280px]">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+                </span>
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search by name, ID, preferred job..." 
+                       class="w-full bg-white pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#112954]">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <select name="gender" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                    <option value="All">All Genders</option>
+                    <option value="M" {% if current_gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if current_gender == 'F' %}selected{% endif %}>Female</option>
+                </select>
+
+                <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                    <option value="All">All Status</option>
+                    <option value="Pending" {% if current_status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Approved" {% if current_status == "Approved" %}selected{% endif %}>Verified</option>
+                    <option value="Rejected" {% if current_status == "Rejected" %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        <th class="py-3 px-4">ID</th>
+                        <th class="py-3 px-4">Applicant Name / Contact</th>
+                        <th class="py-3 px-4">Gender / Age</th>
+                        <th class="py-3 px-4">Education</th>
+                        <th class="py-3 px-4">Skills</th>
+                        <th class="py-3 px-4">Preferred Job</th>
+                        <th class="py-3 px-4 text-center">Status</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
+                    {% for applicant in applicants %}
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="py-4 px-4 font-bold text-blue-600 whitespace-nowrap">{{ applicant.formatted_id }}</td>
+                        
+                        <td class="py-4 px-4">
+                            <div class="font-bold text-slate-800 text-[13px] leading-tight mb-1">{{ applicant.first_name }} {{ applicant.last_name }}</div>
+                            <div class="flex flex-col space-y-0.5 text-[11px] text-slate-400 font-medium">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-phone text-[10px]"></i> {{ applicant.phone_number }}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-location-dot text-[10px] pl-0.5"></i> {{ applicant.municipality }}, {{ applicant.province }}
+                                </span>
+                            </div>
+                        </td>
+                        
+                        <td class="py-4 px-4">
+                            <div class="font-medium text-slate-700">{{ applicant.get_sex_display }}</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">{{ applicant.age }} yrs old</div>
+                        </td>
+                        <td class="py-4 px-4 font-medium text-slate-500">{{ applicant.get_education_level_display }}</td>
+                        
+                        <td class="py-4 px-4">
+                            <div class="flex flex-wrap gap-1 max-w-[180px]">
+                                {% for skill in applicant.skills.all|slice:":2" %}
+                                    <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded font-medium border border-slate-200">{{ skill.skill_name }}</span>
+                                {% empty %}
+                                    <span class="text-slate-400 italic">Unspecified</span>
+                                {% endfor %}
+                                {% if applicant.skills.count > 2 %}
+                                    <span class="text-slate-400 text-[10px] font-medium self-center pl-0.5">+{{ applicant.skills.count|add:"-2" }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <td class="py-4 px-4 font-medium text-slate-600">
+                            {% for job in applicant.preferred_job.all|slice:":1" %}
+                                {{ job.job_title }}
+                            {% empty %}
+                                <span class="text-slate-400 font-normal italic">Open to Any</span>
+                            {% endfor %}
+                        </td>
+                        
+                        <td class="py-4 px-4 text-center">
+                            {% if applicant.status == 'approved' %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700">Verified</span>
+                            {% elif applicant.status == 'pending' %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">Pending</span>
+                            {% else %}
+                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500">Rejected</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="py-4 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            {% if applicant.status == 'pending' %}
+                                <form method="POST" action="" class="inline-block">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="applicant_uuid" value="{{ applicant.uuid }}">
+                                    <button type="submit" name="status" value="approved" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-extrabold px-3 py-1 rounded transition">Approve</button>
+                                </form>
+                            {% endif %}
+                            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1 rounded transition">View</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No matching applicant records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-400 font-mono">
+            Showing {{ applicants|length }} of {{ kpi.total|default:0 }} entries
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ADD FORM -->
+<div id="vacancyModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200">
+        <div class="px-6 py-4 bg-[#112954] text-white flex items-center justify-between">
+            <h3 class="font-bold text-sm">Register New Applicant</h3>
+            <button onclick="toggleModal(false)" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form method="POST" action="" class="p-6 space-y-4 text-xs">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">First Name</label>
+                    <input type="text" name="first_name" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Last Name</label>
+                    <input type="text" name="last_name" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Gender</label>
+                    <select name="sex" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Age</label>
+                    <input type="number" name="age" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Municipality</label>
+                    <input type="text" name="municipality" value="Manila" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Province</label>
+                    <input type="text" name="province" value="Metro Manila" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                </div>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-600 mb-1">Contact Number</label>
+                <input type="text" name="phone_number" placeholder="09XXXXXXXXX" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+            </div>
+            <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <button type="button" onclick="toggleModal(false)" class="px-4 py-2 bg-slate-100 rounded-lg font-bold">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-[#112954] text-white rounded-lg font-bold">Save Registration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleModal(show) {
+        document.getElementById('vacancyModal').classList.toggle('hidden', !show);
+    }
+</script>
+{% endblock %}

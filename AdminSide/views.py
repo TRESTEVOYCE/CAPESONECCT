@@ -2,14 +2,14 @@ import calendar
 import json
 from datetime import datetime, timedelta
 
-from django.db.models import Count, Q
-from django.shortcuts import render, redirect
+from django.db.models import Count, Q, OuterRef, Subquery
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 
-from .models import ApplicantProfile, AppliedJobs, EmployerProfile, Jobs
-
+from .models import ApplicantProfile, AppliedJobs, EmployerProfile, Jobs, OfferedJobs, SpecialProgramForEmploymentOfStudents, GovernmentInternshipProgram, TupadBeneficiary, DisplacedInformalLaborProgram, JobStartBeneficiary
 
 class DashboardView(TemplateView):
     template_name = 'dashboard.html'
@@ -176,3 +176,311 @@ class JobPostingsListView(View):
             job_posting_expiry=expiry_date
         )
         return redirect('job_postings_list')
+    
+class ApplicantListView(ListView):
+    model = ApplicantProfile
+    template_name = 'applicant_list.html'
+    context_object_name = 'applicants'
+
+    def get_queryset(self):
+        # 1. Capture user inputs from searchbars and dropdown select controls
+        self.search_query = self.request.GET.get('search', '').strip()
+        self.status_filter = self.request.GET.get('status', 'All').strip()
+        self.gender_filter = self.request.GET.get('gender', 'All').strip()
+
+        # 2. Optimize DB relational fetching
+        queryset = ApplicantProfile.objects.select_related('user').prefetch_related('skills', 'preferred_job')
+
+        # 3. Handle live keyword filtering (Name, Education, or Sequential Padded ID numbers)
+        if self.search_query:
+            # Strip "AP-" prefix if typed into searchbar to find raw sequence integers
+            clean_search = self.search_query.lower().replace('ap-', '')
+            id_query = Q()
+            if clean_search.isdigit():
+                id_query = Q(applicant_sequence=int(clean_search))
+
+            queryset = queryset.filter(
+                Q(first_name__icontains=self.search_query) |
+                Q(last_name__icontains=self.search_query) |
+                Q(education_level__icontains=self.search_query) |
+                id_query
+            )
+
+        # 4. Handle state filter parameters
+        if self.status_filter != 'All':
+            queryset = queryset.filter(status=self.status_filter.lower())
+
+        # 5. Handle gender filter parameters
+        if self.gender_filter != 'All':
+            queryset = queryset.filter(sex=self.gender_filter)
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate summary banner numbers using aggregate rules matching your UI layout
+        kpi_stats = ApplicantProfile.objects.aggregate(
+            total=Count('uuid'),
+            female=Count('uuid', filter=Q(sex='F')),
+            verified=Count('uuid', filter=Q(status='approved')),
+            pending=Count('uuid', filter=Q(status='pending'))
+        )
+
+        # Keep state parameters sticky in frontend elements
+        context['kpi'] = kpi_stats
+        context['search_query'] = self.search_query
+        context['current_status'] = self.status_filter
+        context['current_gender'] = self.gender_filter
+        return context
+
+    def post(self, request, *args, **kwargs):
+        applicant_uuid = request.POST.get('applicant_uuid')
+        new_status = request.POST.get('status')
+        
+        if new_status in ['approved', 'rejected']:
+            applicant = get_object_or_404(ApplicantProfile, uuid=applicant_uuid)
+            applicant.status = new_status
+            applicant.save()
+            messages.success(request, f"Application for {applicant.first_name} has been verified successfully.")
+            
+        return redirect('applicant_registry')
+    
+class EmployerListView(ListView):
+    model = EmployerProfile
+    template_name = 'employer_list.html'
+    context_object_name = 'employers'
+
+    def post(self, request, *args, **kwargs):
+        """Handles inline admin verification status updates via POST."""
+        employer_id = request.POST.get('employer_id')
+        action = request.POST.get('action')
+        
+        if employer_id and action == 'approve':
+            employer = get_object_or_404(EmployerProfile, id=employer_id)
+            employer.verification_status = 'Approved'  # Matches your model's 'verification_status' field
+            employer.save()
+            messages.success(request, f"{employer.company_name} has been verified successfully.")
+            
+        return redirect('employers:registry')
+
+    def get_queryset(self):
+        active_jobs_subquery = Jobs.objects.filter(
+            employer=OuterRef('pk'),
+            status='Active'  # Adjust if your choice token is lowercase like 'active'
+        ).values('employer').annotate(count=Count('id')).values('count')
+
+        hired_applied_subquery = AppliedJobs.objects.filter(
+            applied_job__employer=OuterRef('pk'),
+            status='hired'
+        ).values('applied_job__employer').annotate(count=Count('id')).values('count')
+
+        hired_offered_subquery = OfferedJobs.objects.filter(
+            offered_job__employer=OuterRef('pk'),
+            status='hired'
+        ).values('offered_job__employer').annotate(count=Count('id')).values('count')
+
+        queryset = EmployerProfile.objects.annotate(
+            active_posts_count=Subquery(active_jobs_subquery),
+            hired_applied_count=Subquery(hired_applied_subquery),
+            hired_offered_count=Subquery(hired_offered_subquery)
+        ).order_by('-id')
+
+        self.search_query = self.request.GET.get('search', '').strip()
+        self.selected_status = self.request.GET.get('status', 'All')
+
+        if self.search_query:
+            queryset = queryset.filter(
+                Q(company_name__icontains=self.search_query) |
+                Q(company_address__icontains=self.search_query)
+            )
+
+        if self.selected_status != 'All':
+            queryset = queryset.filter(verification_status=self.selected_status)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        kpi_counts = EmployerProfile.objects.aggregate(
+            approved_count=Count('id', filter=Q(verification_status='Approved')),
+            pending_count=Count('id', filter=Q(verification_status='Pending'))
+        )
+
+        for employer in context['employers']:
+            applied = employer.hired_applied_count or 0
+            offered = employer.hired_offered_count or 0
+            employer.total_hired_count = applied + offered
+
+        context.update({
+            'search_query': self.search_query,
+            'selected_status': self.selected_status,
+            'total_approved': kpi_counts['approved_count'] or 0,
+            'total_pending': kpi_counts['pending_count'] or 0,
+            'total_results': self.get_queryset().count(),
+        })
+        return context
+    
+class ReferralListView(ListView):
+    model = OfferedJobs
+    template_name = 'referrals_list.html'
+    context_object_name = 'referrals'
+
+    def get_queryset(self):
+        # Optimizing foreign key lookups based on your schema fields
+        queryset = OfferedJobs.objects.select_related(
+            'applicant', 
+            'offered_job', 
+            'offered_job__employer'
+        ).order_by('-date_offered')
+
+        # Capture filtering text and quick-tab strings
+        self.search_query = self.request.GET.get('search', '').strip()
+        self.selected_status = self.request.GET.get('status', 'All')
+
+        # Global Multi-Field Text Search
+        if self.search_query:
+            queryset = queryset.filter(
+                Q(applicant__first_name__icontains=self.search_query) |
+                Q(applicant__last_name__icontains=self.search_query) |
+                Q(offered_job__job_title__icontains=self.search_query) |
+                Q(offered_job__employer__company_name__icontains=self.search_query)
+            )
+
+        # Apply specific status tab matching your model's APPLICATION_STATUS choices
+        if self.selected_status != 'All':
+            queryset = queryset.filter(status=self.selected_status)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Calculate metric pill counters dynamically using your model choices
+        kpis = OfferedJobs.objects.aggregate(
+            total=Count('id'),
+            female=Count('id', filter=Q(applicant__sex='F')),  # Assumes 'sex' field exists on ApplicantProfile
+            pending=Count('id', filter=Q(status='pending')),
+            reviewed=Count('id', filter=Q(status='reviewed')),
+            interview=Count('id', filter=Q(status='for interview')),
+            hired=Count('id', filter=Q(status='hired')),
+            rejected=Count('id', filter=Q(status='rejected')),
+        )
+
+        context.update({
+            'search_query': self.search_query,
+            'selected_status': self.selected_status,
+            'kpis': kpis,
+            'total_results': self.get_queryset().count()
+        })
+        return context
+    
+class SpecialProgramsListView(ListView):
+    template_name = 'special_program.html'
+    context_object_name = 'beneficiaries'
+
+    def get_queryset(self):
+        self.active_program = self.request.GET.get('program', 'spes').lower()
+        self.search_query = self.request.GET.get('search', '').strip()
+
+        # Route baseline queryset across the 5 sub-models
+        if self.active_program == 'gip':
+            queryset = GovernmentInternshipProgram.objects.all().order_by('-created_at')
+        elif self.active_program == 'tupad':
+            queryset = TupadBeneficiary.objects.all().order_by('-created_at')
+        elif self.active_program == 'dilp':
+            queryset = DisplacedInformalLaborProgram.objects.all().order_by('-created_at')
+        elif self.active_program == 'jobstart':
+            queryset = JobStartBeneficiary.objects.all().order_by('-created_at')
+        else:
+            self.active_program = 'spes'
+            queryset = SpecialProgramForEmploymentOfStudents.objects.all().order_by('-created_at')
+
+        # Global Text Search Filter
+        if self.search_query:
+            queryset = queryset.filter(
+                Q(first_name__icontains=self.search_query) |
+                Q(last_name__icontains=self.search_query) |
+                Q(barangay__icontains=self.search_query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 1. Global registry indicators
+        global_program_counts = {
+            'spes_count': SpecialProgramForEmploymentOfStudents.objects.count(),
+            'gip_count': GovernmentInternshipProgram.objects.count(),
+            'tupad_count': TupadBeneficiary.objects.count(),
+            'dilp_count': DisplacedInformalLaborProgram.objects.count(),
+            'jobstart_count': JobStartBeneficiary.objects.count(),
+        }
+
+        # 2. Compute program-specific KPI blocks (Stripped of female-sub-breakdowns)
+        program_kpis = {}
+        if self.active_program == 'spes':
+            program_kpis = SpecialProgramForEmploymentOfStudents.objects.aggregate(
+                total=Count('uuid'),
+                female=Count('uuid', filter=Q(sex='F')),
+                graduated=Count('uuid', filter=Q(has_graduated=True)),
+                nc=Count('uuid', filter=Q(has_nc_certification=True)),
+                absorbed=Count('uuid', filter=Q(is_absorbed_by_employer=True)),
+                elem=Count('uuid', filter=Q(education_level='elementary')),
+                jhs=Count('uuid', filter=Q(education_level='juniors_hs')),
+                shs=Count('uuid', filter=Q(education_level='senior_hs')),
+                college=Count('uuid', filter=Q(education_level='college')),
+                techvoc=Count('uuid', filter=Q(education_level='tech_voc')),
+                oosy=Count('uuid', filter=Q(is_out_of_school_youth=True))
+            )
+        elif self.active_program == 'gip':
+            program_kpis = GovernmentInternshipProgram.objects.aggregate(
+                total=Count('uuid'),
+                female=Count('uuid', filter=Q(sex='F')),
+                nc=Count('uuid', filter=Q(has_nc_certification=True)),
+                absorbed=Count('uuid', filter=Q(is_absorbed_by_agency=True)),
+                als=Count('uuid', filter=Q(education_level='als')),
+                jhs=Count('uuid', filter=Q(education_level='juniors_hs')),
+                shs=Count('uuid', filter=Q(education_level='senior_hs')),
+                techvoc=Count('uuid', filter=Q(education_level='tech_voc')),
+                college=Count('uuid', filter=Q(education_level='college'))
+            )
+        elif self.active_program == 'tupad':
+            program_kpis = TupadBeneficiary.objects.aggregate(
+                total=Count('uuid'),
+                female=Count('uuid', filter=Q(sex='F')),
+                short_term=Count('uuid', filter=Q(project_type='short')),
+                long_term=Count('uuid', filter=Q(project_type='long'))
+            )
+        elif self.active_program == 'dilp':
+            program_kpis = DisplacedInformalLaborProgram.objects.aggregate(
+                total=Count('uuid'),
+                female=Count('uuid', filter=Q(sex='F')),
+                individual=Count('uuid', filter=Q(project_category='individual')),
+                group=Count('uuid', filter=Q(project_category='group'))
+            )
+        elif self.active_program == 'jobstart':
+            program_kpis = JobStartBeneficiary.objects.aggregate(
+                total=Count('uuid'),
+                female=Count('uuid', filter=Q(sex='F')),
+                lst_completed=Count('uuid', filter=Q(current_phase='lst_completed')),
+                tst_completed=Count('uuid', filter=Q(current_phase='tst_completed')),
+                internship=Count('uuid', filter=Q(current_phase='internship')),
+                employed=Count('uuid', filter=Q(is_placed_or_employed=True))
+            )
+
+        # 3. Dynamic age parsing
+        current_year = timezone.now().year
+        beneficiaries_list = list(context['beneficiaries'])
+        for b in beneficiaries_list:
+            b.computed_age = current_year - b.date_of_birth.year if b.date_of_birth else "--"
+
+        context.update({
+            'active_program': self.active_program,
+            'search_query': self.search_query,
+            'globals': global_program_counts,
+            'kpis': program_kpis,
+            'beneficiaries': beneficiaries_list
+        })
+        return context
