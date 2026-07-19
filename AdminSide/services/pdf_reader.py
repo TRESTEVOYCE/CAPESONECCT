@@ -10,7 +10,6 @@ def extract_pdf_text(pdf_file):
         extracted_text = page.extract_text()
 
         if extracted_text:
-            text += extracted_text + "/n"
+            text += extracted_text + "\n"
 
     return text
-
