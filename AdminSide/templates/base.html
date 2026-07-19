@@ -91,10 +91,10 @@
                 <span>Special Programs</span>
             </a>
 
-            <a href="#" 
+            <a href="{% url 'AdminSide:peso_monthly_report' %}" 
                class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'reports' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-chart-line w-4 {% if request.resolver_match.url_name == 'reports' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
+               {% if request.resolver_match.url_name == 'peso_monthly_report' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
+                <i class="fa-solid fa-chart-line w-4 {% if request.resolver_match.url_name == 'peso_monthly_report' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
                 <span>Reports</span>
             </a>
 

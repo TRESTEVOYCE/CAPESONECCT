@@ -1,15 +1,15 @@
 import calendar
 import json
 from datetime import datetime, timedelta
-
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView, ListView
-
 from .models import ApplicantProfile, AppliedJobs, EmployerProfile, Jobs, OfferedJobs, SpecialProgramForEmploymentOfStudents, GovernmentInternshipProgram, TupadBeneficiary, DisplacedInformalLaborProgram, JobStartBeneficiary
+from .service import generate_complete_peso_matrix
 
 class DashboardView(TemplateView):
     template_name = 'dashboard.html'
@@ -484,3 +484,87 @@ class SpecialProgramsListView(ListView):
             'beneficiaries': beneficiaries_list
         })
         return context
+    
+class PesoMonthlyReportView(View):
+    template_name = 'report.html'
+
+    # 1. PLACE THE DICTIONARY HERE AS A CLASS CONSTANT
+    MONTH_NAMES = {
+        "1": "January", "2": "February", "3": "March", "4": "April",
+        "5": "May", "6": "June", "7": "July", "8": "August",
+        "9": "September", "10": "October", "11": "November", "12": "December"
+    }
+
+    def _get_zero_matrix(self):
+        return {
+            'vacancies_posted_total': 0, 'hired_private_total': 0, 'hired_private_female': 0,
+            'fairs_conducted': 0, 'hots_total': 0, 'spes_elem': 0, 'spes_college': 0,
+            'gip_total': 0, 'gip_female': 0, 'lmi_youth_total': 0, 'lmi_youth_female': 0,
+            'child_labor_total': 0, 'child_labor_referred': 0, 'pop_projected': 0, 
+            'lfpr': '0.0%', 'employment_rate': '0.0%'
+        }
+
+    def get(self, request, *args, **kwargs):
+        month = request.GET.get('month', '')
+        
+        context = {
+            'matrix_visible': False,
+            'selected_province': 'Leyte',
+            'selected_municipality': '',
+            'selected_month': month,
+            # 2. REFER TO IT USING self.MONTH_NAMES HERE
+            'selected_month_name': self.MONTH_NAMES.get(month, ''),
+            'selected_year': '',
+            'metrics': self._get_zero_matrix(),
+            'issues_concerns': ''
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        municipality = request.POST.get('municipality', '').strip()
+        month = request.POST.get('month', '').strip()
+        year = request.POST.get('year', '').strip()
+
+        matrix_visible = False
+        metrics = self._get_zero_matrix()
+
+        if 'action_generate' in request.POST:
+            if not municipality or not month or not year:
+                messages.error(request, "Please fill out the Municipality, Month, and Year.")
+            else:
+                try:
+                    system_data = generate_complete_peso_matrix(int(year), int(month))
+                    metrics.update(system_data)
+                except Exception:
+                    pass
+                matrix_visible = True
+                messages.success(request, f"Generated parameters for {municipality}.")
+
+        elif 'action_save' in request.POST:
+            matrix_visible = True
+            try:
+                metrics['vacancies_posted_total'] = int(request.POST.get('vacancies_posted_total', 0))
+                metrics['hired_private_total'] = int(request.POST.get('hired_private_total', 0))
+                metrics['hired_private_female'] = int(request.POST.get('hired_private_female', 0))
+                metrics['child_labor_total'] = int(request.POST.get('child_labor_total', 0))
+                
+                if metrics['hired_private_female'] > metrics['hired_private_total']:
+                    messages.error(request, "Female placements cannot exceed total volumes.")
+                else:
+                    messages.success(request, "Report matrix data successfully verified.")
+            except ValueError:
+                messages.error(request, "Please ensure all manual inputs contain valid integers.")
+
+        context = {
+            'matrix_visible': matrix_visible,
+            'selected_province': 'Leyte',
+            'selected_municipality': municipality,
+            'selected_month': month,
+            # 3. REFER TO IT USING self.MONTH_NAMES HERE AS WELL
+            'selected_month_name': self.MONTH_NAMES.get(month, ''),
+            'selected_year': year,
+            'metrics': metrics,
+            'issues_concerns': request.POST.get('issues_concerns', '').strip()
+        }
+        return render(request, self.template_name, context)
+    

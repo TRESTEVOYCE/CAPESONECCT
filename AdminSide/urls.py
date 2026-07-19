@@ -1,6 +1,6 @@
 # capes_admin/urls.py
 from django.urls import path
-from .views import DashboardView, JobPostingsListView, ApplicantListView, EmployerListView, ReferralListView, SpecialProgramsListView
+from .views import DashboardView, JobPostingsListView, ApplicantListView, EmployerListView, ReferralListView, SpecialProgramsListView, PesoMonthlyReportView
 
 app_name = 'AdminSide'
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('employers/', EmployerListView.as_view(), name='employer_list'),
     path('referrals/', ReferralListView.as_view(), name='referrals_list'),
     path('special-programs/', SpecialProgramsListView.as_view(), name='special_programs_list'),
+    path('reports/', PesoMonthlyReportView.as_view(), name='peso_monthly_report')
 ]
