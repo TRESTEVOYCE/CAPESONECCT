@@ -4,18 +4,28 @@
 <div class="max-w-7xl mx-auto space-y-6">
     
     <!-- PAGE TITLE HEADER -->
-    <div>
-        <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-0.5">Special Programs</h1>
-        <p class="text-xs font-semibold text-slate-500 mt-0.5">Beneficiary management — data feeds directly into the PESO Monitoring Report</p>
+    <div class="flex items-center justify-between">
+        <!-- LEFT SIDE: HEADER TEXT -->
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-0.5">Special Programs</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-0.5">Beneficiary management — data feeds directly into the PESO Monitoring Report</p>
+        </div>
+
+        <!-- RIGHT SIDE: ADD / ENROLL BENEFICIARY BUTTON -->
+        <a href="{% url 'AdminSide:enroll_beneficiary' %}?program={{ active_program }}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            <span>Add Beneficiary</span>
+        </a>    
     </div>
 
-<!-- ==================== MAIN INTERACTIVE METRIC CARDS NAVIGATION (5 COLUMNS) ==================== -->
+    <!-- ==================== MAIN INTERACTIVE METRIC CARDS NAVIGATION (5 COLUMNS) ==================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         <!-- SPES CARD BUTTON -->
         <a href="?program=spes" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'spes' %}border-purple-500 ring-2 ring-purple-100 shadow-sm{% else %}border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
             <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'spes' %}bg-purple-100 text-purple-600{% else %}bg-purple-50 text-purple-500{% endif %}">
-                <!-- Group/Applicants Icon -->
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
             <div>
@@ -28,7 +38,6 @@
         <!-- GIP CARD BUTTON -->
         <a href="?program=gip" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'gip' %}border-blue-600 ring-2 ring-blue-100 shadow-sm{% else %}border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
             <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'gip' %}bg-blue-100 text-blue-700{% else %}bg-blue-50 text-blue-600{% endif %}">
-                <!-- Office/Briefcase Icon -->
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <div>
@@ -38,23 +47,21 @@
             </div>
         </a>
 
-        <!-- JOBSTART CARD BUTTON -->
-        <a href="?program=jobstart" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'jobstart' %}border-indigo-600 ring-2 ring-indigo-100 shadow-sm{% else %}border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'jobstart' %}bg-indigo-100 text-indigo-600{% else %}bg-indigo-50 text-indigo-500{% endif %}">
-                <!-- Suitcase/Postings Icon -->
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <!-- CAREER GUIDANCE CARD BUTTON -->
+        <a href="?program=career_guidance" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'career_guidance' or active_program == 'careerguidance' %}border-teal-600 ring-2 ring-teal-100 shadow-sm{% else %}border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'career_guidance' or active_program == 'careerguidance' %}bg-teal-100 text-teal-600{% else %}bg-teal-50 text-teal-500{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
             </div>
             <div>
-                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">JobStart</span>
-                <div class="text-xl font-extrabold text-slate-800 leading-tight mt-0.5">{{ globals.jobstart_count|default:0 }}</div>
-                <span class="text-[10px] font-medium text-slate-400 block mt-0.5">{% if active_program == 'jobstart' %}{% else %}View dataset{% endif %}</span>
+                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Career Guidance</span>
+                <div class="text-xl font-extrabold text-slate-800 leading-tight mt-0.5">{{ globals.career_guidance_count|default:0 }}</div>
+                <span class="text-[10px] font-medium text-slate-400 block mt-0.5">{% if active_program == 'career_guidance' or active_program == 'careerguidance' %}{% else %}View dataset{% endif %}</span>
             </div>
         </a>
 
         <!-- TUPAD CARD BUTTON -->
         <a href="?program=tupad" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'tupad' %}border-amber-600 ring-2 ring-amber-100 shadow-sm{% else %}bg-white text-slate-600 border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
             <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'tupad' %}bg-amber-100 text-amber-700{% else %}bg-amber-50 text-amber-600{% endif %}">
-                <!-- Trend/Referrals Icon -->
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
             </div>
             <div>
@@ -67,7 +74,6 @@
         <!-- DILP CARD BUTTON -->
         <a href="?program=dilp" class="bg-white border rounded-xl p-4 flex items-center gap-4 transition text-left {% if active_program == 'dilp' %}border-emerald-600 ring-2 ring-emerald-100 shadow-sm{% else %}border-slate-200 hover:bg-slate-50/60 hover:border-slate-300{% endif %}">
             <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 {% if active_program == 'dilp' %}bg-emerald-100 text-emerald-700{% else %}bg-emerald-50 text-emerald-600{% endif %}">
-                <!-- Verified/Placement Icon -->
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
@@ -78,69 +84,96 @@
         </a>
 
     </div>
+
     <!-- SUB-BANNER INFO SEGMENT -->
-    <div class="p-4 rounded-xl border flex justify-between items-center {% if active_program == 'spes' %}bg-purple-50/50 border-purple-100 text-purple-900{% elif active_program == 'gip' %}bg-blue-50/50 border-blue-100 text-blue-900{% elif active_program == 'jobstart' %}bg-indigo-50/50 border-indigo-100 text-indigo-900{% elif active_program == 'tupad' %}bg-amber-50/50 border-amber-100 text-amber-900{% else %}bg-emerald-50/50 border-emerald-100 text-emerald-900{% endif %}">
+    <div class="p-4 rounded-xl border flex justify-between items-center {% if active_program == 'spes' %}bg-purple-50/50 border-purple-100 text-purple-900{% elif active_program == 'gip' %}bg-blue-50/50 border-blue-100 text-blue-900{% elif active_program == 'career_guidance' or active_program == 'careerguidance' %}bg-teal-50/50 border-teal-100 text-teal-900{% elif active_program == 'tupad' %}bg-amber-50/50 border-amber-100 text-amber-900{% else %}bg-emerald-50/50 border-emerald-100 text-emerald-900{% endif %}">
         <div>
             <h4 class="text-sm font-bold uppercase tracking-wide">
                 {% if active_program == 'spes' %}Special Program for Employment of Students (SPES)
                 {% elif active_program == 'gip' %}Government Internship Program (GIP)
-                {% elif active_program == 'jobstart' %}JobStart Philippines Program
+                {% elif active_program == 'career_guidance' or active_program == 'careerguidance' %}Career Guidance & Employment Coaching Program
                 {% elif active_program == 'tupad' %}Tulong Panghanapbuhay sa Ating Disadvantaged/Displaced Workers (TUPAD)
                 {% else %}DOLE Integrated Livelihood Program (DILP){% endif %}
             </h4>
             <p class="text-xs opacity-75 mt-0.5">
                 {% if active_program == 'spes' %}Provides short-term employment to underprivileged students to support education persistence.
                 {% elif active_program == 'gip' %}Offers tertiary education graduates opportunity to demonstrate talents in government service offices.
-                {% elif active_program == 'jobstart' %}Enhances employability of at-risk youth through life skills training, technical training, and paid internships.
+                {% elif active_program == 'career_guidance' or active_program == 'careerguidance' %}Provides labor market orientation, career advocacy, and employment coaching to students and jobseekers.
                 {% elif active_program == 'tupad' %}Community-based package of assistance providing emergency work for displaced workers.
                 {% else %}Assistance for individual or group livelihood project formation, enhancement, or restoration.{% endif %}
             </p>
         </div>
     </div>
 
-    <!-- ==================== DYNAMIC PROGRAM STATS SECTION (Cleaned Subcategories) ==================== -->
-    {% if active_program == 'spes' %}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">YOUTH PLACED </span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.total|default:0 }} <span class="text-xs font-bold text-slate-400 font-mono ml-2">{{ kpis.female|default:0 }} F</span></div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">GRADUATED </span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.graduated|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">WITH NC CERTIFICATION </span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.nc|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">ABSORBED </span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.absorbed|default:0 }}</div></div>
-    </div>
-    {% elif active_program == 'gip' %}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">YOUTH PLACED</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.total|default:0 }} <span class="text-xs font-bold text-slate-400 font-mono ml-2">{{ kpis.female|default:0 }} F</span></div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">GIP GRADUATES WITH NCS</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.nc|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">ABSORBED INTERNS</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.absorbed|default:0 }}</div></div>
-    </div>
-    {% elif active_program == 'jobstart' %}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">TOTAL REGISTRANTS</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.total|default:0 }} <span class="text-xs font-bold text-slate-400 font-mono ml-2">{{ kpis.female|default:0 }} F</span></div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">LST GRADUATES</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.lst_completed|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">TST / INTERNSHIP</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.internship|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">PLACED IN EMPLOYMENT</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.employed|default:0 }}</div></div>
-    </div>
-    {% elif active_program == 'tupad' %}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">EMERGENCY EMPLOYMENT</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.total|default:0 }} <span class="text-xs font-bold text-slate-400 font-mono ml-2">{{ kpis.female|default:0 }} F</span></div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">SHORT-TERM</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.short_term|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">LONG-TERM</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.long_term|default:0 }}</div></div>
-    </div>
-    {% elif active_program == 'dilp' %}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">TOTAL WORKERS </span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.total|default:0 }} <span class="text-xs font-bold text-slate-400 font-mono ml-2">{{ kpis.female|default:0 }} F</span></div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">INDIVIDUAL PROJECT</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.individual|default:0 }}</div></div>
-        <div class="bg-white border rounded-xl p-4 shadow-sm"><span class="text-[10px] font-bold text-slate-400 block uppercase">GROUP PROJECT</span><div class="text-2xl font-black text-slate-800 mt-1">{{ kpis.group|default:0 }}</div></div>
-    </div>
-    {% endif %}
-
     <!-- ==================== REGISTRY DATA TABLE ==================== -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <form method="GET" class="p-4 bg-slate-50/60 border-b flex gap-4 items-center">
+        
+        <!-- SEARCH & ACTION TOOLBAR -->
+        <form method="GET" class="p-4 bg-slate-50/60 border-b space-y-3">
+            <!-- Preserve active program context -->
             <input type="hidden" name="program" value="{{ active_program }}">
-            <div class="relative w-full">
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search registry..." class="w-full pl-4 pr-4 py-2 border rounded-lg text-xs focus:outline-none bg-white">
+
+            <div class="flex flex-wrap lg:flex-nowrap gap-3 items-center">
+                
+                <!-- TEXT SEARCH INPUT -->
+                <div class="relative flex-1 min-w-[220px]">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                    </svg>
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search by name or record ID..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none bg-white">
+                </div>
+
+                <!-- GENDER / SEX FILTER (Applies to all programs) -->
+                <select name="sex" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer">
+                    <option value="">All Sex / Gender</option>
+                    <option value="M" {% if request.GET.sex == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if request.GET.sex == 'F' %}selected{% endif %}>Female</option>
+                </select>
+
+                <!-- NC CERTIFICATION FILTER (SPES & GIP) -->
+                {% if active_program == 'spes' or active_program == 'gip' %}
+                <select name="has_nc" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer">
+                    <option value="">NC Cert: All</option>
+                    <option value="1" {% if request.GET.has_nc == '1' %}selected{% endif %}>With NC Certification</option>
+                    <option value="0" {% if request.GET.has_nc == '0' %}selected{% endif %}>No NC Certification</option>
+                </select>
+                {% endif %}
+
+                <!-- GRADUATION FILTER (SPES) -->
+                {% if active_program == 'spes' %}
+                <select name="graduated" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer">
+                    <option value="">Graduation: All</option>
+                    <option value="1" {% if request.GET.graduated == '1' %}selected{% endif %}>Graduated</option>
+                    <option value="0" {% if request.GET.graduated == '0' %}selected{% endif %}>Undergraduate</option>
+                </select>
+                {% endif %}
+
+                <!-- ABSORBED FILTER (SPES & GIP) -->
+                {% if active_program == 'spes' or active_program == 'gip' %}
+                <select name="absorbed" class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none cursor-pointer">
+                    <option value="">Absorbed Status: All</option>
+                    <option value="1" {% if request.GET.absorbed == '1' %}selected{% endif %}>Absorbed</option>
+                    <option value="0" {% if request.GET.absorbed == '0' %}selected{% endif %}>Not Absorbed</option>
+                </select>
+                {% endif %}
+
+                <!-- ACTION BUTTONS -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="submit" class="bg-[#112954] hover:bg-[#1a3870] text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"/>
+                        </svg>
+                        <span>Filter</span>
+                    </button>
+
+                    {% if request.GET.search or request.GET.sex or request.GET.has_nc or request.GET.graduated or request.GET.absorbed %}
+                    <a href="?program={{ active_program }}" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3 py-2 rounded-lg transition" title="Reset Filters">
+                        Reset
+                    </a>
+                    {% endif %}
+                </div>
+
             </div>
-            <button type="submit" class="bg-[#112954] text-white text-xs font-bold px-4 py-2 rounded-lg transition shrink-0">Filter</button>
         </form>
 
         <div class="overflow-x-auto">
@@ -161,10 +194,12 @@
                             <th class="py-3 px-4">Educ Level</th>
                             <th class="py-3 px-4 text-center">NC Cert</th>
                             <th class="py-3 px-4 text-center">Absorbed</th>
-                        {% elif active_program == 'jobstart' %}
-                            <th class="py-3 px-4">Current Phase</th>
-                            <th class="py-3 px-4">Partner Establishment</th>
-                            <th class="py-3 px-4 text-center">Employed</th>
+                        {% elif active_program == 'career_guidance' or active_program == 'careerguidance' %}
+                            <th class="py-3 px-4">Participant Category</th>
+                            <th class="py-3 px-4">Activity Type</th>
+                            <th class="py-3 px-4">Institution / Venue</th>
+                            <th class="py-3 px-4">Curriculum Exit</th>
+                            <th class="py-3 px-4 text-center">LMI Kit</th>
                         {% elif active_program == 'tupad' %}
                             <th class="py-3 px-4">Term Category</th>
                             <th class="py-3 px-4">Project Name</th>
@@ -174,6 +209,7 @@
                         {% endif %}
 
                         <th class="py-3 px-4 text-center">Status</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
@@ -196,10 +232,18 @@
                             <td class="py-4 px-4 uppercase font-semibold text-[11px]">{{ item.get_education_level_display }}</td>
                             <td class="py-4 px-4 text-center">{% if item.has_nc_certification %}<span class="text-green-600 font-bold">✓</span>{% else %}—{% endif %}</td>
                             <td class="py-4 px-4 text-center">{% if item.is_absorbed_by_agency %}<span class="text-green-600 font-bold">✓</span>{% else %}—{% endif %}</td>
-                        {% elif active_program == 'jobstart' %}
-                            <td class="py-4 px-4 font-semibold text-indigo-700 uppercase text-[10px]">{{ item.get_current_phase_display }}</td>
-                            <td class="py-4 px-4 text-slate-700 font-medium">{{ item.partner_employer|default:"None Attached" }}</td>
-                            <td class="py-4 px-4 text-center">{% if item.is_placed_or_employed %}<span class="px-2 py-0.5 font-bold rounded bg-green-100 text-green-700">Employed</span>{% else %}<span class="text-slate-300">—</span>{% endif %}</td>
+                        {% elif active_program == 'career_guidance' or active_program == 'careerguidance' %}
+                            <td class="py-4 px-4 font-semibold text-slate-700">{{ item.get_participant_category_display }}</td>
+                            <td class="py-4 px-4 text-indigo-700 font-medium">{{ item.get_activity_type_display }}</td>
+                            <td class="py-4 px-4 text-slate-700 max-w-[160px] truncate">{{ item.school_or_institution|default:"--" }}</td>
+                            <td class="py-4 px-4 text-slate-600 font-medium">{{ item.get_preferred_curriculum_exit_display }}</td>
+                            <td class="py-4 px-4 text-center">
+                                {% if item.has_received_lmi_materials %}
+                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">Issued</span>
+                                {% else %}
+                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-500">Pending</span>
+                                {% endif %}
+                            </td>
                         {% elif active_program == 'tupad' %}
                             <td class="py-4 px-4"><span class="px-2 py-0.5 text-[10px] font-bold rounded {% if item.project_type == 'long' %}bg-purple-100 text-purple-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ item.get_project_type_display }}</span></td>
                             <td class="py-4 px-4 text-slate-700 max-w-[160px] truncate">{{ item.project_name|default:"--" }}</td>
@@ -214,6 +258,17 @@
                             {% else %}
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">Active</span>
                             {% endif %}
+                        </td>
+
+                        <!-- ROW ACTIONS COLUMN -->
+                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{% url 'AdminSide:enroll_beneficiary' %}?program={{ active_program }}&edit={{ item.uuid }}" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Record">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                                    </svg>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

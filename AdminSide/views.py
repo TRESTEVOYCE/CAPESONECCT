@@ -3,13 +3,64 @@ import json
 from datetime import datetime, timedelta
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView, ListView
-from .models import ApplicantProfile, AppliedJobs, EmployerProfile, Jobs, OfferedJobs, SpecialProgramForEmploymentOfStudents, GovernmentInternshipProgram, TupadBeneficiary, DisplacedInformalLaborProgram, JobStartBeneficiary
 from .service import generate_complete_peso_matrix
+from .models import (
+    ApplicantProfile, 
+    AppliedJobs, 
+    EmployerProfile, 
+    Jobs, 
+    OfferedJobs, 
+    SpecialProgramForEmploymentOfStudents, 
+    GovernmentInternshipProgram, 
+    TupadBeneficiary, 
+    DisplacedInformalLaborProgram, 
+    CareerGuidanceBeneficiary
+)
+from .forms import (
+    SpecialProgramForEmploymentOfStudentsForm,
+    GovernmentInternshipProgramForm,
+    CareerGuidanceBeneficiaryForm,
+    TupadBeneficiaryForm,
+    DisplacedInformalLaborProgramForm,
+)
+
+
+PROGRAM_CONFIG = {
+    'spes': {
+        'name': 'Special Program for Employment of Students (SPES)',
+        'form_class': SpecialProgramForEmploymentOfStudentsForm,
+        'model': SpecialProgramForEmploymentOfStudents,
+        'badge_color': 'bg-purple-100 text-purple-700',
+    },
+    'gip': {
+        'name': 'Government Internship Program (GIP)',
+        'form_class': GovernmentInternshipProgramForm,
+        'model': GovernmentInternshipProgram,
+        'badge_color': 'bg-blue-100 text-blue-700',
+    },
+    'career_guidance': {
+        'name': 'Career Guidance & Employment Coaching Program',
+        'form_class': CareerGuidanceBeneficiaryForm,
+        'model': CareerGuidanceBeneficiary,
+        'badge_color': 'bg-indigo-100 text-indigo-700',
+    },
+    'tupad': {
+        'name': 'TUPAD Emergency Employment Program',
+        'form_class': TupadBeneficiaryForm,
+        'model': TupadBeneficiary,
+        'badge_color': 'bg-amber-100 text-amber-700',
+    },
+    'dilp': {
+        'name': 'DOLE Integrated Livelihood Program (DILP)',
+        'form_class': DisplacedInformalLaborProgramForm,
+        'model': DisplacedInformalLaborProgram,
+        'badge_color': 'bg-emerald-100 text-emerald-700',
+    },
+}
 
 class DashboardView(TemplateView):
     template_name = 'dashboard.html'
@@ -103,7 +154,6 @@ class DashboardView(TemplateView):
             'sector_data': json.dumps([item['value'] for item in sector_items]),
         })
         return context
-
 
 class JobPostingsListView(View):
     template_name = 'job_posting.html'
@@ -381,30 +431,48 @@ class SpecialProgramsListView(ListView):
     context_object_name = 'beneficiaries'
 
     def get_queryset(self):
-        self.active_program = self.request.GET.get('program', 'spes').lower()
+        self.active_program = self.request.GET.get('program', 'spes')
         self.search_query = self.request.GET.get('search', '').strip()
+        self.sex_filter = self.request.GET.get('sex', '').strip()
+        self.has_nc_filter = self.request.GET.get('has_nc', '').strip()
+        self.graduated_filter = self.request.GET.get('graduated', '').strip()
+        self.absorbed_filter = self.request.GET.get('absorbed', '').strip()
 
-        # Route baseline queryset across the 5 sub-models
-        if self.active_program == 'gip':
-            queryset = GovernmentInternshipProgram.objects.all().order_by('-created_at')
-        elif self.active_program == 'tupad':
-            queryset = TupadBeneficiary.objects.all().order_by('-created_at')
-        elif self.active_program == 'dilp':
-            queryset = DisplacedInformalLaborProgram.objects.all().order_by('-created_at')
-        elif self.active_program == 'jobstart':
-            queryset = JobStartBeneficiary.objects.all().order_by('-created_at')
-        else:
-            self.active_program = 'spes'
-            queryset = SpecialProgramForEmploymentOfStudents.objects.all().order_by('-created_at')
+        model_class = PROGRAM_CONFIG.get(self.active_program, {}).get('model')
 
-        # Global Text Search Filter
+        if not model_class:
+            return []
+
+        queryset = model_class.objects.all()
+
+        # Text search
         if self.search_query:
             queryset = queryset.filter(
                 Q(first_name__icontains=self.search_query) |
                 Q(last_name__icontains=self.search_query) |
-                Q(barangay__icontains=self.search_query)
+                Q(uuid__icontains=self.search_query)
             )
-        return queryset
+
+        # Sex / Gender filter
+        if self.sex_filter:
+            queryset = queryset.filter(sex=self.sex_filter)
+
+        # NC Certification filter
+        if self.has_nc_filter in ['1', '0'] and hasattr(model_class, 'has_nc_certification'):
+            queryset = queryset.filter(has_nc_certification=(self.has_nc_filter == '1'))
+
+        # Graduated filter
+        if self.graduated_filter in ['1', '0'] and hasattr(model_class, 'has_graduated'):
+            queryset = queryset.filter(has_graduated=(self.graduated_filter == '1'))
+
+        # Absorbed filter
+        if self.absorbed_filter in ['1', '0']:
+            if hasattr(model_class, 'is_absorbed_by_employer'):
+                queryset = queryset.filter(is_absorbed_by_employer=(self.absorbed_filter == '1'))
+            elif hasattr(model_class, 'is_absorbed_by_agency'):
+                queryset = queryset.filter(is_absorbed_by_agency=(self.absorbed_filter == '1'))
+
+        return queryset.order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -415,7 +483,7 @@ class SpecialProgramsListView(ListView):
             'gip_count': GovernmentInternshipProgram.objects.count(),
             'tupad_count': TupadBeneficiary.objects.count(),
             'dilp_count': DisplacedInformalLaborProgram.objects.count(),
-            'jobstart_count': JobStartBeneficiary.objects.count(),
+            'career_guidance_count': CareerGuidanceBeneficiary.objects.count(),
         }
 
         # 2. Compute program-specific KPI blocks (Stripped of female-sub-breakdowns)
@@ -460,14 +528,14 @@ class SpecialProgramsListView(ListView):
                 individual=Count('uuid', filter=Q(project_category='individual')),
                 group=Count('uuid', filter=Q(project_category='group'))
             )
-        elif self.active_program == 'jobstart':
-            program_kpis = JobStartBeneficiary.objects.aggregate(
+        elif self.active_program == 'career_guidance':
+            program_kpis = CareerGuidanceBeneficiary.objects.aggregate(
                 total=Count('uuid'),
                 female=Count('uuid', filter=Q(sex='F')),
-                lst_completed=Count('uuid', filter=Q(current_phase='lst_completed')),
-                tst_completed=Count('uuid', filter=Q(current_phase='tst_completed')),
-                internship=Count('uuid', filter=Q(current_phase='internship')),
-                employed=Count('uuid', filter=Q(is_placed_or_employed=True))
+                orientation=Count('uuid', filter=Q(activity_type='orientation')),
+                coaching=Count('uuid', filter=Q(activity_type='coaching')),
+                lmi_briefing=Count('uuid', filter=Q(activity_type='lmi_briefing')),
+                received_lmi=Count('uuid', filter=Q(has_received_lmi_materials=True))
             )
 
         # 3. Dynamic age parsing
@@ -478,12 +546,132 @@ class SpecialProgramsListView(ListView):
 
         context.update({
             'active_program': self.active_program,
-            'search_query': self.search_query,
+            'search_query': getattr(self, 'search_query', ''),
             'globals': global_program_counts,
             'kpis': program_kpis,
             'beneficiaries': beneficiaries_list
         })
         return context
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.contrib import messages
+
+class EnrollBeneficiaryView(View):
+    """
+    Class-Based View to handle enrollment and editing of beneficiaries 
+    under the dynamically selected special program form.
+    """
+    template_name = 'enroll_beneficiary.html'
+
+    def get_program_config(self, request):
+        active_program = request.GET.get('program', 'spes')
+        if active_program not in PROGRAM_CONFIG:
+            active_program = 'spes'
+        return active_program, PROGRAM_CONFIG[active_program]
+
+    def get_instance(self, request, config):
+        """
+        Retrieves the beneficiary instance if the 'edit' parameter is present in the URL.
+        Returns None if creating a new entry.
+        """
+        edit_id = request.GET.get('edit')
+        if not edit_id:
+            return None
+
+        model_class = config.get('model') or config.get('model_class')
+
+        if model_class is None:
+            from .models import Beneficiaries
+            model_class = Beneficiaries
+
+        return get_object_or_404(model_class, uuid=edit_id)
+
+    def extract_address_data(self, request_post):
+        """
+        Helper method to resolve municipality and barangay from the current form inputs.
+        It supports both the newer direct field names used by the template and the older
+        select/manual field names used by earlier versions of the form.
+        """
+        municipality = (
+            request_post.get('municipality', '').strip()
+            or request_post.get('municipality_select', '').strip()
+            or request_post.get('municipality_manual', '').strip()
+        )
+
+        barangay = (
+            request_post.get('barangay', '').strip()
+            or request_post.get('barangay_select', '').strip()
+            or request_post.get('barangay_manual', '').strip()
+        )
+
+        return municipality, barangay
+
+    def get(self, request, *args, **kwargs):
+        active_program, config = self.get_program_config(request)
+        instance = self.get_instance(request, config)
+
+        form = config['form_class'](instance=instance)
+
+        context = {
+            'form': form,
+            'active_program': active_program,
+            'program_name': config['name'],
+            'badge_color': config['badge_color'],
+            'available_programs': PROGRAM_CONFIG,
+            'is_editing': bool(instance),
+            'beneficiary': instance,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        active_program, config = self.get_program_config(request)
+        instance = self.get_instance(request, config)
+
+        # Extract address values
+        municipality, barangay = self.extract_address_data(request.POST)
+
+        # Copy POST querydict to make it mutable so we can inject resolved address attributes
+        post_data = request.POST.copy()
+        post_data['municipality'] = municipality
+        post_data['barangay'] = barangay
+
+        form = config['form_class'](post_data, request.FILES or None, instance=instance)
+
+        if form.is_valid():
+            beneficiary = form.save(commit=False)
+            
+            # Explicitly set field attributes on model instance if needed
+            if hasattr(beneficiary, 'municipality'):
+                beneficiary.municipality = municipality
+            if hasattr(beneficiary, 'barangay'):
+                beneficiary.barangay = barangay
+                
+            beneficiary.save()
+            
+            # Handle M2M relationships saved by ModelForm
+            if hasattr(form, 'save_m2m'):
+                form.save_m2m()
+
+            action_text = "updated" if instance else "enrolled"
+            
+            messages.success(
+                request,
+                f"Successfully {action_text} {beneficiary.first_name} {beneficiary.last_name} under {config['name']}!"
+            )
+            return redirect(f"/special-programs/?program={active_program}")
+
+        messages.error(request, "Please correct the errors in the form below.")
+        context = {
+            'form': form,
+            'active_program': active_program,
+            'program_name': config['name'],
+            'badge_color': config['badge_color'],
+            'available_programs': PROGRAM_CONFIG,
+            'is_editing': bool(instance),
+            'beneficiary': instance,
+        }
+        return render(request, self.template_name, context)
     
 class PesoMonthlyReportView(View):
     template_name = 'report.html'
@@ -497,11 +685,30 @@ class PesoMonthlyReportView(View):
 
     def _get_zero_matrix(self):
         return {
-            'vacancies_posted_total': 0, 'hired_private_total': 0, 'hired_private_female': 0,
-            'fairs_conducted': 0, 'hots_total': 0, 'spes_elem': 0, 'spes_college': 0,
-            'gip_total': 0, 'gip_female': 0, 'lmi_youth_total': 0, 'lmi_youth_female': 0,
-            'child_labor_total': 0, 'child_labor_referred': 0, 'pop_projected': 0, 
-            'lfpr': '0.0%', 'employment_rate': '0.0%'
+            'vacancies_posted': 0,
+            'vacancies_posted_total': 0,
+            'employers_registered': 0,
+            'applicants_registered': 0,
+            'applicants_registered_female': 0,
+            'placed_private': 0,
+            'placed_private_female': 0,
+            'hired_private_total': 0,
+            'hired_private_female': 0,
+            'fairs_conducted': 0,
+            'jobs_fairs_conducted': 0,
+            'hots_total': 0,
+            'spes_elem': 0,
+            'spes_elementary': 0,
+            'spes_college': 0,
+            'gip_total': 0,
+            'gip_female': 0,
+            'lmi_youth_total': 0,
+            'lmi_youth_female': 0,
+            'child_labor_total': 0,
+            'child_labor_referred': 0,
+            'pop_projected': 0,
+            'lfpr': '0.0%',
+            'employment_rate': '0.0%',
         }
 
     def get(self, request, *args, **kwargs):

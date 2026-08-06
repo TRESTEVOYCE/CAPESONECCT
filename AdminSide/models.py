@@ -204,7 +204,6 @@ class ApplicantProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
 
-
 class AppliedJobs(models.Model):
 
     APPLICATION_STATUS = (
@@ -278,7 +277,6 @@ class Beneficiaries(models.Model):
     class Meta:
         abstract = True
 
-
 class SpecialProgramForEmploymentOfStudents(Beneficiaries):
     """
     Maps to Report Section 2.1 (SPES Tracking).
@@ -304,7 +302,6 @@ class SpecialProgramForEmploymentOfStudents(Beneficiaries):
     def __str__(self):
         return f"[SPES] {self.first_name} {self.last_name}"
 
-
 class GovernmentInternshipProgram(Beneficiaries):
     """
     Maps to Report Section 2.2 (GIP Tracking).
@@ -324,7 +321,6 @@ class GovernmentInternshipProgram(Beneficiaries):
     def __str__(self):
         return f"[GIP] {self.first_name} {self.last_name}"
 
-
 class TupadBeneficiary(Beneficiaries):
     """
     Maps to Report Section 4.2 (TUPAD Emergency Employment Projects).
@@ -339,7 +335,6 @@ class TupadBeneficiary(Beneficiaries):
 
     def __str__(self):
         return f"[TUPAD] {self.first_name} {self.last_name}"
-
 
 class DisplacedInformalLaborProgram(Beneficiaries):
     """
@@ -362,68 +357,82 @@ class DisplacedInformalLaborProgram(Beneficiaries):
     def __str__(self):
         return f"[DILP] {self.first_name} {self.last_name}"
 
-class JobStartBeneficiary(Beneficiaries):  # <-- FIXED: Changed from models.Model to Beneficiaries
+class CareerGuidanceBeneficiary(Beneficiaries):
     """
-    Tracks beneficiaries under the JobStart Philippines Program (Section 2.3).
-    Inherits all core demographic, address, salary, and timeline tracking fields 
-    from the abstract Beneficiaries base model.
+    Tracks individuals receiving Career Guidance, Employment Coaching, 
+    and Labor Market Information (LMI) services under PESO DOLE guidelines.
+    Inherits core demographic, contact, and address fields from Beneficiaries.
     """
-    PHASE_CHOICES = [
-        ('full_cycle', 'Full Cycle (LST + TST + Internship)'),
-        ('lst_only', 'Life Skills Training Only'),
-    ]
-    
-    STAGE_CHOICES = [
-        ('registered', 'Registered / Screened'),
-        ('lst_ongoing', 'Life Skills Training Ongoing'),
-        ('lst_completed', 'Life Skills Training Completed'),
-        ('tst_ongoing', 'Technical Skills Training Ongoing'),
-        ('tst_completed', 'Technical Skills Training Completed'),
-        ('internship', 'On Paid Internship'),
-    ]
+    PARTICIPANT_TYPE_CHOICES = (
+        ('juniors_hs', 'Junior High School Student'),
+        ('senior_hs', 'Senior High School Student'),
+        ('college', 'College / University Student'),
+        ('tech_voc', 'Tech-Voc Student'),
+        ('osy', 'Out-of-School Youth (OSY)'),
+        ('jobseeker', 'Unemployed / Jobseeker'),
+    )
 
-    # Unique JobStart operational lifecycle tracks
-    program_cycle_type = models.CharField(
-        max_length=20, 
-        choices=PHASE_CHOICES, 
-        default='full_cycle',
-        help_text="Indicates if the beneficiary takes the full track or LST component only."
+    ACTIVITY_TYPE_CHOICES = (
+        ('orientation', 'Career Guidance & Advocacy Orientation'),
+        ('coaching', 'Career / Employment Coaching Session'),
+        ('lmi_briefing', 'Labor Market Information (LMI) Briefing'),
+        ('pre_employment', 'Pre-Employment Seminar for Local Applicants (PESFA)'),
     )
-    current_phase = models.CharField(
+
+    CURRICULUM_EXIT_CHOICES = (
+        ('higher_ed', 'Higher Education'),
+        ('employment', 'Employment / Job Seeking'),
+        ('entrepreneurship', 'Entrepreneurship / Business'),
+        ('skills_dev', 'Middle-Level Skills Development / Tech-Voc'),
+        ('undecided', 'Undecided / Assessment Ongoing'),
+    )
+
+    participant_category = models.CharField(
         max_length=20, 
-        choices=STAGE_CHOICES, 
-        default='registered'
+        choices=PARTICIPANT_TYPE_CHOICES, 
+        default='senior_hs',
+        help_text="Classification of the participant receiving guidance."
     )
     
-    # Technical & Partner Matching Indicators
-    technical_training_course = models.CharField(
+    activity_type = models.CharField(
+        max_length=20, 
+        choices=ACTIVITY_TYPE_CHOICES, 
+        default='orientation'
+    )
+    
+    school_or_institution = models.CharField(
         max_length=150, 
         blank=True, 
         null=True, 
-        help_text="e.g., Contact Center Services NC II, Customer Service, Hospitality"
-    )
-    partner_employer = models.CharField(
-        max_length=150, 
-        blank=True, 
-        null=True, 
-        help_text="The private establishment hosting the technical training or internship phase."
+        help_text="Name of the school, university, or venue where the guidance session took place."
     )
     
-    # Outcome / Placement Status
-    is_placed_or_employed = models.BooleanField(
-        default=False,
-        help_text="True if the participant secured wage employment during or immediately after the program."
+    preferred_curriculum_exit = models.CharField(
+        max_length=20, 
+        choices=CURRICULUM_EXIT_CHOICES, 
+        default='employment',
+        help_text="Intended track or career exit chosen by the beneficiary after counseling."
+    )
+    
+    conducted_date = models.DateField(
+        null=True, 
+        blank=True,
+        help_text="Date when the career guidance or coaching was provided."
+    )
+    
+    has_received_lmi_materials = models.BooleanField(
+        default=True,
+        help_text="True if provided with official DOLE LMI flyers, career guidebooks, or digital kits."
     )
 
     class Meta:
-        verbose_name = "JobStart Participant"
-        verbose_name_plural = "JobStart Participants"
-        db_table = "peso_jobstart_beneficiaries"
+        verbose_name = "Career Guidance Beneficiary"
+        verbose_name_plural = "Career Guidance Beneficiaries"
+        db_table = "peso_career_guidance_beneficiaries"
 
     def __str__(self):
-        # These fields now correctly resolve via structural inheritance
-        return f"{self.first_name} {self.last_name} - JobStart ({self.get_current_phase_display()})"
-    
+        return f"{self.first_name} {self.last_name} - Career Guidance ({self.get_activity_type_display()})"
+
 class PESOActivities(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable =False)
