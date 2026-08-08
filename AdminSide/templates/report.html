@@ -1,0 +1,813 @@
+{% extends 'base.html' %}
+
+{% block title %}PESO Monthly Monitoring Report{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-4 md:p-1 space-y-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-0.5">PESO Monitoring Report</h1>
+        </div>
+
+    <!-- MASTER OPERATION CONTROL FORM -->
+    <form method="POST" action="" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- STEP 1: REPORT PARAMETERS TARGET SELECTOR -->
+       <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Report Scope Configuration</h3>
+            
+            <!-- Changed md:grid-cols-4 to md:grid-cols-3 so the 3 columns expand evenly across 100% width -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end text-xs">
+                
+                <!-- Column 1: Takes up 1/3 width -->
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1.5">Municipality / City</label>
+                    <input type="text" name="municipality" value="{{ selected_municipality|default:'' }}" placeholder="Enter Municipality / City" class="w-full p-2 border border-slate-300 rounded text-slate-800 outline-none focus:border-blue-500">
+                </div>
+                
+                <!-- Column 2: Takes up 1/3 width -->
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1.5">Target Scope Window</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select name="month" class="w-full p-2 border border-slate-300 rounded text-slate-800 outline-none focus:border-blue-500">
+                            <option value="">Select Month</option>
+                            <option value="1" {% if selected_month == "1" %}selected{% endif %}>January</option>
+                            <option value="2" {% if selected_month == "2" %}selected{% endif %}>February</option>
+                            <option value="3" {% if selected_month == "3" %}selected{% endif %}>March</option>
+                            <option value="4" {% if selected_month == "4" %}selected{% endif %}>April</option>
+                            <option value="5" {% if selected_month == "5" %}selected{% endif %}>May</option>
+                            <option value="6" {% if selected_month == "6" %}selected{% endif %}>June</option>
+                            <option value="7" {% if selected_month == "7" %}selected{% endif %}>July</option>
+                            <option value="8" {% if selected_month == "8" %}selected{% endif %}>August</option>
+                            <option value="9" {% if selected_month == "9" %}selected{% endif %}>September</option>
+                            <option value="10" {% if selected_month == "10" %}selected{% endif %}>October</option>
+                            <option value="11" {% if selected_month == "11" %}selected{% endif %}>November</option>
+                            <option value="12" {% if selected_month == "12" %}selected{% endif %}>December</option>
+                        </select>
+                        <select name="year" class="w-full p-2 border border-slate-300 rounded text-slate-800 outline-none focus:border-blue-500">
+                            <option value="2026" {% if selected_year == "2026" or not selected_year %}selected{% endif %}>2026</option>
+                            <option value="2025" {% if selected_year == "2025" %}selected{% endif %}>2025</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Column 3: Takes up 1/3 width -->
+                <div class="flex gap-2">
+                    <button type="submit" name="action_generate" class="w-full py-2 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded shadow-sm transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Generate Report
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+
+        {% if matrix_visible %}
+        <!-- DYNAMIC UTILITY ACTIONS BAR -->
+        <div class="flex justify-start gap-2">
+            <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded text-xs border border-slate-300 shadow-sm transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm5-14V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Print
+            </button>
+            <a href="#" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded text-xs border border-emerald-300 shadow-sm transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Export PDF
+            </a>
+        </div>
+
+        <!-- MATRIX RENDERING FIELD -->
+        <div class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+            
+            <!-- OFFICIAL DOLE FORM SPECIFICATION HEADER -->
+            <div class="p-6 bg-slate-50 border-b border-slate-300 flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">PESO MONITORING REPORT</h2>
+                </div>
+                <div class="border border-slate-400 rounded w-full md:w-96 text-xs bg-white">
+                    <div class="bg-slate-200 px-3 py-1 font-bold text-center border-b border-slate-400 text-slate-800">Republic of the Philippines</div>
+                    <div class="grid grid-cols-2 border-b border-slate-300">
+                        <div class="px-3 py-1 font-semibold text-slate-600 border-r border-slate-300">Province of Leyte:</div>
+                        <div class="px-3 py-1 text-slate-800 font-medium">{{ selected_province|default:'Leyte' }}</div>
+                    </div>
+                    <div class="grid grid-cols-2 border-b border-slate-300">
+                        <div class="px-3 py-1 font-semibold text-slate-600 border-r border-slate-300">Municipality:</div>
+                        <div class="px-3 py-1 text-slate-800 font-medium">{{ selected_municipality|default:'' }}</div>
+                    </div>
+                    <div class="bg-slate-100 px-3 py-1 font-bold text-center text-slate-700 uppercase tracking-wider text-[10px]">
+                        FOR THE MONTH OF: {{ selected_month_name }} {{ selected_year }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPLETE METRIC TABLE BASELINE -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs border-b border-slate-300">
+                    <thead>
+                        <tr class="bg-slate-200 text-slate-800 font-bold uppercase border-b border-slate-400 text-[11px]">
+                            <th class="py-2 px-4 w-8/12 border-r border-slate-300">INDICATORS</th>
+                            <th class="py-2 px-4 w-2/12 text-center border-r border-slate-300">Total</th>
+                            <th class="py-2 px-4 w-2/12 text-center">Female</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-medium text-slate-800">
+                        
+                        <!-- SECTION 1: EMPLOYMENT FACILITATION -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">1. EMPLOYMENT FACILITATION</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">1.1 JOB SEARCH ASSISTANCE</td>
+                        </tr>
+                        <tr class="bg-slate-50/50 font-bold">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">1.1.1 Public Employment Service</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300">1.1.1.1 Vacancies posted in PEIS</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="vacancies_posted" value="{{ metrics.vacancies_posted }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/50">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300">1.1.1.2 Employers/Businesses Registered in PEIS</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="employers_registered" value="{{ metrics.employers_registered }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/50">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300">1.1.1.3 Job Applicants Registered in PEIS</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="applicants_registered" value="{{ metrics.applicants_registered }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="applicants_registered_female" value="{{ metrics.applicants_registered_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.1.1.3.1 Returned for Training Opportunity</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="returned_training" value="{{ metrics.returned_training }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/50">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.1.1.3.2 Referred for Job Placement</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="referred_placement" value="{{ metrics.referred_placement }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="referred_placement_female" value="{{ metrics.referred_placement_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                        </tr>
+                        <tr class="bg-slate-50/30 font-semibold">
+                            <td class="py-1 px-10 border-r border-slate-300">1.1.4 Job Applicants Placed:</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="applicants_placed" value="{{ metrics.applicants_placed }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="applicants_placed_female" value="{{ metrics.applicants_placed_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.1.4.1 Private sector (hired employees)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_private" value="{{ metrics.placed_private }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_private_female" value="{{ metrics.placed_private_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.1.4.2 Government sector</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_gov" value="{{ metrics.placed_gov }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_gov_female" value="{{ metrics.placed_gov_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.1.4.3 Overseas</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_overseas" value="{{ metrics.placed_overseas }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="placed_overseas_female" value="{{ metrics.placed_overseas_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 font-semibold">1.1.5 Placement Rate of Referred Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="placement_rate" value="{{ metrics.placement_rate|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold text-blue-900" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/50">N/A</td>
+                        </tr>
+                        <tr class="bg-slate-50/50 font-bold">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">1.1.2 PhilJobnet:</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.1.2.1 No. of Registered Job Applicants</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.1.2.2 No. of Vacancies posted</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.1.2.3 No. of Registered Establishments</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- 1.2 LOCAL RECRUITMENT ASSISTANCE -->
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">1.2 LOCAL RECRUITMENT ASSISTANCE (LRA) <span class="normal-case font-medium text-slate-500 italic">(Local Employment)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.2.1 No. of Licensed recruiters assisted</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.2.2 No. of Qualified Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lra_qualified" value="{{ metrics.lra_qualified }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.2.3 No. of Near Hire Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lra_near_hire" value="{{ metrics.lra_near_hire }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- 1.3 SPECIAL RECRUITMENT ASSISTANCE -->
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">1.3 SPECIAL RECRUITMENT ASSISTANCE (SRA) <span class="normal-case font-medium text-slate-500 italic">(Overseas Employment)</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.3.1 No. of Licensed recruiters assisted</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.3.2 No. of Qualified Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="sra_qualified" value="{{ metrics.sra_qualified }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">1.3.3 No. of Near Hire Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="sra_near_hire" value="{{ metrics.sra_near_hire }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- 1.4 JOBS FAIR -->
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">1.4 JOBS FAIR</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">4.1 Jobs Fairs conducted</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobs_fairs_conducted" value="{{ metrics.jobs_fairs_conducted }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.1.1 Local</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_conducted_local" value="{{ metrics.fair_conducted_local }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.1.2 Overseas</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_conducted_overseas" value="{{ metrics.fair_conducted_overseas }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">1.4.2 Participating establishments/ Establishments</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="participating_establishments" value="{{ metrics.participating_establishments }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.2.1 For local placement</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="establishments_local" value="{{ metrics.establishments_local }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.2.2 For overseas placement</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="establishments_overseas" value="{{ metrics.establishments_overseas }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">1.4.3 Job vacancies solicited / reported</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="vacancies_solicited" value="{{ metrics.vacancies_solicited }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.3.1 For local placement</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="vacancies_solicited_local" value="{{ metrics.vacancies_solicited_local }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">1.4.3.2 For overseas placement</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="vacancies_solicited_overseas" value="{{ metrics.vacancies_solicited_overseas }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 font-semibold">1.4.4 Placement Rate</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="fair_placement_rate" value="{{ metrics.fair_placement_rate|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold text-blue-900" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/20">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">1.4.5 Job Applicants:</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-700">1.4.5.1 Total applicants participated/Hired on the Spot (HOTS)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_applicants_total" value="{{ metrics.fair_applicants_total }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-700">1.4.5.2 Total applicants participated - Hired on the Spot (HOTS)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_hots" value="{{ metrics.fair_hots }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.3 Job applicants referred</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_referred" value="{{ metrics.fair_referred }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.4 Job Applicants Qualified</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_qualified" value="{{ metrics.fair_qualified }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.5 Near Hire Applicants</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_near_hire" value="{{ metrics.fair_near_hire }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.6 Job Applicant Interviews</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_interviews" value="{{ metrics.fair_interviews }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.7 Applicants referred for skills training</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_ref_skills" value="{{ metrics.fair_ref_skills }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">1.4.5.9 Applicants referred to other participating agency</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="fair_ref_agency" value="{{ metrics.fair_ref_agency }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- SECTION 2: YOUTH-BRIDGING EMPLOYMENT ASSISTANCE -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">2. YOUTH-BRIDGING EMPLOYMENT ASSISTANCE</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">2.1 Special Program for the Employment of Students (SPES):</td>
+                        </tr>
+                        <tr class="font-semibold bg-slate-50/20">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">2.1.1 Youth Placed:</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-10 border-r border-slate-300">2.1.1.1 Students</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">—</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">—</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">2.1.1.1.1 Elementary</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_elementary" value="{{ metrics.spes_elementary }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">2.1.1.1.2 Junior High School</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_jhs" value="{{ metrics.spes_jhs }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">2.1.1.1.3 Senior High School</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_shs" value="{{ metrics.spes_shs }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">2.1.1.1.4 College</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_college" value="{{ metrics.spes_college }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-600 font-normal">2.1.1.1.5 Tech-Voc</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_tech_voc" value="{{ metrics.spes_tech_voc }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-700">2.1.1.2 Out-of-School Youth</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_osy" value="{{ metrics.spes_osy }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.1.2 No. of SPES beneficiaries graduated from HS, College or Tech-Voc</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_graduates" value="{{ metrics.spes_graduates }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.1.3 No. of SPES Beneficiaries with NCs</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_nc" value="{{ metrics.spes_nc }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.1.4 No. of Absorbed SPES Beneficiaries</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="spes_absorbed" value="{{ metrics.spes_absorbed }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- 2.2 GOVERNMENT INTERNSHIP PROGRAM -->
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">2.2 Government Internship Program (GIP):</td>
+                        </tr>
+                        <tr class="font-semibold bg-slate-50/20">
+                            <td class="py-1 px-8 border-r border-slate-300">2.2.1 Youth Placed</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_total" value="{{ metrics.gip_total }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_female" value="{{ metrics.gip_female }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">2.2.1.1 Alternative Learning System</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_als" value="{{ metrics.gip_als }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">2.2.1.2 Junior High School</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_jhs" value="{{ metrics.gip_jhs }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">2.2.1.3 Senior High School</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_shs" value="{{ metrics.gip_shs }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">2.2.1.4 Tech-Voc</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_tech_voc" value="{{ metrics.gip_tech_voc }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600 font-normal">2.2.1.5 College</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_college" value="{{ metrics.gip_college }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.2.2 No. of GIP Graduates with NCs</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_graduates_nc" value="{{ metrics.gip_graduates_nc }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.2.3 No. of Absorbed GIP Interns</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="gip_absorbed" value="{{ metrics.gip_absorbed }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- 2.3 JOBSTART -->
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">2.3 JOBSTART</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.3.1 No. of youths assisted</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_assisted" value="{{ metrics.jobstart_assisted }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">2.3.2 No. of youth provided with trainings</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_trainings" value="{{ metrics.jobstart_trainings }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">2.3.2.1 No. of youth provided with life skills training</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_life_skills" value="{{ metrics.jobstart_life_skills }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">2.3.2.2 No. of youth provided with technical training</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_tech_training" value="{{ metrics.jobstart_tech_training }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">2.3.2.3 No. of youth provided with internship</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_internship" value="{{ metrics.jobstart_internship }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.3.3 No. of youth placed</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_placed" value="{{ metrics.jobstart_placed }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">2.3.4 No. of SCST/TTI Finishers with Certifications</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="jobstart_finishers" value="{{ metrics.jobstart_finishers }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- SECTION 3: PESO-LED ADVOCACY AND TRAININGS -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">3. PESO-LED ADVOCACY AND TRAININGS</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">3.1. Labor Market Information Activities Conducted</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">3.1.1 Individuals reached</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300">3.1.1.1 Youth (30 years old and below)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth" value="{{ metrics.lmi_youth|default:72 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth_female" value="{{ metrics.lmi_youth_female|default:44 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300">3.1.1.2 Non-youth (31 years old and above)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth" value="{{ metrics.lmi_non_youth|default:57 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth_female" value="{{ metrics.lmi_non_youth_female|default:12 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">3.1.2 Institutions/ Schools reached</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_institutions" value="{{ metrics.lmi_institutions }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">3.2 Career Development Support Program Conducted</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">3.2.1 Individuals covered</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.1.1. in School</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="cdsp_school" value="{{ metrics.cdsp_school }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.1.2. in PESO</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="cdsp_peso" value="{{ metrics.cdsp_peso }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.1.3 in the Workplace</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="cdsp_workplace" value="{{ metrics.cdsp_workplace }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">3.2.2 Career Advocacies Conducted</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.2.1 in School</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.2.2 in PESO</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">3.2.2.3 in the Workplace</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">3.3 Employment Coaching Activities conducted on Job Applicants</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300">3.3.1 Job applicants coached</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="applicants_coached" value="{{ metrics.applicants_coached }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- SECTION 4: DILEEP -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">4. DOLE INTEGRATED LIVELIHOOD AND EMERGENCY EMPLOYMENT PROGRAM (DILEEP)</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">4.1 DILP Projects</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">4.1 Total No. of workers provided with livelihood assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="dilp_total_workers" value="{{ metrics.dilp_total_workers }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">4.1.1 Individual Project</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-10 border-r border-slate-300">4.1.1 Total No. of workers provided with livelihood assistance under the Individual Projects</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="individual_assistance_total" value="{{ metrics.individual_assistance_total }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700">4.1.1.1. Formation Project</td>
+                            <td class="p-1 border-r border-slate-300"></td>
+                            <td class="p-1 border-slate-300"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-14 border-r border-slate-300 text-slate-600">4.1.1.2. No. of workers provided with livelihood formation assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="ind_formation" value="{{ metrics.ind_formation }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700">4.1.1.3. Enhancement Project</td>
+                            <td class="p-1 border-r border-slate-300"></td>
+                            <td class="p-1 border-slate-300"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-14 border-r border-slate-300 text-slate-600">4.1.1.4. No. of workers provided with livelihood enhancement assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="ind_enhancement" value="{{ metrics.ind_enhancement }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700">4.1.1.5 Restoration Project</td>
+                            <td class="p-1 border-r border-slate-300"></td>
+                            <td class="p-1 border-slate-300"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-14 border-r border-slate-300 text-slate-600">4.1.1.6 No. of workers provided with livelihood restoration assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="ind_restoration" value="{{ metrics.ind_restoration }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">4.1.2. Group Project</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-10 border-r border-slate-300">4.1.2 Total No. of workers provided with livelihood formation assistance under the Group Projects</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="group_assistance_total" value="{{ metrics.group_assistance_total }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700">4.1.2.1 Formation Project</td>
+                            <td class="p-1 border-r border-slate-300"></td>
+                            <td class="p-1 border-slate-300"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-14 border-r border-slate-300 text-slate-600">4.1.2.2 No. of workers provided with livelihood formation assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="grp_formation" value="{{ metrics.grp_formation }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700">4.1.2.3. Enhancement Project</td>
+                            <td class="p-1 border-r border-slate-300"></td>
+                            <td class="p-1 border-slate-300"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-14 border-r border-slate-300 text-slate-600">4.1.2.4 No. of workers provided with livelihood enhancement assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="grp_enhancement" value="{{ metrics.grp_enhancement }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-12 border-r border-slate-300 text-slate-700 font-bold">4.1.2.6 No. of workers provided with livelihood restoration assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="grp_restoration" value="{{ metrics.grp_restoration }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">4.2 TUPAD Projects</td>
+                        </tr>
+                        <tr class="font-semibold">
+                            <td class="py-1 px-8 border-r border-slate-300">4.2.1 No. of workers provided with emergency employment assistance</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="tupad_total" value="{{ metrics.tupad_total }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">4.2.1.1 Short-term (10-30 days)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="tupad_short" value="{{ metrics.tupad_short }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-slate-600">4.2.1.2 Long-term (31-90 days)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="tupad_long" value="{{ metrics.tupad_long }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- SECTION 5: CHILD LABOR PREVENTION AND ELIMINATION -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">5. CHILD LABOR PREVENTION AND ELIMINATION PROGRAM</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">5.1 No. of Children Provided with Assistance</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 text-slate-600">5.1.1 Project Angel Tree</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="child_angel_tree" value="{{ metrics.child_angel_tree }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 text-slate-600">5.1.2 Livelihood assistance to parents/guardians of child laborers</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="child_parent_livelihood" value="{{ metrics.child_parent_livelihood }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 text-slate-600">5.1.3 Rescue operations conducted through SBM</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="child_rescue" value="{{ metrics.child_rescue }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="font-semibold bg-slate-50/10">
+                            <td class="py-1 px-8 border-r border-slate-300" colspan="3">5.1.4 LGU/ PESO-led Assistance</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-red-600 italic font-medium">5.1.4.1 (Specify the Assistance)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="child_lgu_assist1" value="{{ metrics.child_lgu_assist1 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-10 border-r border-slate-300 text-red-600 italic font-medium">5.1.4.2 (Specify the Assistance)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="child_lgu_assist2" value="{{ metrics.child_lgu_assist2 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50"></td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr class="bg-slate-50 font-bold uppercase">
+                            <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">5.2 No. of Information Caravans Conducted</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 text-slate-600">5.2.1 Individuals Reached</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-8 border-r border-slate-300 text-slate-600">5.2.2 Institutions Reached</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                            <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
+                        </tr>
+
+                        <!-- SECTION 6: OTHER PESO ACCOMPLISHMENTS -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">6. OTHER PESO ACCOMPLISHMENTS</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="p-0 border-r border-slate-300">
+                                <textarea name="other_accomplishments" rows="2" class="w-full p-2 bg-transparent border-0 outline-none font-medium text-slate-700 text-xs focus:bg-slate-50/50" placeholder="Specify optional multi-sector achievements here...">{{ other_accomplishments }}</textarea>
+                            </td>
+                        </tr>
+
+                        <!-- SECTION 7: MONTHLY LABOR MARKET ANALYSIS -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">7. Monthly Labor Market Analysis</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Projected City/Municipal Population</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_projected" value="{{ metrics.pop_projected|default:'56,746' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Estimated City/Municipal Poor Population</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_poor" value="{{ metrics.pop_poor|default:'16,627' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Projected City/Municipal Working Population</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_working" value="{{ metrics.pop_working|default:'18,158' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr class="bg-slate-100/50 font-semibold text-slate-900">
+                            <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Labor Force Participation Rate</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="lfpr" value="{{ metrics.lfpr|default:'60.3%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-blue-900" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">Labor Force in the City/Municipality</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="labor_force_count" value="{{ metrics.labor_force_count|default:'10,949' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr class="bg-slate-100/50 font-semibold text-slate-900">
+                            <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Employment Rate (%)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="employment_rate" value="{{ metrics.employment_rate|default:'92.3%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-emerald-900" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">Employed Persons in the City/Municipality</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="employed_count" value="{{ metrics.employed_count|default:'10,106' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr class="bg-slate-100/50 font-semibold text-slate-900">
+                            <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Unemployment Rate (%)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployment_rate" value="{{ metrics.unemployment_rate|default:'7.7%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-red-900" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">Unemployed Persons in the City/Municipality</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployed_count" value="{{ metrics.unemployed_count|default:'843' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr class="bg-slate-100/50 font-semibold text-slate-900">
+                            <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Underemployment Rate (%)</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployment_rate" value="{{ metrics.underemployment_rate|default:'18.7%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-amber-900" readonly></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-6 border-r border-slate-300 font-medium">Underemployed Persons in the City/Municipality</td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployed_count" value="{{ metrics.underemployed_count|default:'1,890' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold"></td>
+                            <td class="p-1 bg-slate-50/30"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 px-4 border-r border-slate-300 font-bold uppercase tracking-tight">Remarks / Findings</td>
+                            <td colspan="2" class="p-0">
+                                <input type="text" name="remarks_findings" value="{{ remarks_findings }}" class="w-full p-1 bg-transparent border-0 outline-none focus:bg-slate-50" placeholder="Type structural remarks...">
+                            </td>
+                        </tr>
+
+                        <!-- SECTION 8: ISSUES AND CONCERNS -->
+                        <tr class="bg-slate-100 font-bold uppercase border-t border-slate-300">
+                            <td class="py-2 px-4 border-r border-slate-300" colspan="3">8. Issues and concerns</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="p-1 border-r border-slate-300">
+                                <textarea name="issues_concerns" rows="4" class="w-full p-2 border border-slate-200 rounded text-xs text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Type localized field blockers here...">{{ issues_concerns }}</textarea>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- OFFICIAL SIGNED FOOTER ALERT BLOCK -->
+            <div class="p-4 bg-slate-50 border-t border-slate-300 space-y-3">
+                <p class="text-[11px] text-slate-500 italic">
+                    Note: The signed copy of this report must be submitted to DOLE on or before the last working day of the reference month via email [roll_northleyte@dole.gov.ph]
+                </p>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800 flex items-start gap-2 text-xs">
+                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <div>
+                        <span class="font-bold">All fields are editable.</span> Review all figures before printing the official signed copy.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRANSACTION PROCESS VERIFICATION PIPELINE CONTROLS -->
+        <div class="flex justify-end gap-3">
+            <button type="submit" name="action_save" class="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded shadow transition">
+                Validate and Save Parameters
+            </button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

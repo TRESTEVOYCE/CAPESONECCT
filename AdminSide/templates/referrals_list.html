@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Applications & Referrals - CAPESONNECT{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- TOP HEADER PROFILE ROW -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-0.5">Applications & Referrals</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1">
+                Total: <span class="text-slate-800 font-bold">{{ kpis.total|default:0 }}</span> • 
+                Female: <span class="text-slate-800 font-bold">{{ kpis.female|default:0 }}</span> • 
+                Hired: <span class="text-green-600 font-bold">{{ kpis.hired|default:0 }}</span> • 
+                Interviews: <span class="text-blue-600 font-bold">{{ kpis.interview|default:0 }}</span>
+            </p>
+        </div>
+        <button class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2.5 rounded-md flex items-center gap-2 shadow transition">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            New Referral
+        </button>
+    </div>
+
+    <!-- METRIC TAB CONTROL PILLS -->
+    <div class="flex flex-wrap gap-2 items-center">
+        <a href="?status=All&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'All' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            All Status ({{ kpis.total|default:0 }})
+        </a>
+        <a href="?status=pending&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'pending' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            Pending ({{ kpis.pending|default:0 }})
+        </a>
+        <a href="?status=reviewed&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'reviewed' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            Reviewed ({{ kpis.reviewed|default:0 }})
+        </a>
+        <a href="?status=for interview&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'for interview' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            For Interview ({{ kpis.interview|default:0 }})
+        </a>
+        <a href="?status=hired&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'hired' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            Hired ({{ kpis.hired|default:0 }})
+        </a>
+        <a href="?status=rejected&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'rejected' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
+            Rejected ({{ kpis.rejected|default:0 }})
+        </a>
+    </div>
+
+    <!-- FILTER INPUT & TABLE FRAME -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center">
+            <input type="hidden" name="status" value="{{ selected_status }}">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+                </span>
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search by name, employer, job title..." 
+                       class="w-full bg-white pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#112954]">
+            </div>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        <th class="py-3 px-4">UUID ID</th>
+                        <th class="py-3 px-4">Applicant</th>
+                        <th class="py-3 px-4">Job Title</th>
+                        <th class="py-3 px-4">Employer</th>
+                        <th class="py-3 px-4">Date Offered</th>
+                        <th class="py-3 px-4 text-center">Status</th>
+                        <th class="py-3 px-4">Remarks</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
+                    {% for referral in referrals %}
+                    <tr class="hover:bg-slate-50/50 transition">
+                        <td class="py-4 px-4 text-[11px] font-mono text-slate-400 whitespace-nowrap">
+                            {{ referral.uuid|stringformat:".8s" }}...
+                        </td>
+                        
+                        <td class="py-4 px-4">
+                            <div class="font-bold text-slate-800 text-[13px] leading-tight">{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}</div>
+                            <div class="text-[10px] text-slate-400 font-medium mt-0.5">
+                                {{ referral.applicant.get_sex_display }}
+                            </div>
+                        </td>
+                        
+                        <td class="py-4 px-4 font-semibold text-slate-700">{{ referral.offered_job.job_title }}</td>
+                        <td class="py-4 px-4 font-medium text-slate-500">{{ referral.offered_job.employer.company_name }}</td>
+                        <td class="py-4 px-4 text-slate-500 whitespace-nowrap">{{ referral.date_offered|date:"M d, Y" }}</td>
+                        
+                        <td class="py-4 px-4 text-center whitespace-nowrap">
+                            {% if referral.status == 'hired' %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">Hired</span>
+                            {% elif referral.status == 'for interview' %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700">For Interview</span>
+                            {% elif referral.status == 'reviewed' %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-purple-100 text-purple-700">Reviewed</span>
+                            {% elif referral.status == 'pending' %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">Pending</span>
+                            {% else %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Rejected</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="py-4 px-4 text-slate-500 max-w-[180px] truncate" title="{{ referral.remarks }}">
+                            {{ referral.remarks|default:"--" }}
+                        </td>
+                        
+                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1 rounded transition">Update</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No job offers match the current selection.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-400 font-mono">
+            Showing {{ referrals|length }} of {{ total_results }} items
+        </div>
+    </div>
+</div>
+{% endblock %}

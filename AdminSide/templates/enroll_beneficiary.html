@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+        <a href="{% url 'AdminSide:special_programs_list' %}?program={{ active_program }}" class="text-xs font-bold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition">
+            ← Back to Registry
+        </a>
+
+    <!-- PAGE TITLE & HEADER BAR -->
+    <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">
+                    {% if is_editing %}Edit Beneficiary Record{% else %}Enroll New Beneficiary{% endif %}
+                </h1>
+            </div>
+        </div>
+
+        <p class="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-2">
+            <span class="inline-block px-3.5 py-1.5 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-sm 
+                {% if active_program == 'spes' %}bg-purple-600
+                {% elif active_program == 'gip' %}bg-blue-600
+                {% elif active_program == 'career_guidance' %}bg-teal-600
+                {% elif active_program == 'tupad' %}bg-orange-500
+                {% elif active_program == 'dilp' %}bg-emerald-600
+                {% else %}bg-indigo-600{% endif %}">
+                {% if active_program == 'spes' %}SPES
+                {% elif active_program == 'gip' %}GIP Track
+                {% elif active_program == 'career_guidance' %}Career Guidance
+                {% elif active_program == 'tupad' %}TUPAD Registry
+                {% elif active_program == 'dilp' %}DILP Livelihood
+                {% else %}{{ active_program }}{% endif %}
+            </span>
+        </p>
+    </div>
+
+    <!-- PROGRAM NAVIGATION SWITCHER -->
+    <div class="bg-slate-100 p-1.5 rounded-xl flex gap-2 overflow-x-auto border border-slate-200">
+        {% for key, prog in available_programs.items %}
+            <a href="?program={{ key }}" 
+               class="flex-1 min-w-[140px] text-center py-2 px-3 rounded-lg text-xs font-bold transition whitespace-nowrap {% if active_program == key %}bg-white text-slate-800 shadow-sm border border-slate-200/80{% else %}text-slate-500 hover:text-slate-700 hover:bg-slate-200/50{% endif %}">
+                {% if key == 'spes' %}SPES
+                {% elif key == 'gip' %}GIP Track
+                {% elif key == 'career_guidance' %}Career Guidance
+                {% elif key == 'tupad' %}TUPAD Registry
+                {% elif key == 'dilp' %}DILP Livelihood{% endif %}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- MAIN FORM CONTAINER -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- MESSAGES FEEDBACK -->
+        {% if messages %}
+            <div class="p-4 border-b bg-amber-50 border-amber-100">
+                {% for message in messages %}
+                    <p class="text-xs font-bold text-amber-800 flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>{{ message }}</span>
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" action="" class="p-6 space-y-8">
+            {% csrf_token %}
+
+            <!-- NON-FIELD ERRORS -->
+            {% if form.non_field_errors %}
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs rounded-r-lg">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- FORM SECTIONS -->
+            <div class="space-y-6">
+
+                <!-- 1. PERSONAL INFORMATION SECTION -->
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 border-b pb-2 mb-4">
+                        1. Personal & Contact Information
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- First Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">First Name *</label>
+                            <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.first_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.first_name.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Middle Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Middle Name</label>
+                            <input type="text" name="middle_name" value="{{ form.middle_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.middle_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.middle_name.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Last Name *</label>
+                            <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.last_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.last_name.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Sex -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Sex *</label>
+                            {{ form.sex }}
+                            {% if form.sex.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.sex.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Date of Birth *</label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.date_of_birth.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+                            <input type="text" name="phone_number" value="{{ form.phone_number.value|default:'' }}" placeholder="09XXXXXXXXX" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.phone_number.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.phone_number.errors.0 }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ADDRESS INFORMATION SECTION -->
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 border-b pb-2 mb-4">
+                        2. Permanent Address
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Region -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Region</label>
+                            <input type="text" name="region" value="{{ form.region.value|default:'VIII' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.region.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.region.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Province -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Province *</label>
+                            <input type="text" name="province" value="{{ form.province.value|default:'Leyte' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.province.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.province.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Municipality -->
+                        <div>
+                            <label for="id_municipality" class="block text-xs font-bold text-slate-700 mb-1">Municipality *</label>
+                            <input type="text" id="id_municipality" name="municipality" value="{{ form.municipality.value|default:beneficiary.municipality|default:'' }}" list="municipality_list" placeholder="Enter municipality" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <datalist id="municipality_list">
+                                <option value="Alangalang"></option>
+                                <option value="Barugo"></option>
+                                <option value="Capoocan"></option>
+                                <option value="Carigara"></option>
+                                <option value="Jaro"></option>
+                                <option value="Kananga"></option>
+                                <option value="San Miguel"></option>
+                                <option value="Tunga"></option>
+                            </datalist>
+                            {% if form.municipality.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.municipality.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <!-- Barangay -->
+                        <div>
+                            <label for="id_barangay" class="block text-xs font-bold text-slate-700 mb-1">Barangay *</label>
+                            <input type="text" id="id_barangay" name="barangay" value="{{ form.barangay.value|default:beneficiary.barangay|default:'' }}" list="barangay_list" placeholder="Enter barangay" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <datalist id="barangay_list"></datalist>
+                            {% if form.barangay.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.barangay.errors.0 }}</span>{% endif %}
+                        </div>
+                                            
+                        <!-- Zip Code -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Zip Code</label>
+                            <input type="text" name="zip_code" value="{{ form.zip_code.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            {% if form.zip_code.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.zip_code.errors.0 }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. DYNAMIC PROGRAM SPECIFIC SECTION -->
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 border-b pb-2 mb-4">
+                        3. {{ program_name }} Configuration
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                        <!-- SPES / GIP SPECIFIC FIELDS -->
+                        {% if active_program == 'spes' or active_program == 'gip' %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Education Level *</label>
+                                {{ form.education_level }}
+                                {% if form.education_level.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.education_level.errors.0 }}</span>{% endif %}
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.has_nc_certification }}
+                                <label class="text-xs font-bold text-slate-700">Has NC Certification (TESDA)?</label>
+                            </div>
+                        {% endif %}
+
+                        {% if active_program == 'spes' %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">School / Institution Name</label>
+                                <input type="text" name="school_name" value="{{ form.school_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">College Program / Course</label>
+                                <input type="text" name="college_program" value="{{ form.college_program.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                            </div>
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.is_out_of_school_youth }}
+                                <label class="text-xs font-bold text-slate-700">Out-of-School Youth (OSY)?</label>
+                            </div>
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.has_graduated }}
+                                <label class="text-xs font-bold text-slate-700">Has Graduated?</label>
+                            </div>
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.is_absorbed_by_employer }}
+                                <label class="text-xs font-bold text-slate-700">Absorbed by Employer?</label>
+                            </div>
+                        {% endif %}
+
+                        {% if active_program == 'gip' %}
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.is_absorbed_by_agency }}
+                                <label class="text-xs font-bold text-slate-700">Absorbed by Government Agency?</label>
+                            </div>
+                        {% endif %}
+
+                        <!-- CAREER GUIDANCE SPECIFIC FIELDS -->
+                        {% if active_program == 'career_guidance' %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Participant Category *</label>
+                                {{ form.participant_category }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Activity Type *</label>
+                                {{ form.activity_type }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">School or Institution / Venue</label>
+                                <input type="text" name="school_or_institution" value="{{ form.school_or_institution.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Preferred Curriculum Exit</label>
+                                {{ form.preferred_curriculum_exit }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Conducted Date</label>
+                                {{ form.conducted_date }}
+                            </div>
+                            <div class="flex items-center gap-2 pt-6">
+                                {{ form.has_received_lmi_materials }}
+                                <label class="text-xs font-bold text-slate-700">Received LMI Materials / Kits?</label>
+                            </div>
+                        {% endif %}
+
+                        <!-- TUPAD SPECIFIC FIELDS -->
+                        {% if active_program == 'tupad' %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Project Term Category *</label>
+                                {{ form.project_type }}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Community Project Name</label>
+                                <input type="text" name="project_name" value="{{ form.project_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                            </div>
+                        {% endif %}
+
+                        <!-- DILP SPECIFIC FIELDS -->
+                        {% if active_program == 'dilp' %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Project Category *</label>
+                                {{ form.project_category }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Classification Subtype *</label>
+                                {{ form.project_classification }}
+                            </div>
+                        {% endif %}
+
+                        <!-- GENERAL TERM DATES & SALARY -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Daily Wage / Stipend (PHP)</label>
+                            <input type="number" step="0.01" name="daily_salary" value="{{ form.daily_salary.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Engagement Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Engagement End Date</label>
+                            {{ form.end_date }}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SUBMIT & CANCEL ACTION BUTTONS -->
+            <div class="pt-6 border-t flex justify-end gap-3">
+                <a href="{% url 'AdminSide:special_programs_list' %}?program={{ active_program }}" class="px-5 py-2 rounded-lg text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-sm">
+                    {% if is_editing %}Save Changes{% else %}Enroll Beneficiary{% endif %}
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- SCRIPT TO APPLY TAILWIND STYLING TO DJANGO FORM SELECT/CHECKBOX/DATE INPUTS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("select").forEach(el => {
+            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-indigo-500/20", "focus:border-indigo-600", "focus:outline-none", "bg-white");
+        });
+        document.querySelectorAll("input[type='date']").forEach(el => {
+            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-indigo-500/20", "focus:border-indigo-600", "focus:outline-none");
+        });
+        document.querySelectorAll("input[type='checkbox']").forEach(el => {
+            el.classList.add("w-4", "h-4", "text-indigo-600", "border-slate-300", "rounded", "focus:ring-indigo-500");
+        });
+    });
+
+    const addressData = {
+        "Capoocan": [
+            "Balucanad", "Balud", "Balugo", "Cabul-an", "Culasian", "Gayad",
+            "Guinadiongan", "Lemon", "Libertad", "Manloy", "Nauguisan", "Pinamopoan",
+            "Poblacion Zone I", "Poblacion Zone II", "Potot", "San Joaquin",
+            "Santo Niño", "Talairan", "Talisay", "Tolibao", "Visares"
+        ],
+        "Tunga": [
+            "Astorga (Barrio Upat)", "Balire", "Banawang", "San Antonio (Poblacion)",
+            "San Pedro (Poblacion)", "San Roque (Poblacion)", "San Vicente (Poblacion)",
+            "Santo Niño (Poblacion)"
+        ],
+        "Barugo": [
+            "Abango", "Amahit", "Balire", "Balud", "Bukid", "Bulod", "Busay",
+            "Cabarasan (Daliran)", "Cabolo-an", "Calingcaguing", "Can-isak",
+            "Canomantag", "Cuta", "Domogdog", "Duka", "Guindaohan", "Hiagsam",
+            "Hilaba", "Hinugayan", "Ibag", "Minuhang", "Minuswang", "Pikas",
+            "Pitogo", "Poblacion District I", "Poblacion District II",
+            "Poblacion District III", "Poblacion District IV", "Poblacion District V",
+            "Poblacion District VI", "Pongso", "Roosevelt", "San Isidro",
+            "San Roque", "Santa Rosa", "Santarin", "Tutug-an"
+        ],
+        "Jaro": [
+            "Alahag", "Anibongon", "Atipolo", "Badiang", "Batug", "Bias-Zabala",
+            "Buenavista", "Bukid", "Burabod", "Buri", "Caglawaan", "Canapu-an",
+            "Canhandugan", "Crossing Rubas", "Daro", "Poblacion District I",
+            "Poblacion District II", "Poblacion District III", "Poblacion District IV",
+            "Hiagsam", "Hibucawan", "Hibunawon", "Kalinawan", "La Paz", "Licod",
+            "Macanip", "Macopa", "Mag-aso", "Malobago", "Olotan", "Palanog",
+            "Pange", "Parasan", "Pitogo", "Sagkahan", "San Agustin", "San Pedro",
+            "San Roque", "Santa Cruz", "Santo Niño", "Sari-Sari", "Tinambacan",
+            "Tuba", "Uguiao", "Villa Conzoilo", "Villa Paz"
+        ],
+        "Carigara": [
+            "Bagong Lipunan", "Balilit", "Barayong", "Barugohay Central", "Barugohay Norte",
+            "Barugohay Sur", "Baybay (Poblacion)", "Binibihan", "Bislig", "Caghalo",
+            "Camansi", "Canal", "Candigahub", "Canfabi", "Canlampay", "Cogon",
+            "Cutay", "East Visoria", "Guindapunan East", "Guindapunan West",
+            "Hiluctogan", "Jugaban (Poblacion)", "Libo", "Lower Hiraan", "Lower Sogod",
+            "Macalpi", "Manloy", "Nauguisan", "Paglaum", "Pangna", "Parag-um",
+            "Parina (Parena)", "Piloro", "Ponong (Poblacion)", "Rizal (Tagak East)",
+            "Sagkahan", "San Isidro", "San Juan", "San Mateo (Poblacion)", "Santa Fe",
+            "Sawang (Poblacion)", "Tagak", "Tangnan", "Tigbao", "Tinaguban",
+            "Upper Hiraan", "Upper Sogod", "Uyawan", "West Visoria"
+        ],
+        "Alangalang": [],
+        "San Miguel": [],
+        "Kananga": []
+    };
+
+    const municipalityZipCodes = {
+        "alangalang": "6517",
+        "barugo": "6519",
+        "capoocan": "6530",
+        "carigara": "6529",
+        "jaro": "6527",
+        "san miguel": "6518",
+        "tunga": "6528"
+    };
+
+    function updateAddressFields() {
+        const municipalityInput = document.getElementById('id_municipality');
+        const barangayInput = document.getElementById('id_barangay');
+        const barangayList = document.getElementById('barangay_list');
+        const zipCodeInput = document.querySelector('input[name="zip_code"]');
+        const selectedMunicipality = municipalityInput ? municipalityInput.value.trim() : '';
+        const matchedMunicipality = Object.keys(addressData).find(
+            (name) => name.toLowerCase() === selectedMunicipality.toLowerCase()
+        );
+
+        barangayList.innerHTML = '';
+        if (matchedMunicipality && addressData[matchedMunicipality].length > 0) {
+            addressData[matchedMunicipality].forEach((barangay) => {
+                const option = document.createElement('option');
+                option.value = barangay;
+                barangayList.appendChild(option);
+            });
+        }
+
+        const normalizedMunicipality = selectedMunicipality.toLowerCase();
+        if (municipalityZipCodes[normalizedMunicipality]) {
+            zipCodeInput.value = municipalityZipCodes[normalizedMunicipality];
+        }
+
+        if (barangayInput && !barangayInput.value.trim()) {
+            barangayInput.value = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const municipalityInput = document.getElementById('id_municipality');
+        if (municipalityInput) {
+            municipalityInput.addEventListener('input', updateAddressFields);
+            municipalityInput.addEventListener('change', updateAddressFields);
+        }
+        updateAddressFields();
+    });
+</script>
+{% endblock %}
