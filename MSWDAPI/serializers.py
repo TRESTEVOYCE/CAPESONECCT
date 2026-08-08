@@ -1,8 +1,28 @@
 from rest_framework import serializers
-from AdminSide.models import SpecialProgramBeneficiaries
+from AdminSide.models import SpecialProgramForEmploymentOfStudents,GovernmentInternshipProgram,TupadBeneficiary,DisplacedInformalLaborProgram,CareerGuidanceBeneficiary
 
 
-class SpecialProgramSerializer(serializers.ModelSerializer):
+class SpecialProgramForEmploymentOfStudentsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SpecialProgramBeneficiaries
-        fields = ['uuid','first_name','middle_name','last_name','sex','date_of_birth','phone_number','email','barangay','municipality','province','region','zip_code','daily_salary','start_date','end_date','type_of_program','is_done']
+        model = SpecialProgramForEmploymentOfStudents
+        fields = '__all__'
+
+class GovernmentInternshipProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GovernmentInternshipProgram
+        fields = '__all__'
+
+class TupadBeneficiarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TupadBeneficiary
+        fields = '__all__'
+
+class DisplacedInformalLaborProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisplacedInformalLaborProgram
+        fields = '__all__'
+
+class CareerGuidanceBeneficiarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CareerGuidanceBeneficiary
+        fields = '__all__'
