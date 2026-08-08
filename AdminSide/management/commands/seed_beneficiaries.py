@@ -70,7 +70,7 @@ class Command(BaseCommand):
         last_name = fake.last_name()
 
         dob = fake.date_of_birth(
-            minimum_age=15,
+            minimum_age=10,
             maximum_age=65,
         )
 
