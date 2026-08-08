@@ -249,8 +249,8 @@ class Beneficiaries(models.Model):
         ('M', 'Male'),
         ('F', 'Female'),
     )
-
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    # I edited the uuid because our primary key is the ID id is our reference to our app and uuid for API *Steve*
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
