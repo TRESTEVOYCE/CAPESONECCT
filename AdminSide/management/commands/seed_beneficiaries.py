@@ -1,35 +1,52 @@
 import random
 import uuid
-from datetime import timedelta
-from django.core.management.base import BaseCommand
+from io import BytesIO
+from urllib.request import Request, urlopen
 from django.utils import timezone
+from django.core.files.base import ContentFile
+from django.core.management.base import BaseCommand
+from django.db import transaction
 from faker import Faker
 
 from AdminSide.models import (
-    SpecialProgramForEmploymentOfStudents,
-    GovernmentInternshipProgram,
-    TupadBeneficiary,
-    DisplacedInformalLaborProgram,
-    CareerGuidanceBeneficiary,
+    User,
+    EmployerProfile,
+    Jobs,
+    ApplicantSkills,
+    ApplicantProfile,
+    AppliedJobs,
+    OfferedJobs,
 )
 
 
 class Command(BaseCommand):
-    help = "Generate sample beneficiary data for all programs."
+
+    help = "Generate sample applicants, employers, jobs, applications, and offers."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "count",
             type=int,
-            help="Number of beneficiaries to create per program.",
+            help="Number of applicants and employers to create.",
         )
 
+        parser.add_argument(
+            "--with-images",
+            action="store_true",
+            help="Download DiceBear avatars for generated users.",
+        )
+
+    @transaction.atomic
     def handle(self, *args, **options):
+
         count = options["count"]
+        with_images = options["with_images"]
 
         if count <= 0:
             self.stdout.write(
-                self.style.ERROR("Count must be greater than 0.")
+                self.style.ERROR(
+                    "Count must be greater than 0."
+                )
             )
             return
 
@@ -37,377 +54,779 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.WARNING(
-                f"Creating {count} records for each of 5 programs..."
+                f"Creating {count:,} applicants and {count:,} employers..."
             )
         )
 
-        self.create_spes(fake, count)
-        self.create_gip(fake, count)
-        self.create_tupad(fake, count)
-        self.create_dilp(fake, count)
-        self.create_career_guidance(fake, count)
+        # ---------------------------------------------------------
+        # Create skills
+        # ---------------------------------------------------------
+
+        skills = self.create_skills()
+
+        # ---------------------------------------------------------
+        # Create applicants
+        # ---------------------------------------------------------
+
+        applicants = self.create_applicants(
+            fake,
+            count,
+            skills,
+            with_images,
+        )
+
+        # ---------------------------------------------------------
+        # Create employers
+        # ---------------------------------------------------------
+
+        employers = self.create_employers(
+            fake,
+            count,
+            with_images,
+        )
+
+        # ---------------------------------------------------------
+        # Create jobs
+        # ---------------------------------------------------------
+
+        jobs = self.create_jobs(
+            fake,
+            employers,
+            count,
+        )
+
+        # ---------------------------------------------------------
+        # Assign preferred jobs
+        # ---------------------------------------------------------
+
+        self.assign_preferred_jobs(
+            applicants,
+            jobs,
+        )
+
+        # ---------------------------------------------------------
+        # Create applications
+        # ---------------------------------------------------------
+
+        applications = self.create_applications(
+            applicants,
+            jobs,
+            count,
+        )
+
+        # ---------------------------------------------------------
+        # Create offers
+        # ---------------------------------------------------------
+
+        self.create_offers(
+            applications,
+        )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Successfully created {count * 5:,} beneficiaries."
+                "Sample data successfully created."
             )
         )
 
-    # ---------------------------------------------------------
-    # Common beneficiary data
-    # ---------------------------------------------------------
-
-    def common_data(self, fake):
-        sex = random.choice(["M", "F"])
-
-        first_name = (
-            fake.first_name_male()
-            if sex == "M"
-            else fake.first_name_female()
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Applicants : {len(applicants):,}"
+            )
         )
 
-        middle_name = fake.first_name()
-        last_name = fake.last_name()
-
-        dob = fake.date_of_birth(
-            minimum_age=10,
-            maximum_age=65,
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Employers  : {len(employers):,}"
+            )
         )
 
-        start_date = fake.date_between(
-            start_date="-2y",
-            end_date="today",
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Jobs       : {len(jobs):,}"
+            )
         )
 
-        duration = random.randint(10, 90)
-        end_date = start_date + timedelta(days=duration)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Applications: {AppliedJobs.objects.count():,}"
+            )
+        )
 
-        return {
-            "uuid": uuid.uuid4(),
-            "first_name": first_name,
-            "middle_name": middle_name,
-            "last_name": last_name,
-            "sex": sex,
-            "date_of_birth": dob,
-            "phone_number": self.philippine_phone(),
-            "barangay": fake.random_element([
-                "Abucay",
-                "Bagacay",
-                "Buntay",
-                "Can-abay",
-                "Cangumbang",
-                "Cogon",
-                "Downtown",
-                "Guindapunan",
-                "Libertad",
-                "Palanog",
-                "San Jose",
-                "San Roque",
-                "Santa Cruz",
-                "Santo Niño",
-            ]),
-            "municipality": fake.random_element([
-                "Tacloban City",
-                "Palo",
-                "Tanauan",
-                "Basey",
-                "Marabut",
-                "Tolosa",
-                "Dulag",
-                "Alangalang",
-                "Babatngon",
-                "Jaro",
-            ]),
-            "province": "Leyte",
-            "region": "Eastern Visayas",
-            "zip_code": random.choice([
-                "6500",
-                "6501",
-                "6502",
-                "6503",
-                "6504",
-                "6505",
-            ]),
-            "daily_salary": random.randint(400, 1000),
-            "start_date": start_date,
-            "end_date": end_date,
-            "is_done": end_date < timezone.localdate(),
-        }
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Offers     : {OfferedJobs.objects.count():,}"
+            )
+        )
 
-    def philippine_phone(self):
-        return f"09{random.randint(10, 99)}{random.randint(1000000, 9999999)}"
+    # =========================================================
+    # SKILLS
+    # =========================================================
 
-    # ---------------------------------------------------------
-    # SPES
-    # ---------------------------------------------------------
+    def create_skills(self):
 
-    def create_spes(self, fake, count):
+        skill_names = [
+            "Python",
+            "Django",
+            "Django REST Framework",
+            "JavaScript",
+            "React",
+            "HTML",
+            "CSS",
+            "Tailwind CSS",
+            "Java",
+            "C++",
+            "C#",
+            "PHP",
+            "Laravel",
+            "Node.js",
+            "SQL",
+            "MySQL",
+            "PostgreSQL",
+            "MongoDB",
+            "Git",
+            "GitHub",
+            "Docker",
+            "Linux",
+            "Networking",
+            "CCNA",
+            "Cybersecurity",
+            "Network Administration",
+            "Technical Support",
+            "Computer Hardware",
+            "Microsoft Office",
+            "Excel",
+            "Word",
+            "PowerPoint",
+            "Accounting",
+            "Bookkeeping",
+            "Customer Service",
+            "Communication",
+            "Sales",
+            "Marketing",
+            "Graphic Design",
+            "Video Editing",
+            "Data Entry",
+            "Project Management",
+            "Human Resources",
+            "Teaching",
+            "Research",
+            "Food Preparation",
+            "Hospitality",
+            "Driving",
+            "Electrical Installation",
+            "Welding",
+        ]
+
+        skills = []
+
+        for name in skill_names:
+
+            skill, created = ApplicantSkills.objects.get_or_create(
+                skill_name=name
+            )
+
+            skills.append(skill)
+
+        self.stdout.write(
+            f"  Skills: {len(skills):,}"
+        )
+
+        return skills
+
+    # =========================================================
+    # APPLICANTS
+    # =========================================================
+
+    def create_applicants(
+        self,
+        fake,
+        count,
+        skills,
+        with_images,
+    ):
+
+        applicants = []
+
         education_levels = [
             "elementary",
-            "juniors_hs",
-            "senior_hs",
+            "high_school",
             "college",
-            "tech_voc",
+            "university",
+            "vocational",
+            "other",
         ]
 
-        records = []
-
         for _ in range(count):
-            data = self.common_data(fake)
 
-            education = random.choice(education_levels)
+            sex = random.choice(["M", "F"])
 
-            records.append(
-                SpecialProgramForEmploymentOfStudents(
-                    **data,
-                    education_level=education,
-                    is_out_of_school_youth=random.choice([
-                        True, False
-                    ]),
-                    has_graduated=random.choice([
-                        True, False
-                    ]),
-                    has_nc_certification=random.choice([
-                        True, False
-                    ]),
-                    is_absorbed_by_employer=random.choice([
-                        True, False
-                    ]),
-                    school_name=random.choice([
-                        "Eastern Visayas State University",
-                        "Leyte National High School",
-                        "Tacloban City National High School",
-                        "University of the Philippines Visayas Tacloban",
-                        "ACLC College Tacloban",
-                        "AMA Computer College Tacloban",
-                        "TESDA Regional Training Center",
-                    ]),
-                    college_program=(
-                        random.choice([
-                            "BS Information Technology",
-                            "BS Computer Science",
-                            "BS Business Administration",
-                            "BS Education",
-                            "BS Accountancy",
-                            "BS Hospitality Management",
-                        ])
-                        if education == "college"
-                        else None
+            first_name = (
+                fake.first_name_male()
+                if sex == "M"
+                else fake.first_name_female()
+            )
+
+            middle_name = fake.first_name()
+            last_name = fake.last_name()
+
+            username = self.unique_username(
+                first_name,
+                last_name,
+            )
+
+            email = (
+                f"{username}"
+                f"@example.com"
+            )
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password="Password123!",
+                role="applicant",
+                is_active=True,
+            )
+
+            if with_images:
+                self.add_avatar(
+                    user,
+                    seed=str(user.uuid),
+                    style="personas",
+                )
+
+            applicant = ApplicantProfile.objects.create(
+                user=user,
+                first_name=first_name,
+                middle_name=middle_name,
+                last_name=last_name,
+                date_of_birth=fake.date_of_birth(
+                    minimum_age=18,
+                    maximum_age=60,
+                ),
+                sex=sex,
+                civil_status=random.choice([
+                    "single",
+                    "married",
+                    "divorced",
+                    "widowed",
+                ]),
+                phone_number=self.philippine_phone(),
+                barangay=random.choice([
+                    "Abucay",
+                    "Bagacay",
+                    "Buntay",
+                    "Can-abay",
+                    "Cangumbang",
+                    "Cogon",
+                    "Downtown",
+                    "Guindapunan",
+                    "Libertad",
+                    "Palanog",
+                    "San Jose",
+                    "San Roque",
+                    "Santa Cruz",
+                    "Santo Niño",
+                ]),
+                municipality=random.choice([
+                    "Tacloban City",
+                    "Palo",
+                    "Tanauan",
+                    "Basey",
+                    "Marabut",
+                    "Tolosa",
+                    "Dulag",
+                    "Alangalang",
+                    "Babatngon",
+                    "Jaro",
+                ]),
+                province="Leyte",
+                region="Eastern Visayas",
+                zip_code=random.choice([
+                    "6500",
+                    "6501",
+                    "6502",
+                    "6503",
+                    "6504",
+                    "6505",
+                ]),
+                education_level=random.choice(
+                    education_levels
+                ),
+                status="pending",
+            )
+
+            # Give each applicant 2-6 skills
+            applicant.skills.set(
+                random.sample(
+                    skills,
+                    k=random.randint(
+                        2,
+                        min(6, len(skills)),
                     ),
                 )
             )
 
-        SpecialProgramForEmploymentOfStudents.objects.bulk_create(
-            records,
-            batch_size=1000,
-        )
+            applicants.append(applicant)
 
         self.stdout.write(
-            f"  SPES: {count:,} records"
+            f"  Applicants: {len(applicants):,}"
         )
 
-    # ---------------------------------------------------------
-    # GIP
-    # ---------------------------------------------------------
+        return applicants
 
-    def create_gip(self, fake, count):
-        education_levels = [
-            "als",
-            "juniors_hs",
-            "senior_hs",
-            "tech_voc",
-            "college",
-        ]
+    # =========================================================
+    # EMPLOYERS
+    # =========================================================
 
-        records = []
+    def create_employers(
+        self,
+        fake,
+        count,
+        with_images,
+    ):
 
-        for _ in range(count):
-            data = self.common_data(fake)
+        employers = []
 
-            records.append(
-                GovernmentInternshipProgram(
-                    **data,
-                    education_level=random.choice(
-                        education_levels
-                    ),
-                    has_nc_certification=random.choice([
-                        True, False
-                    ]),
-                    is_absorbed_by_agency=random.choice([
-                        True, False
-                    ]),
-                )
-            )
-
-        GovernmentInternshipProgram.objects.bulk_create(
-            records,
-            batch_size=1000,
-        )
-
-        self.stdout.write(
-            f"  GIP: {count:,} records"
-        )
-
-    # ---------------------------------------------------------
-    # TUPAD
-    # ---------------------------------------------------------
-
-    def create_tupad(self, fake, count):
-        records = []
-
-        projects = [
-            "Road Cleaning and Maintenance",
-            "Community Beautification",
-            "Drainage Cleaning",
-            "Public Facility Maintenance",
-            "Coastal Clean-up",
-            "Barangay Road Maintenance",
-            "Tree Planting",
-            "Community Clean-up",
+        company_names = [
+            "Eastern Visayas Technology Solutions",
+            "Leyte Business Solutions",
+            "Tacloban Digital Services",
+            "Visayas Software Development",
+            "Eastern Visayas Trading Corporation",
+            "Leyte Manufacturing Corporation",
+            "Tacloban Hospitality Group",
+            "Eastern Visayas Healthcare Services",
+            "Visayas Logistics Corporation",
+            "Leyte Construction Services",
+            "Eastern Visayas Financial Services",
+            "Tacloban Retail Group",
+            "Visayas Agricultural Corporation",
+            "Leyte Telecommunications",
+            "Eastern Visayas Consulting Group",
         ]
 
         for _ in range(count):
-            data = self.common_data(fake)
 
-            project_type = random.choice([
-                "short",
-                "long",
-            ])
-
-            records.append(
-                TupadBeneficiary(
-                    **data,
-                    project_type=project_type,
-                    project_name=random.choice(projects),
-                )
+            company_name = (
+                f"{random.choice(company_names)} "
+                f"{random.randint(100, 999)}"
             )
 
-        TupadBeneficiary.objects.bulk_create(
-            records,
-            batch_size=1000,
-        )
+            username = (
+                "employer_"
+                f"{uuid.uuid4().hex[:8]}"
+            )
+
+            email = (
+                f"{username}"
+                "@example.com"
+            )
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password="Password123!",
+                role="employer",
+                is_active=True,
+            )
+
+            if with_images:
+                self.add_avatar(
+                    user,
+                    seed=str(user.uuid),
+                    style="personas",
+                )
+
+            employer = EmployerProfile.objects.create(
+                user=user,
+                company_name=company_name,
+                company_type=random.choice([
+                    "private",
+                    "government",
+                    "non_profit",
+                    "other",
+                ]),
+                business_permit=self.fake_business_permit(),
+                email=fake.unique.company_email(),
+                phone_number=self.philippine_phone(),
+                company_address=(
+                    f"{random.randint(1, 999)} "
+                    f"{fake.street_name()}, "
+                    f"Tacloban City, Leyte"
+                ),
+                contact_person=fake.name(),
+                verification_status=random.choice([
+                    "pending",
+                    "verified",
+                    "verified",
+                    "verified",
+                    "rejected",
+                ]),
+            )
+
+            employers.append(employer)
 
         self.stdout.write(
-            f"  TUPAD: {count:,} records"
+            f"  Employers: {len(employers):,}"
         )
 
-    # ---------------------------------------------------------
-    # DILP
-    # ---------------------------------------------------------
+        return employers
 
-    def create_dilp(self, fake, count):
-        records = []
+    # =========================================================
+    # JOBS
+    # =========================================================
+
+    def create_jobs(
+        self,
+        fake,
+        employers,
+        count,
+    ):
+
+        jobs = []
+
+        job_titles = [
+            "Software Developer",
+            "Web Developer",
+            "Backend Developer",
+            "Frontend Developer",
+            "Full Stack Developer",
+            "IT Support Specialist",
+            "Network Administrator",
+            "Cybersecurity Analyst",
+            "Data Entry Specialist",
+            "Administrative Assistant",
+            "Accountant",
+            "Bookkeeper",
+            "Customer Service Representative",
+            "Sales Representative",
+            "Marketing Assistant",
+            "Graphic Designer",
+            "Video Editor",
+            "HR Assistant",
+            "Project Coordinator",
+            "Electrical Technician",
+        ]
+
+        job_descriptions = [
+            "We are looking for a motivated professional to join our team.",
+            "The successful candidate will work with our team on daily operations and projects.",
+            "This position requires someone who is organized, responsible, and willing to learn.",
+            "The candidate will support the company's daily activities and assigned projects.",
+        ]
+
+        requirements = [
+            "Good communication skills",
+            "Ability to work with a team",
+            "Computer literate",
+            "Strong problem-solving skills",
+            "Willing to learn",
+            "Relevant educational background",
+        ]
+
+        sectors = [
+            "BPO / IT",
+            "Finance",
+            "Administrative",
+            "Hospitality",
+            "Wholesale & Retail",
+            "Logistics",
+            "Manufacturing",
+            "Construction",
+            "Healthcare",
+            "Education",
+            "Public Sector",
+            "Agriculture",
+        ]
 
         for _ in range(count):
-            data = self.common_data(fake)
 
-            records.append(
-                DisplacedInformalLaborProgram(
-                    **data,
-                    project_category=random.choice([
-                        "individual",
-                        "group",
-                    ]),
-                    project_classification=random.choice([
-                        "formation",
-                        "enhancement",
-                        "restoration",
-                    ]),
+            employer = random.choice(employers)
+
+            title = random.choice(job_titles)
+
+            job = Jobs.objects.create(
+                job_title=title,
+                job_description=random.choice(
+                    job_descriptions
+                ),
+                job_requirements="\n".join(
+                    random.sample(
+                        requirements,
+                        k=random.randint(3, 6),
+                    )
+                ),
+                job_location=random.choice([
+                    "Tacloban City",
+                    "Palo, Leyte",
+                    "Tanauan, Leyte",
+                    "Ormoc City",
+                    "Baybay City",
+                    "Cebu City",
+                    "Manila",
+                    "Remote",
+                ]),
+                job_type=random.choice([
+                    "full_time",
+                    "part_time",
+                    "contract",
+                    "internship",
+                ]),
+                vacancy=random.randint(1, 15),
+                salary=random.randint(
+                    12000,
+                    60000,
+                ),
+                employer=employer,
+                status=random.choice([
+                    "Active",
+                    "Active",
+                    "Active",
+                    "Pending",
+                    "Filled",
+                    "Closed",
+                ]),
+                job_posting_expiry=timezone.make_aware(
+                fake.date_time_between(
+                    start_date="+30d",
+                    end_date="+180d",
                 )
+),
             )
 
-        DisplacedInformalLaborProgram.objects.bulk_create(
-            records,
-            batch_size=1000,
-        )
+            jobs.append(job)
 
         self.stdout.write(
-            f"  DILP: {count:,} records"
+            f"  Jobs: {len(jobs):,}"
         )
 
-    # ---------------------------------------------------------
-    # Career Guidance
-    # ---------------------------------------------------------
+        return jobs
 
-    def create_career_guidance(self, fake, count):
-        records = []
+    # =========================================================
+    # PREFERRED JOBS
+    # =========================================================
 
-        participant_types = [
-            "juniors_hs",
-            "senior_hs",
-            "college",
-            "tech_voc",
-            "osy",
-            "jobseeker",
-        ]
+    def assign_preferred_jobs(
+        self,
+        applicants,
+        jobs,
+    ):
 
-        activity_types = [
-            "orientation",
-            "coaching",
-            "lmi_briefing",
-            "pre_employment",
-        ]
+        if not jobs:
+            return
 
-        curriculum_exits = [
-            "higher_ed",
-            "employment",
-            "entrepreneurship",
-            "skills_dev",
-            "undecided",
-        ]
+        for applicant in applicants:
 
-        institutions = [
-            "Eastern Visayas State University",
-            "Leyte National High School",
-            "Tacloban City National High School",
-            "University of the Philippines Visayas Tacloban",
-            "TESDA Regional Training Center",
-            "ACLC College Tacloban",
-            "AMA Computer College Tacloban",
-        ]
-
-        for _ in range(count):
-            data = self.common_data(fake)
-
-            participant_type = random.choice(
-                participant_types
+            preferred = random.sample(
+                jobs,
+                k=random.randint(
+                    1,
+                    min(5, len(jobs)),
+                ),
             )
 
-            conducted_date = fake.date_between(
-                start_date="-2y",
-                end_date="today",
+            applicant.preferred_job.set(
+                preferred
             )
-
-            records.append(
-                CareerGuidanceBeneficiary(
-                    **data,
-                    participant_category=participant_type,
-                    activity_type=random.choice(
-                        activity_types
-                    ),
-                    school_or_institution=(
-                        random.choice(institutions)
-                        if participant_type != "jobseeker"
-                        else None
-                    ),
-                    preferred_curriculum_exit=random.choice(
-                        curriculum_exits
-                    ),
-                    conducted_date=conducted_date,
-                    has_received_lmi_materials=random.choice([
-                        True,
-                        True,
-                        True,
-                        False,
-                    ]),
-                )
-            )
-
-        CareerGuidanceBeneficiary.objects.bulk_create(
-            records,
-            batch_size=1000,
-        )
 
         self.stdout.write(
-            f"  Career Guidance: {count:,} records"
+            "  Preferred jobs assigned."
         )
+
+    # =========================================================
+    # APPLICATIONS
+    # =========================================================
+
+    def create_applications(
+        self,
+        applicants,
+        jobs,
+        count,
+    ):
+
+        applications = []
+
+        # Not every applicant needs to apply to every job.
+        for applicant in applicants:
+
+            number_of_applications = random.randint(
+                0,
+                min(5, len(jobs)),
+            )
+
+            selected_jobs = random.sample(
+                jobs,
+                k=number_of_applications,
+            )
+
+            for job in selected_jobs:
+
+                application = AppliedJobs.objects.create(
+                    applicant=applicant,
+                    applied_job=job,
+                    is_hired=False,
+                    status=random.choice([
+                        "pending",
+                        "reviewed",
+                        "for interview",
+                        "hired",
+                        "rejected",
+                    ]),
+                )
+
+                applications.append(
+                    application
+                )
+
+        self.stdout.write(
+            f"  Applications: {len(applications):,}"
+        )
+
+        return applications
+
+    # =========================================================
+    # OFFERS
+    # =========================================================
+
+    def create_offers(
+        self,
+        applications,
+    ):
+
+        offers = []
+
+        # Only a percentage of applications receive offers.
+        for application in applications:
+
+            if application.status not in [
+                "for interview",
+                "hired",
+            ]:
+                continue
+
+            if random.random() > 0.25:
+                continue
+
+            offer = OfferedJobs.objects.create(
+                applicant=application.applicant,
+                offered_job=application.applied_job,
+                referred_by=random.choice([
+                    "PESO",
+                    "MSWDO",
+                    "Employer",
+                    "Job Fair",
+                    "Online Application",
+                    None,
+                ]),
+                status=random.choice([
+                    "pending",
+                    "reviewed",
+                    "for interview",
+                    "hired",
+                ]),
+                remarks=random.choice([
+                    None,
+                    "Candidate recommended for interview.",
+                    "Employer requested additional documents.",
+                    "Candidate qualified for the position.",
+                ]),
+            )
+
+            offers.append(offer)
+
+        self.stdout.write(
+            f"  Offers: {len(offers):,}"
+        )
+
+        return offers
+
+    # =========================================================
+    # UTILITIES
+    # =========================================================
+
+    def unique_username(
+        self,
+        first_name,
+        last_name,
+    ):
+
+        base = (
+            f"{first_name.lower()}"
+            f".{last_name.lower()}"
+        )
+
+        username = base
+
+        while User.objects.filter(
+            username=username
+        ).exists():
+
+            username = (
+                f"{base}"
+                f"{random.randint(1000, 9999)}"
+            )
+
+        return username
+
+    def philippine_phone(self):
+
+        return (
+            "09"
+            f"{random.randint(10, 99)}"
+            f"{random.randint(1000000, 9999999)}"
+        )
+
+    def fake_business_permit(self):
+
+        return ContentFile(
+            b"Sample business permit for development data.",
+            name=f"business_permit_{uuid.uuid4().hex}.txt",
+        )
+
+    # =========================================================
+    # DICEBEAR AVATAR
+    # =========================================================
+
+    def add_avatar(
+        self,
+        user,
+        seed,
+        style="personas",
+    ):
+
+        try:
+
+            url = (
+                f"https://api.dicebear.com/10.x/"
+                f"{style}/png"
+                f"?seed={seed}&size=256"
+            )
+
+            request = Request(
+                url,
+                headers={
+                    "User-Agent": "Django Development Seeder"
+                },
+            )
+
+            with urlopen(
+                request,
+                timeout=10,
+            ) as response:
+
+                image_data = response.read()
+
+            user.profile_picture.save(
+                f"{user.username}.png",
+                ContentFile(image_data),
+                save=True,
+            )
+
+        except Exception as exc:
+
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Could not download avatar for "
+                    f"{user.username}: {exc}"
+                )
+            )
