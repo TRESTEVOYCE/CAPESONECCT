@@ -34,10 +34,16 @@
         </p>
     </div>
 
+    {% if is_editing %}
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
+        Please finish or save your changes before switching programs. Confirm your changes first.
+    </div>
+    {% endif %}
+
     <!-- PROGRAM NAVIGATION SWITCHER -->
     <div class="bg-slate-100 p-1.5 rounded-xl flex gap-2 overflow-x-auto border border-slate-200">
         {% for key, prog in available_programs.items %}
-            <a href="?program={{ key }}" 
+            <a href="?program={{ key }}" data-confirm-program-switch="true"
                class="flex-1 min-w-[140px] text-center py-2 px-3 rounded-lg text-xs font-bold transition whitespace-nowrap {% if active_program == key %}bg-white text-slate-800 shadow-sm border border-slate-200/80{% else %}text-slate-500 hover:text-slate-700 hover:bg-slate-200/50{% endif %}">
                 {% if key == 'spes' %}SPES
                 {% elif key == 'gip' %}GIP Track
@@ -53,17 +59,24 @@
         
         <!-- MESSAGES FEEDBACK -->
         {% if messages %}
-            <div class="p-4 border-b bg-amber-50 border-amber-100">
+            <div id="os-notification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm transition-all duration-300 ease-out translate-y-0 opacity-100 px-4">
                 {% for message in messages %}
-                    <p class="text-xs font-bold text-amber-800 flex items-center gap-2">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <span>{{ message }}</span>
-                    </p>
+                    <div class="flex items-center gap-3.5 rounded-2xl bg-white p-4 text-slate-900 shadow-xl shadow-slate-900/10 border-2 {% if active_program == 'spes' %}border-purple-600{% elif active_program == 'gip' %}border-blue-600{% elif active_program == 'career_guidance' %}border-green-600{% elif active_program == 'tupad' %}border-orange-500{% elif active_program == 'dilp' %}border-teal-600{% else %}border-slate-400{% endif %}">
+                        
+                        <!-- Banner Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">System Alert</p>
+                                <span class="text-[10px] font-medium text-slate-400">Just now</span>
+                            </div>
+                            <p class="text-sm font-semibold text-slate-800 leading-snug mt-1">
+                                {{ message }}
+                            </p>
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
-        {% endif %}
+            {% endif %}
 
         <form method="POST" enctype="multipart/form-data" action="" class="p-6 space-y-8">
             {% csrf_token %}
@@ -153,7 +166,7 @@
                         <!-- Municipality -->
                         <div>
                             <label for="id_municipality" class="block text-xs font-bold text-slate-700 mb-1">Municipality *</label>
-                            <input type="text" id="id_municipality" name="municipality" value="{{ form.municipality.value|default:beneficiary.municipality|default:'' }}" list="municipality_list" placeholder="Enter municipality" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" id="id_municipality" name="municipality" value="{% if form.municipality.value %}{{ form.municipality.value }}{% elif beneficiary %}{{ beneficiary.municipality }}{% endif %}" list="municipality_list" placeholder="Enter municipality" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
                             <datalist id="municipality_list">
                                 <option value="Alangalang"></option>
                                 <option value="Barugo"></option>
@@ -170,7 +183,7 @@
                         <!-- Barangay -->
                         <div>
                             <label for="id_barangay" class="block text-xs font-bold text-slate-700 mb-1">Barangay *</label>
-                            <input type="text" id="id_barangay" name="barangay" value="{{ form.barangay.value|default:beneficiary.barangay|default:'' }}" list="barangay_list" placeholder="Enter barangay" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" id="id_barangay" name="barangay" value="{% if form.barangay.value %}{{ form.barangay.value }}{% elif beneficiary %}{{ beneficiary.barangay }}{% endif %}" list="barangay_list" placeholder="Enter barangay" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
                             <datalist id="barangay_list"></datalist>
                             {% if form.barangay.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.barangay.errors.0 }}</span>{% endif %}
                         </div>
@@ -322,7 +335,7 @@
 
 </div>
 
-<!-- SCRIPT TO APPLY TAILWIND STYLING TO DJANGO FORM SELECT/CHECKBOX/DATE INPUTS -->
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll("select").forEach(el => {
@@ -334,6 +347,18 @@
         document.querySelectorAll("input[type='checkbox']").forEach(el => {
             el.classList.add("w-4", "h-4", "text-indigo-600", "border-slate-300", "rounded", "focus:ring-indigo-500");
         });
+
+        const isEditing = {{ is_editing|yesno:"true,false" }};
+        const programLinks = document.querySelectorAll('a[data-confirm-program-switch="true"]');
+
+        if (isEditing) {
+            programLinks.forEach(link => {
+                link.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    window.alert("Please finish or save your changes before switching programs. Confirm your changes first.");
+                });
+            });
+        }
     });
 
     const addressData = {
@@ -424,6 +449,18 @@
             barangayInput.value = '';
         }
     }
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            const banner = document.getElementById('os-notification');
+            if (banner) {
+                banner.classList.add('-translate-y-6', 'opacity-0');
+                setTimeout(() => banner.remove(), 300);
+            }
+        }, 4000); // Disappears automatically after 4 seconds
+    });
+
 
     document.addEventListener('DOMContentLoaded', function () {
         const municipalityInput = document.getElementById('id_municipality');
