@@ -408,8 +408,13 @@ class Beneficiaries(models.Model):
         ('F', 'Female'),
     )
 
+<<<<<<< HEAD
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
 
+=======
+    id = models.BigAutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+>>>>>>> 0b001fa (Added login.html. Modified the messages/feedback form. fixed the db.)
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(
         max_length=100,

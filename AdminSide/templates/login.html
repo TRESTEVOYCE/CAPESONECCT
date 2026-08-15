@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - PESO Management System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: {
+                            bg: '#0F172A',
+                            header: '#0B1120',
+                            card: '#1E293B',
+                            hover: '#1E293B',
+                            active: '#27354A',
+                            border: '#1E293B'
+                        },
+                        brand: {
+                            red: '#DC2626',
+                            'red-soft': '#FEE2E2',
+                            'red-dark': '#991B1B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg" sizes="32x32">
+</head>
+<body class="bg-[#F8FAFC] min-h-screen flex items-center justify-center p-4 lg:p-8 font-sans antialiased text-slate-700">
+
+    <!-- Main Container Card (Split Screen Layout) -->
+    <div class="w-full max-w-5xl bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+        
+        <!-- LEFT COLUMN: PESO Branding Hero Image Section (5 Cols) -->
+        <div class="lg:col-span-5 relative bg-sidebar-bg text-white flex flex-col justify-between p-8 lg:p-10 overflow-hidden min-h-[300px] lg:min-h-full">
+            
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop" 
+                     alt="Government & Employment Building" 
+                     class="w-full h-full object-cover opacity-30 mix-blend-overlay">
+                <!-- Dark Slate Gradient Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-t from-sidebar-bg via-sidebar-bg/80 to-sidebar-header/90"></div>
+            </div>
+
+            <!-- Empty Top Spacer -->
+            <div class="relative z-10 hidden lg:block"></div>
+
+            <!-- Centered Hero Branding & Text Content (Increased Top Margin) -->
+            <div class="relative z-10 my-auto mt-4 lg:mt-6 py-2 text-center flex flex-col items-center">
+                
+                <!-- Significantly Enlarged Centered Logo -->
+                <div class="inline-flex items-center justify-center p-2.5 bg-white/10 rounded-full ring-1 ring-white/20 mb-4 shadow-2xl">
+                    <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg" 
+                         alt="PESO Logo" 
+                         class="h-36 w-36 shrink-0 object-contain bg-white rounded-full p-2 shadow-lg">
+                </div>
+
+                <!-- Centered Administrative Portal Badge -->
+                <span class="inline-block px-3.5 py-1 bg-brand-red/20 border border-brand-red/30 text-brand-red-soft text-[11px] font-bold tracking-wider uppercase rounded-full mb-3">
+                    Administrative Portal
+                </span>
+
+                <!-- Headline -->
+                <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight mt-1">
+                    Empowering Local Employment & Job Matching.
+                </h1>
+                <p class="text-xs text-slate-300 mt-2.5 leading-relaxed max-w-sm">
+                    Public Employment Service Office management platform for applicant tracking, employer verification, and career referrals.
+                </p>
+            </div>
+
+            <!-- Bottom Hero Footer -->
+            <div class="relative z-10 border-t border-slate-700/60 pt-4 flex items-center justify-between text-[10px] text-slate-400 w-full">
+                <span>Municipality of Carigara</span>
+                <span>DOLE PESO Network</span>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Clean Login Form Section (7 Cols) -->
+        <div class="lg:col-span-7 bg-white p-8 lg:p-14 flex flex-col justify-center">
+            
+            <div class="max-w-md w-full mx-auto">
+                
+                <!-- Header Title -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">System Login</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-1">Please enter your administrator credentials to proceed.</p>
+                </div>
+
+                <!-- Django Messages Display -->
+                {% if messages %}
+                    <div class="mb-6 space-y-2">
+                        {% for message in messages %}
+                            <div class="p-3 rounded-xl text-xs font-semibold flex items-center gap-2.5 
+                                {% if message.tags == 'error' %} bg-brand-red-soft text-brand-red-dark border border-red-200
+                                {% else %} bg-slate-100 text-slate-700 border border-slate-200 {% endif %}">
+                                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %} text-sm"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Login Form -->
+                <form method="POST" action="{% url 'AdminSide:admin_login' %}" class="space-y-5">
+                    {% csrf_token %}
+
+                    <!-- Username Input -->
+                    <div>
+                        <label for="username" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                            Username
+                        </label>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-3.5 text-slate-400 pointer-events-none">
+                                <i class="fa-solid fa-user text-sm"></i>
+                            </div>
+                            <input type="text" 
+                                   name="username" 
+                                   id="username" 
+                                   required 
+                                   placeholder="Enter your username"
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                Password
+                            </label>
+                            <a href="#" class="text-[11px] font-semibold text-brand-red hover:underline">Forgot password?</a>
+                        </div>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-3.5 text-slate-400 pointer-events-none">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <input type="password" 
+                                   name="password" 
+                                   id="password" 
+                                   required 
+                                   placeholder="••••••••"
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Remember Session Checkbox -->
+                    <div class="flex items-center justify-between text-xs pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer text-slate-500 hover:text-slate-700 select-none">
+                            <input type="checkbox" name="remember_me" class="rounded border-slate-300 bg-slate-50 text-brand-red focus:ring-brand-red h-4 w-4">
+                            <span>Keep me logged in</span>
+                        </label>
+                        <span class="text-[11px] text-slate-400 font-mono">v1.0 MIS</span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full py-3.5 px-4 bg-brand-red hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-red/25 transition-all duration-200 flex items-center justify-center gap-2 mt-4 cursor-pointer">
+                        <i class="fa-solid fa-right-to-bracket text-sm"></i>
+                        <span>SIGN IN TO DASHBOARD</span>
+                    </button>
+                </form>
+
+                <!-- Additional Security Notice -->
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-slate-400"></i>
+                        <span>Authorized Personnel Only &nbsp;·&nbsp; Encrypted Connection</span>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

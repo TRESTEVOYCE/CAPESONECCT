@@ -4,170 +4,322 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CAPESONNECT{% endblock %}</title>
+    <link rel="icon" type="image/png" href="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg" sizes="32x32" >
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Dashboard Icons -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: {
+                            bg: '#0F172A',
+                            header: '#0B1120',
+                            card: '#1E293B',
+                            hover: '#1E293B',
+                            active: '#27354A',
+                            border: '#1E293B'
+                        },
+                        brand: {
+                            red: '#DC2626',
+                            'red-soft': '#FEE2E2',
+                            'red-dark': '#991B1B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
-</head>
-<body class="h-screen w-screen flex overflow-hidden bg-[#f4f6f9] font-sans antialiased">
-
-    <!-- 1. FULL HEIGHT STICKY SIDEBAR (Spans top to bottom) -->
-   <aside class="w-64 bg-[#112954] text-white flex flex-col justify-between shrink-0 h-full border-r border-slate-800 z-50">
     
-    <div class="flex flex-col overflow-y-auto flex-1">
-        <div class="p-4 bg-[#0d2042] flex items-center space-x-3 border-b border-slate-800 shrink-0">
-            <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg"
-                 alt="PESO Logo" 
-                 class="h-12 w-12 object-contain">
-            <div>
-                <h2 class="text-xs font-bold tracking-wider uppercase">CAPESONNECT</h2>
-                <p class="text-sm font-small text-slate-500 mt-1">
-                    PESO — Carigara
-                </p>
+<style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    /* Smooth Width Animation */
+    #sidebar {
+        transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: width;
+    }
+
+    /* Fixed Icon Dimensions (Strict 36px Alignment) */
+    .nav-icon-wrapper {
+        width: 2.25rem !important;
+        min-width: 2.25rem !important;
+        max-width: 2.25rem !important;
+        height: 2.25rem !important;
+        flex: 0 0 2.25rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Standardized Text Node */
+    .sidebar-text-node {
+        white-space: nowrap;
+        overflow: hidden;
+        transition: opacity 150ms ease-in-out;
+        flex-shrink: 0;
+    }
+
+    /* COLLAPSED STATE */
+    #sidebar.collapsed {
+        width: 68px !important;
+    }
+
+    #sidebar.collapsed .sidebar-text-node {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        max-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        pointer-events: none !important;
+    }
+
+    #sidebar.collapsed .px-3 a {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        justify-content: flex-start;
+    }
+
+    #sidebar.collapsed .px-3 > p.sidebar-text-node {
+        display: none !important;
+    }
+
+    #sidebar.collapsed #sidebarToggleLogo {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* PREVENT INITIAL EXPANDED FLASH */
+    html.sidebar-preload-collapsed #sidebar {
+        width: 68px !important;
+    }
+    
+    html.sidebar-preload-collapsed #sidebar .sidebar-text-node {
+        display: none !important;
+    }
+</style>
+</head>
+<body class="h-screen w-screen flex overflow-hidden bg-[#F8FAFC] font-sans antialiased">
+
+    <!-- 1. SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-sidebar-bg text-slate-300 flex flex-col justify-between shrink-0 h-full border-r border-sidebar-border z-50 shadow-xl overflow-hidden select-none">
+    
+        <div class="flex flex-col overflow-y-auto flex-1 overflow-x-hidden">
+            
+            <!-- Logo Header (Increased height container) -->
+            <div class="h-20 px-3.5 bg-sidebar-header flex items-center justify-between border-b border-sidebar-border shrink-0">
+                <button id="sidebarToggleLogo" class="flex items-center gap-3 focus:outline-none shrink-0 cursor-pointer">
+                    <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg"
+                         alt="PESO Logo" 
+                         class="h-9 w-9 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-sm">
+                    <div class="sidebar-text-node text-left">
+                        <h2 class="text-xs font-bold text-white tracking-wider uppercase leading-none">PESO</h2>
+                        <p class="text-[10px] text-slate-400 font-medium tracking-tight mt-1">
+                            EMPLOYMENT SYSTEM
+                        </p>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Navigation Links (Reduced vertical spacing) -->
+            <div class="px-3 py-2 space-y-0.5">
+                <p class="sidebar-text-node text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-1">Navigation</p>
+                
+                <!-- Dashboard -->
+                <a href="{% url 'AdminSide:dashboard' %}" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'dashboard' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <!-- Red Indicator Inside Fixed Box -->
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-table-cells-large text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Dashboard</span>
+                </a>
+
+                <!-- Job Postings -->
+                <a href="{% url 'AdminSide:job_postings_list' %}" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'job_postings_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'job_postings_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-briefcase text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Job Postings</span>
+                </a>
+
+                <!-- Applicants -->
+                <a href="{% url 'AdminSide:applicants_list' %}" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'applicants_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'applicants_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-users text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Applicants</span>
+                </a>
+
+                <!-- Employers -->
+                <a href="{% url 'AdminSide:employer_list' %}" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'employer_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'employer_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-building text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Employers</span>
+                </a>
+
+                <!-- Applications & Referrals -->
+                <a href="{% url 'AdminSide:referrals_list' %}"
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'referrals_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'referrals_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Applications & Referrals</span>
+                </a>
+
+                <!-- Special Programs -->
+                <a href="{% url 'AdminSide:special_programs_list' %}"
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'special_programs_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'special_programs_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-graduation-cap text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Special Programs</span>
+                </a>
+
+                <!-- Reports -->
+                <a href="{% url 'AdminSide:peso_monthly_report' %}" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'peso_monthly_report' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'peso_monthly_report' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-chart-line text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Reports</span>
+                </a>
+
+                <!-- User Management -->
+                <a href="#" 
+                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                   {% if request.resolver_match.url_name == 'user_management' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'user_management' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-shield-halved text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">User Management</span>
+                </a>
             </div>
         </div>
 
-        <div class="px-2 py-2 space-y-1">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Navigation</p>
-            
-            <a href="{% url 'AdminSide:dashboard' %}" 
-               class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'dashboard' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <span class="flex items-center space-x-3">
-                    <i class="fa-solid fa-table-columns w-4 {% if request.resolver_match.url_name == 'dashboard' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                    <span>Dashboard</span>
-                </span>
-            </a>
-
-            <a href="{% url 'AdminSide:job_postings_list' %}" 
-               class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'job_postings_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <span class="flex items-center space-x-3">
-                    <i class="fa-solid fa-briefcase w-4 {% if request.resolver_match.url_name == 'job_postings_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                    <span>Job Postings</span>
-                </span>
-            </a>
-
-            <a href="{% url 'AdminSide:applicants_list' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'applicants_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-users w-4 {% if request.resolver_match.url_name == 'applicants_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>Applicants</span>
-            </a>
-
-            <a href="{% url 'AdminSide:employer_list' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'employer_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-building w-4 {% if request.resolver_match.url_name == 'employer_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>Employers</span>
-            </a>
-
-            <a href="{% url 'AdminSide:referrals_list' %}"
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'referrals_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-file-invoice w-4 {% if request.resolver_match.url_name == 'referrals_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>Applications & Referrals</span>
-            </a>
-
-            <a href="{% url 'AdminSide:special_programs_list' %}"
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'special_programs_list' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-graduation-cap w-4 {% if request.resolver_match.url_name == 'special_programs_list' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>Special Programs</span>
-            </a>
-
-            <a href="{% url 'AdminSide:peso_monthly_report' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'peso_monthly_report' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-chart-line w-4 {% if request.resolver_match.url_name == 'peso_monthly_report' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>Reports</span>
-            </a>
-
-            <a href="#" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 
-               {% if request.resolver_match.url_name == 'user_management' %} bg-[#1d3d75] text-white {% else %} text-slate-300 hover:bg-[#163161] hover:text-white {% endif %}">
-                <i class="fa-solid fa-user-gear w-4 {% if request.resolver_match.url_name == 'user_management' %} text-slate-300 {% else %} text-slate-400 {% endif %}"></i>
-                <span>User Management</span>
+        <!-- Sign Out Link (Reduced height container) -->
+        <div class="px-3 py-2 border-t border-sidebar-border bg-sidebar-bg shrink-0">
+            <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
+                <div class="nav-icon-wrapper">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </div>
+                <span class="sidebar-text-node pl-2 truncate">Sign Out</span>
             </a>
         </div>
-    </div>
+    </aside>
 
-    <div class="p-3 border-t border-slate-800 bg-[#0d2042] shrink-0">
-        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-950/40 hover:text-red-300 transition-all duration-200">
-            <i class="fa-solid fa-right-from-bracket w-4"></i>
-            <span>Sign Out</span>
-        </a>
-    </div>
-</aside>
-
-    <!-- RIGHT CONTAINER: Holds Topbar, Main Scrollable Content, and Footer -->
+    <!-- RIGHT CONTAINER -->
     <div class="flex-1 flex flex-col overflow-hidden relative h-full">
 
-        <!-- 2. STICKY TOPBAR -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-40 shadow-sm">
+        <!-- STICKY TOPBAR -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-40">
             <div class="flex items-center space-x-3">
-                <div class="flex flex-col">
-                    <span class="text-[12px] text-slate-400 font-bold uppercase tracking-tighter">A web-based PESO Job Matching and Management System</span>
-                </div>
+                <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
+                    PESO-MANAGED JOB MATCHING & EMPLOYMENT MANAGEMENT SYSTEM &nbsp;·&nbsp; <span class="text-slate-600">PESO Carigara</span>
+                </span>
             </div>
 
-            <!-- Account / Context Action items on top-right -->
-            <div class="flex items-center space-x-4">
-                <span class="bg-blue-50 text-blue-700 text-[11px] font-bold px-2.5 py-1 rounded-full border border-blue-100 flex items-center gap-1.5">
-                    <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+            <div class="flex items-center space-x-3">
+                <span class="bg-brand-red-soft text-brand-red-dark text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-brand-red"></span>
                     Admin Session
                 </span>
                 
-                <div class="flex items-center space-x-2">
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-slate-700">
-                            {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Maria Andres{% endif %}
-                        </p>
-                        <p class="text-[10px] text-slate-400 font-medium">PESO Administrator</p>
-                    </div>
-                    <div class="h-8 w-8 bg-[#112954] text-white rounded-full flex items-center justify-center font-bold text-xs">
-                        MA
-                    </div>
+                <div class="h-8 w-8 bg-brand-red text-white font-bold text-xs rounded-full flex items-center justify-center">
+                    MA
                 </div>
             </div>
         </header>
 
-        <!-- 3. MAIN CONTAINER SCROLLABLE -->
-        <main class="flex-1 overflow-y-auto p-6 pb-16 bg-[#f8fafc]">
+        <!-- MAIN CONTAINER -->
+        <main class="flex-1 overflow-y-auto p-6 pb-16 bg-[#F8FAFC]">
             {% block content %}
             {% endblock %}
         </main>
 
-        <!-- 4. STICKY FOOTER CONTAINER -->
+        <!-- FOOTER -->
         <footer class="h-9 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between px-6 text-[10px] text-slate-400 z-40">
             <div>
                 <span>PESO Employment MIS v1.0</span>
-                <span class="mx-1.5 text-slate-200">•</span>
-                <span class="font-semibold text-slate-500">Municipality Government of Carigara</span>
+                <span class="mx-1.5 text-slate-300">•</span>
+                <span class="font-medium text-slate-500">Municipality Government of Carigara</span>
             </div>
             <div>
-                <span>Powered by <span class="font-bold text-[#112954]">PESO DOLE</span></span>
-                <span class="mx-1 text-slate-200">•</span>
+                <span>Powered by <span class="font-bold text-slate-600">DOLE PESO Network</span></span>
+                <span class="mx-1 text-slate-300">•</span>
                 <span>2026</span>
             </div>
         </footer>
 
     </div>
 
+    <!-- SCRIPT -->
+    <script>
+        (function(){
+            const sidebar = document.getElementById('sidebar');
+            const logoBtn = document.getElementById('sidebarToggleLogo');
+            const STORAGE_KEY = 'cap_sidebar_collapsed_v1';
+
+            function setCollapsed(collapsed){
+                if(!sidebar) return;
+                if(collapsed){
+                    sidebar.classList.add('collapsed');
+                    localStorage.setItem(STORAGE_KEY, '1');
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+
+            function initializeSidebar(){
+                const saved = localStorage.getItem(STORAGE_KEY) === '1';
+                if(window.innerWidth < 900 || saved){
+                    setCollapsed(true);
+                } else {
+                    setCollapsed(false);
+                }
+            }
+
+            logoBtn && logoBtn.addEventListener('click', (e)=>{
+                e.preventDefault();
+                setCollapsed(false);
+            });
+
+            window.addEventListener('resize', ()=>{
+                if(window.innerWidth < 900){
+                    setCollapsed(true);
+                } else {
+                    const saved = localStorage.getItem(STORAGE_KEY) === '1';
+                    setCollapsed(saved);
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', initializeSidebar);
+        })();
+    </script>
 </body>
 </html>

@@ -27,7 +27,49 @@ from .forms import (
     TupadBeneficiaryForm,
     DisplacedInformalLaborProgramForm,
 )
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
+class SuperuserRequiredMixin(UserPassesTestMixin):
+    """Custom mixin to ensure the user is both authenticated and a superuser."""
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Unauthorized access. Superuser credentials required.")
+        return redirect('AdminSide:admin_login')
+
+
+class AdminLoginView(View):
+    """Class-Based View handling administrator authentication."""
+    template_name = 'login.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return redirect('AdminSide:dashboard')
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        username_str = request.POST.get('username')
+        password_str = request.POST.get('password')
+
+        user = authenticate(request, username=username_str, password=password_str)
+
+        if user is not None and user.is_superuser:
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.username}!")
+            return redirect('AdminSide:dashboard')
+        
+        messages.error(request, "Invalid administrator credentials or unauthorized user.")
+        return render(request, self.template_name)
+
+
+class AdminLogoutView(View):
+    """Class-Based View handling administrator logout."""
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        messages.info(request, "You have been logged out.")
+        return redirect('AdminSide:admin_login')
 
 PROGRAM_CONFIG = {
     'spes': {
@@ -62,7 +104,7 @@ PROGRAM_CONFIG = {
     },
 }
 
-class DashboardView(TemplateView):
+class DashboardView(SuperuserRequiredMixin, TemplateView):
     template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
@@ -447,11 +489,14 @@ class SpecialProgramsListView(ListView):
 
         # Text search
         if self.search_query:
-            queryset = queryset.filter(
+            search_filters = (
                 Q(first_name__icontains=self.search_query) |
                 Q(last_name__icontains=self.search_query) |
                 Q(uuid__icontains=self.search_query)
             )
+            if self.search_query.isdigit():
+                search_filters |= Q(id=int(self.search_query))
+            queryset = queryset.filter(search_filters)
 
         # Sex / Gender filter
         if self.sex_filter:
@@ -552,10 +597,6 @@ class SpecialProgramsListView(ListView):
             'beneficiaries': beneficiaries_list
         })
         return context
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.contrib import messages
 
 class EnrollBeneficiaryView(View):
     """
@@ -659,7 +700,18 @@ class EnrollBeneficiaryView(View):
                 request,
                 f"Successfully {action_text} {beneficiary.first_name} {beneficiary.last_name} under {config['name']}!"
             )
-            return redirect(f"/special-programs/?program={active_program}")
+
+            form = config['form_class']()
+            context = {
+                'form': form,
+                'active_program': active_program,
+                'program_name': config['name'],
+                'badge_color': config['badge_color'],
+                'available_programs': PROGRAM_CONFIG,
+                'is_editing': False,
+                'beneficiary': None,
+            }
+            return render(request, self.template_name, context)
 
         messages.error(request, "Please correct the errors in the form below.")
         context = {
