@@ -155,3 +155,16 @@ class CompanyProfileUpdateView(UpdateView):
     #to ensure that the employer can only update their own profile
     def get_queryset(self):
         return EmployerProfile.objects.filter(user=self.request.user)
+
+class AccountDeleteView(DeleteView):
+    model = EmployerProfile
+    template_name = 'account_delete_form.html'
+    success_url = 'home'
+
+    #to ensure that only authenticated employers can access this view
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_employer
+
+    #to ensure that the employer can only delete their own profile
+    def get_queryset(self):
+        return EmployerProfile.objects.filter(user=self.request.user)
