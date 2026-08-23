@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'MSWDAPI',
     'django_filters',
+    'EmployerSide',
+    'ApplicantSide',
 ]
 
 MIDDLEWARE = [
