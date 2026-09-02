@@ -1,24 +1,44 @@
-<nav class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+{% load static %}
+
+<nav class="sticky top-0 z-50 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/40 shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-20 items-center">
+            
+            <!-- LOGO AND BRANDING SECTION -->
             <div class="flex items-center gap-3">
-                <div class="bg-blue-900 text-white font-bold p-2.5 rounded-lg text-sm tracking-wider">PESO</div>
+                
+                <!-- START: LOGO IMAGE PLACEHOLDER -->
+                <div class="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/20 flex-shrink-0">
+                    <!-- Replace 'PESO LOGO.png' with your actual logo filename -->
+                    <img src="{% static 'LandingPage/images/PESO LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
+                </div>
+                <!-- END: LOGO IMAGE PLACEHOLDER -->
+
                 <div>
-                    <h1 class="font-bold text-gray-900 text-lg leading-tight">Job Matching System</h1>
-                    <p class="text-xs text-gray-500 font-medium">Carigara, Leyte</p>
+                    <h1 class="font-black text-white text-lg leading-none tracking-tight">
+                        PESO <br><span class="text-xs font-semibold tracking-normal text-slate-200">Job Matching System</span>
+                    </h1>
+                    <p class="text-[10px] text-amber-400 font-medium tracking-wide">Carigara, Leyte</p>
                 </div>
             </div>
 
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-600">
-                <a href="#features" class="hover:text-blue-600 transition">Features</a>
-                <a href="#how-it-works" class="hover:text-blue-600 transition">How it works</a>
-                <a href="#programs" class="hover:text-blue-600 transition">Programs</a>
+            <!-- NAVIGATION LINKS -->
+            <div class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-200">
+                <a href="#features" class="hover:text-amber-400 transition-colors">Features</a>
+                <a href="#how-it-works" class="hover:text-amber-400 transition-colors">How it works</a>
+                <a href="#programs" class="hover:text-amber-400 transition-colors">Programs</a>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <a href="#" class="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition">Sign in</a>
-                <a href="#" class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 transition">Register Now</a>
+            <!-- ACTION BUTTONS -->
+            <div class="flex items-center space-x-4">
+                <a href="#" class="px-4 py-2 text-sm font-semibold text-white hover:text-amber-400 transition-colors">
+                    Sign in
+                </a>
+                <a href="#" class="px-6 py-2.5 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5">
+                    Register Now
+                </a>
             </div>
+
         </div>
     </div>
 </nav>
