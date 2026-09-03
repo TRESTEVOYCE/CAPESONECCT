@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
-from django.views.generic import TemplateView, ListView
+from django.views.generic import DetailView, TemplateView, ListView
 from .service import generate_complete_peso_matrix
 from .models import (
     ApplicantProfile, 
@@ -40,7 +40,6 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
         messages.error(self.request, "Unauthorized access. Superuser credentials required.")
         return redirect('AdminSide:admin_login')
 
-
 class AdminLoginView(View):
     """Class-Based View handling administrator authentication."""
     template_name = 'login.html'
@@ -62,7 +61,6 @@ class AdminLoginView(View):
         
         messages.error(request, "Invalid administrator credentials! Please Try Again.")
         return render(request, self.template_name)
-
 
 class AdminLogoutView(View):
     """Class-Based View handling administrator logout."""
@@ -329,16 +327,59 @@ class ApplicantListView(ListView):
         return context
 
     def post(self, request, *args, **kwargs):
+        """
+        Admin action dedicated ONLY to verifying/approving accounts 
+        created directly by jobseekers (including walk-ins).
+        """
         applicant_uuid = request.POST.get('applicant_uuid')
         new_status = request.POST.get('status')
         
-        if new_status in ['approved', 'rejected']:
+        if applicant_uuid and new_status in ['approved', 'rejected', 'pending']:
             applicant = get_object_or_404(ApplicantProfile, uuid=applicant_uuid)
             applicant.status = new_status
-            applicant.save()
-            messages.success(request, f"Application for {applicant.first_name} has been verified successfully.")
             
+            # Record who verified the account for audit logging
+            if hasattr(applicant, 'verified_by'):
+                applicant.verified_by = request.user
+                
+            applicant.save()
+            
+            messages.success(
+                request, 
+                f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
+            )
+            return redirect('applicant_registry')
+
+        messages.error(request, "Invalid request parameters.")
         return redirect('applicant_registry')
+
+class ApplicantVerificationView(DetailView):
+    model = ApplicantProfile
+    template_name = 'applicant_verification.html'
+    context_object_name = 'applicant'
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def post(self, request, *args, **kwargs):
+        applicant = self.get_object()
+        action = request.POST.get('action')
+        
+        if action == 'verify':
+            applicant.status = 'approved'
+            # Optional: Record which PESO officer verified the account
+            if hasattr(applicant, 'verified_by'):
+                applicant.verified_by = request.user
+            applicant.save()
+            messages.success(request, f"Applicant {applicant.first_name} {applicant.last_name} has been successfully verified.")
+            return redirect('applicant_registry')
+            
+        elif action == 'reject':
+            applicant.status = 'rejected'
+            applicant.save()
+            messages.warning(request, f"Applicant {applicant.first_name} {applicant.last_name} has been marked as rejected.")
+            return redirect('applicant_registry')
+
+        return redirect('applicant_verification', uuid=applicant.uuid)
     
 class EmployerListView(ListView):
     model = EmployerProfile

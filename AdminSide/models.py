@@ -197,6 +197,12 @@ class ApplicantSkills(models.Model):
 
 class ApplicantProfile(models.Model):
 
+    APPLICATION_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+
     CIVIL_STATUS_CHOICES = (
         ('single', 'Single'),
         ('married', 'Married'),
@@ -211,12 +217,6 @@ class ApplicantProfile(models.Model):
         ('university', 'University'),
         ('vocational', 'Vocational'),
         ('other', 'Other'),
-    )
-
-    APPLICATION_STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
     )
 
     SEX_CHOICES = (
@@ -239,25 +239,12 @@ class ApplicantProfile(models.Model):
     )
 
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
-
     date_of_birth = models.DateField()
 
-    sex = models.CharField(
-        max_length=1,
-        choices=SEX_CHOICES
-    )
-
-    civil_status = models.CharField(
-        max_length=20,
-        choices=CIVIL_STATUS_CHOICES
-    )
-
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
     phone_number = models.CharField(max_length=20)
 
     barangay = models.CharField(max_length=100)
@@ -266,46 +253,14 @@ class ApplicantProfile(models.Model):
     region = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
 
-    resume = models.FileField(
-        upload_to='resumes/',
-        blank=True,
-        null=True
-    )
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
+    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
+    preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    curriculum_vitae = models.FileField(
-        upload_to='curriculum_vitae/',
-        blank=True,
-        null=True
-    )
-
-    applicant_id_picture = models.ImageField(
-        upload_to='applicant_id_pictures/',
-        blank=True,
-        null=True
-    )
-
-    education_level = models.CharField(
-        max_length=100,
-        choices=EDUCATIONAL_ATTACHMENT_CHOICES
-    )
-
-    status = models.CharField(
-        max_length=20,
-        choices=APPLICATION_STATUS_CHOICES,
-        default='pending'
-    )
-
-    skills = models.ManyToManyField(
-        ApplicantSkills,
-        blank=True,
-        related_name='applicants'
-    )
-
-    preferred_job = models.ManyToManyField(
-        Jobs,
-        blank=True,
-        related_name='preferred_applicants'
-    )
+    status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -341,7 +296,6 @@ class ApplicantProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
 
-
 class AppliedJobs(models.Model):
 
     APPLICATION_STATUS = (
@@ -374,7 +328,6 @@ class AppliedJobs(models.Model):
         choices=APPLICATION_STATUS,
         default='pending'
     )
-
 
 class OfferedJobs(models.Model):
 
@@ -478,7 +431,6 @@ class Beneficiaries(models.Model):
     class Meta:
         abstract = True
 
-
 class SpecialProgramForEmploymentOfStudents(Beneficiaries):
 
     SPES_EDUCATION_CHOICES = (
@@ -514,7 +466,6 @@ class SpecialProgramForEmploymentOfStudents(Beneficiaries):
     def __str__(self):
         return f"[SPES] {self.first_name} {self.last_name}"
 
-
 class GovernmentInternshipProgram(Beneficiaries):
 
     GIP_EDUCATION_CHOICES = (
@@ -535,7 +486,6 @@ class GovernmentInternshipProgram(Beneficiaries):
 
     def __str__(self):
         return f"[GIP] {self.first_name} {self.last_name}"
-
 
 class TupadBeneficiary(Beneficiaries):
 
@@ -558,7 +508,6 @@ class TupadBeneficiary(Beneficiaries):
 
     def __str__(self):
         return f"[TUPAD] {self.first_name} {self.last_name}"
-
 
 class DisplacedInformalLaborProgram(Beneficiaries):
 
@@ -587,7 +536,6 @@ class DisplacedInformalLaborProgram(Beneficiaries):
 
     def __str__(self):
         return f"[DILP] {self.first_name} {self.last_name}"
-
 
 class CareerGuidanceBeneficiary(Beneficiaries):
 
@@ -664,7 +612,6 @@ class CareerGuidanceBeneficiary(Beneficiaries):
             f"Career Guidance ({self.get_activity_type_display()})"
         )
 
-
 class PESOActivities(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -688,7 +635,6 @@ class PESOActivities(models.Model):
 
     def __str__(self):
         return f"{self.activity_name} - {self.activity_date}"
-
 
 class AuditLog(models.Model):
 
