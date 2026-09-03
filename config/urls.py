@@ -21,8 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('LandingPage.urls')),
     path('employer/', include('EmployerSide.urls')),
-    path('admin-side/', include('AdminSide.urls')),    
-    path('', include(('AdminSide.urls'), namespace='admin_side')),    
+    path('admin-side/', include('AdminSide.urls')),       
     path('api/',include('MSWDAPI.urls')),
     path('api-auth/', include('rest_framework.urls')),  
 ]
