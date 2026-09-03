@@ -26,6 +26,7 @@ from .forms import (
     CareerGuidanceBeneficiaryForm,
     TupadBeneficiaryForm,
     DisplacedInformalLaborProgramForm,
+    JobVacancyForm
 )
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -57,10 +58,9 @@ class AdminLoginView(View):
 
         if user is not None and user.is_superuser:
             login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
             return redirect('AdminSide:dashboard')
         
-        messages.error(request, "Invalid administrator credentials or unauthorized user.")
+        messages.error(request, "Invalid administrator credentials! Please Try Again.")
         return render(request, self.template_name)
 
 
@@ -68,7 +68,6 @@ class AdminLogoutView(View):
     """Class-Based View handling administrator logout."""
     def get(self, request, *args, **kwargs):
         logout(request)
-        messages.info(request, "You have been logged out.")
         return redirect('AdminSide:admin_login')
 
 PROGRAM_CONFIG = {
@@ -165,12 +164,12 @@ class DashboardView(SuperuserRequiredMixin, TemplateView):
             near_hire_data.append(monthly_applications.filter(status__in=['reviewed', 'for interview']).count())
 
         # Doughnut/Pie Chart Metrics Generation
-        job_type_counts = Jobs.objects.values('job_type').annotate(count=Count('id'))
-        job_type_lookup = {item['job_type']: item['count'] for item in job_type_counts}
+        job_type_counts = Jobs.objects.values('nature_of_work').annotate(count=Count('id'))
+        job_type_lookup = {item['nature_of_work']: item['count'] for item in job_type_counts}
         sector_items = []
         colors = ['#1d3d75', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#94a3b8']
         
-        for code, label in Jobs.JOB_TYPE_CHOICES:
+        for code, label in Jobs.NATURE_OF_WORK_CHOICES:
             count = job_type_lookup.get(code, 0)
             sector_items.append({
                 'label': label, 
@@ -201,37 +200,34 @@ class JobPostingsListView(View):
     template_name = 'job_posting.html'
 
     def get(self, request, *args, **kwargs):
-        # Read Filtering Parameters
         search_query = request.GET.get('search', '').strip()
         sector_filter = request.GET.get('sector', '').strip()
         status_filter = request.GET.get('status', '').strip()
 
-        # Database Query Construction
-        jobs = Jobs.objects.all().select_related('employer').order_by('-job_id_number')
+        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
 
-        # Baseline Status Counters
-        total_active = Jobs.objects.filter(status='Active').count()
-        total_pending = Jobs.objects.filter(status='Pending').count()
+        # Trigger self-contained model check for each record
+        for job in jobs:
+            job.check_and_close()
 
-        # Execute Queries Filters
         if search_query:
-            jobs = jobs.filter(
-                Q(job_title__icontains=search_query) |
-                Q(employer__company_name__icontains=search_query) |
-                Q(job_id_number__icontains=search_query.replace('JP-', '').replace('jp-', ''))
-            )
+            query_filter = Q(job_title__icontains=search_query) | Q(employer__business_name__icontains=search_query)
+            cleaned_id = search_query.replace('JP-', '').replace('jp-', '').strip()
+            if cleaned_id.isdigit():
+                query_filter |= Q(id=int(cleaned_id))
+            jobs = jobs.filter(query_filter)
+
         if sector_filter and sector_filter != "All":
             jobs = jobs.filter(sector=sector_filter)
         if status_filter and status_filter != "All":
             jobs = jobs.filter(status=status_filter)
 
-        total_results = jobs.count()
-
         context = {
             'jobs': jobs,
-            'total_active': total_active,
-            'total_pending': total_pending,
-            'total_results': total_results,
+            'form': JobVacancyForm(),
+            'total_active': Jobs.objects.filter(status='Active').count(),
+            'total_pending': Jobs.objects.filter(status='Pending').count(),
+            'total_results': jobs.count(),
             'search_query': search_query,
             'selected_sector': sector_filter,
             'selected_status': status_filter,
@@ -239,35 +235,41 @@ class JobPostingsListView(View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        # Create or resolve default placeholder profile for admin postings
-        admin_employer, _ = EmployerProfile.objects.get_or_create(
-            company_name="PESO Internal Postings",
-            defaults={"location": "Manila"}
-        )
+        form = JobVacancyForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            if not job.status:
+                job.status = 'Active'
+            job.save()
+            messages.success(request, f"Job vacancy '{job.job_title}' created successfully!")
+            
+            # Post/Redirect/Get pattern prevents double submission on browser refresh
+            return redirect('AdminSide:job_postings_list')
 
-        # Generate automatic incremented numeric string ID entries
-        last_job = Jobs.objects.order_by('-job_id_number').first()
-        next_numeric_id = (last_job.job_id_number + 1) if (last_job and last_job.job_id_number) else 301
+        # Re-render list with invalid form errors inside the modal
+        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
+        context = {
+            'jobs': jobs,
+            'form': form,
+            'total_active': Jobs.objects.filter(status='Active').count(),
+            'total_pending': Jobs.objects.filter(status='Pending').count(),
+            'total_results': jobs.count(),
+            'show_modal': True,
+        }
+        return render(request, self.template_name, context)
 
-        # Process dates expiration values
-        expiry_date = timezone.now() + timedelta(days=30)
+class JobPostingDetailView(View):
+    template_name = 'job_posting_detail.html'
 
-        # Insert new Record
-        Jobs.objects.create(
-            job_id_number=next_numeric_id,
-            job_title=request.POST.get('job_title'),
-            sector=request.POST.get('sector'),
-            job_description=request.POST.get('job_description', 'No description provided.'),
-            job_requirements=request.POST.get('job_requirements', 'No requirements provided.'),
-            job_location=request.POST.get('job_location', 'Manila'),
-            job_type=request.POST.get('job_type', 'full_time'),
-            vacancy=int(request.POST.get('vacancy', 1)),
-            salary=float(request.POST.get('salary', 0)),
-            employer=admin_employer,
-            status=request.POST.get('status', 'Active'),
-            job_posting_expiry=expiry_date
-        )
-        return redirect('job_postings_list')
+    def get(self, request, job_uuid, *args, **kwargs):
+        # Fetch job record and verify status on loading
+        job = get_object_or_404(Jobs.objects.select_related('employer'), uuid=job_uuid)
+        job.check_and_close()
+
+        context = {
+            'job': job,
+        }
+        return render(request, self.template_name, context)
     
 class ApplicantListView(ListView):
     model = ApplicantProfile

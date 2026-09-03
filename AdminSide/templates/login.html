@@ -49,29 +49,25 @@
                 <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop" 
                      alt="Government & Employment Building" 
                      class="w-full h-full object-cover opacity-30 mix-blend-overlay">
-                <!-- Dark Slate Gradient Overlay -->
                 <div class="absolute inset-0 bg-gradient-to-t from-sidebar-bg via-sidebar-bg/80 to-sidebar-header/90"></div>
             </div>
 
             <!-- Empty Top Spacer -->
             <div class="relative z-10 hidden lg:block"></div>
 
-            <!-- Centered Hero Branding & Text Content (Increased Top Margin) -->
+            <!-- Centered Hero Branding & Text Content -->
             <div class="relative z-10 my-auto mt-4 lg:mt-6 py-2 text-center flex flex-col items-center">
                 
-                <!-- Significantly Enlarged Centered Logo -->
                 <div class="inline-flex items-center justify-center p-2.5 bg-white/10 rounded-full ring-1 ring-white/20 mb-4 shadow-2xl">
                     <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg" 
                          alt="PESO Logo" 
                          class="h-36 w-36 shrink-0 object-contain bg-white rounded-full p-2 shadow-lg">
                 </div>
 
-                <!-- Centered Administrative Portal Badge -->
                 <span class="inline-block px-3.5 py-1 bg-brand-red/20 border border-brand-red/30 text-brand-red-soft text-[11px] font-bold tracking-wider uppercase rounded-full mb-3">
                     Administrative Portal
                 </span>
 
-                <!-- Headline -->
                 <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight mt-1">
                     Empowering Local Employment & Job Matching.
                 </h1>
@@ -97,20 +93,6 @@
                     <h2 class="text-2xl font-bold text-slate-900 tracking-tight">System Login</h2>
                     <p class="text-xs text-slate-500 font-medium mt-1">Please enter your administrator credentials to proceed.</p>
                 </div>
-
-                <!-- Django Messages Display -->
-                {% if messages %}
-                    <div class="mb-6 space-y-2">
-                        {% for message in messages %}
-                            <div class="p-3 rounded-xl text-xs font-semibold flex items-center gap-2.5 
-                                {% if message.tags == 'error' %} bg-brand-red-soft text-brand-red-dark border border-red-200
-                                {% else %} bg-slate-100 text-slate-700 border border-slate-200 {% endif %}">
-                                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %} text-sm"></i>
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
 
                 <!-- Login Form -->
                 <form method="POST" action="{% url 'AdminSide:admin_login' %}" class="space-y-5">
