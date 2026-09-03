@@ -83,7 +83,7 @@ class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView)
 class JobCreationView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
     model = Jobs
     form_class = JobsForm
-    template_name = 'job_creation_form.html'
+    template_name = 'job_form.html'
     success_url = reverse_lazy('home')
 
     #to ensure that only authenticated employers can access this view
@@ -102,7 +102,7 @@ class JobCreationView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
 class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Jobs
     form_class = JobsForm
-    template_name = 'job_update_form.html'
+    template_name = 'job_form.html'
     success_url = reverse_lazy('home')
 
     #to ensure that only authenticated employers can access this view
@@ -115,7 +115,6 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Jobs
-    template_name = 'job_delete_form.html'
     success_url = reverse_lazy('home')
 
     #to ensure that only authenticated employers can access this view
@@ -165,7 +164,7 @@ class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 class CompanyProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = EmployerProfile
     form_class = EmployerProfileForm
-    template_name = 'company_profile_update_form.html'
+    template_name = 'employer_profile_form.html'
     success_url = reverse_lazy('home')
 
     #to ensure that only authenticated employers can access this view
