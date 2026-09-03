@@ -1,42 +1,88 @@
-<section id="features" class="py-20 bg-slate-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Built for the Philippine Workforce</h2>
-            <p class="text-slate-600 text-base">Every feature designed around the real needs of PESO Administrators, Job Seekers, and Employers.</p>
+{% load static %}
+
+<section id="features" class="py-20 bg-slate-100 border-b border-slate-200">
+    <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-20">
+        <!-- HEADER SECTION -->
+        <div class="text-center max-w-4xl mx-auto mb-14 space-y-2">
+            <h2 class="text-4xl sm:text-5xl font-black text-slate-800 font-serif tracking-tight drop-shadow-sm">
+                Built for the Philippine Workforce
+            </h2>
+            <p class="text-slate-700 text-lg sm:text-xl font-bold max-w-3xl mx-auto">
+                Every feature designed around the real needs of PESO Administrators, Job Seekers, and Employers.
+            </p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
-                    <i class="fa-solid fa-user-shield"></i>
+        <!-- FEATURE CARDS GRID -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8">
+            
+            <!-- CARD 1: VERIFIED PROFILES -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white p-7 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3.5 mb-6">
+                        <div class="text-4xl text-slate-200 flex-shrink-0">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <h3 class="font-serif font-black text-2xl leading-tight text-white">
+                            Verified Profiles
+                        </h3>
+                    </div>
+                    <p class="text-slate-300 text-base font-medium leading-relaxed">
+                        All applicants and employers are reviewed and approved by PESO administrators before going live.
+                    </p>
                 </div>
-                <h3 class="font-bold text-slate-900 mb-2">Verified Profiles</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">All applicants and employers are reviewed and approved by PESO administrators before going live.</p>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
-                    <i class="fa-solid fa-sliders"></i>
+            <!-- CARD 2: JOB MATCHING -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white p-7 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3.5 mb-6">
+                        <div class="text-4xl text-slate-200 flex-shrink-0">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <h3 class="font-serif font-black text-2xl leading-tight text-white">
+                            Job Matching
+                        </h3>
+                    </div>
+                    <p class="text-slate-300 text-base font-medium leading-relaxed">
+                        Rule-based matching surfaces roles aligned to your education, skills, certifications, and experience.
+                    </p>
                 </div>
-                <h3 class="font-bold text-slate-900 mb-2">Job Matching</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Rule-based matching surfaces roles aligned to your education, skills, certifications, and experience.</p>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
-                    <i class="fa-solid fa-lock"></i>
+            <!-- CARD 3: SECURED DATA -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white p-7 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3.5 mb-6">
+                        <div class="text-4xl text-slate-200 flex-shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="font-serif font-black text-2xl leading-tight text-white">
+                            Secured
+                        </h3>
+                    </div>
+                    <p class="text-slate-300 text-base font-medium leading-relaxed">
+                        Role-based access control and encrypted connections protect all personal and employment data.
+                    </p>
                 </div>
-                <h3 class="font-bold text-slate-900 mb-2">Secured Data</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">Role-based access control and encrypted connections protect all personal and employment data.</p>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">
-                    <i class="fa-solid fa-chart-pie"></i>
+            <!-- CARD 4: AUTOMATED REPORTS -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white p-7 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3.5 mb-6">
+                        <div class="text-4xl text-slate-200 flex-shrink-0">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <h3 class="font-serif font-black text-2xl leading-tight text-white">
+                            Automated Reports
+                        </h3>
+                    </div>
+                    <p class="text-slate-300 text-base font-medium leading-relaxed">
+                        PESO staff can generate gender-disaggregated compliance reports in seconds — no manual tallying.
+                    </p>
                 </div>
-                <h3 class="font-bold text-slate-900 mb-2">Automated Reports</h3>
-                <p class="text-slate-500 text-sm leading-relaxed">PESO staff can generate gender-disaggregated compliance reports in seconds with no manual tallying.</p>
             </div>
+
         </div>
     </div>
 </section>

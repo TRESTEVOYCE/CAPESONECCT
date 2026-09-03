@@ -1,31 +1,32 @@
 {% load static %}
 
-<section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center text-slate-900 py-10 sm:py-16 lg:py-20 overflow-hidden border-b border-slate-200">
+<section class="relative min-h-[calc(100vh-96px)] flex flex-col justify-center text-slate-900 py-10 sm:py-16 lg:py-20 overflow-hidden border-b border-slate-200">
     <!-- BACKGROUND IMAGE WITH OVERLAY -->
     <div class="absolute inset-0 z-0">
         <img src="{% static 'LandingPage/images/LGU.png' %}" alt="LGU Building Background" class="w-full h-full object-cover object-center">
         <div class="absolute inset-0 bg-slate-200/60 backdrop-blur-[2px]"></div>
     </div>
 
-    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <!-- REMOVED MAX-W-7XL TO MAXIMIZE SCREEN HORIZONTAL SPACE -->
+    <div class="relative z-10 w-full px-6 sm:px-10 lg:px-16 xl:px-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             
             <!-- LEFT COLUMN: CONTENT -->
-            <div class="lg:col-span-7 space-y-6 sm:space-y-8">
+            <div class="lg:col-span-7 xl:col-span-7 space-y-6 sm:space-y-8">
                 <!-- Tag Badge -->
                 <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-amber-400/90 text-slate-950 text-sm font-extrabold uppercase tracking-wide border border-amber-500/40 shadow-md">
                     <span class="w-2.5 h-2.5 rounded-full bg-slate-950"></span>
                     Official PESO Digital Employment Service
                 </div>
                 
-                <!-- Headline (Increased Font Size) -->
-                <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none text-slate-950 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
+                <!-- Headline -->
+                <h1 class="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight leading-none text-slate-950 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
                     Find Your Next <br>
                     <span class="text-amber-400 drop-shadow-[0_3px_5px_rgba(0,0,0,0.85)]">Career Opportunity</span>
                 </h1>
                 
-                <!-- Subtitle (Increased Font Size) -->
-                <p class="text-lg sm:text-xl lg:text-2xl text-slate-900 max-w-2xl font-bold leading-relaxed drop-shadow-sm">
+                <!-- Subtitle -->
+                <p class="text-lg sm:text-xl lg:text-2xl xl:text-3xl text-slate-900 max-w-4xl font-bold leading-relaxed drop-shadow-sm">
                     The Public Employment Service Office connects qualified Filipino workers to employers across all industries — faster, smarter, and fully digital.
                 </p>
 
@@ -41,64 +42,64 @@
             </div>
 
             <!-- RIGHT COLUMN: AVAILABLE JOBS CARD -->
-            <div class="lg:col-span-5">
-                <div class="bg-slate-300/70 backdrop-blur-xl rounded-2xl p-6 text-slate-800 shadow-2xl border border-white/70">
+            <div class="lg:col-span-5 xl:col-span-5">
+                <div class="w-full bg-slate-300/70 backdrop-blur-xl rounded-2xl p-6 sm:p-8 text-slate-800 shadow-2xl border border-white/70">
                     
                     <!-- Card Header -->
-                    <div class="flex justify-between items-center pb-4 border-b border-slate-400/40 mb-4">
-                        <h3 class="font-black text-slate-950 text-lg sm:text-xl tracking-wider font-serif">AVAILABLE JOBS</h3>
+                    <div class="flex justify-between items-center pb-4 border-b border-slate-400/40 mb-5">
+                        <h3 class="font-black text-slate-950 text-lg sm:text-xl xl:text-2xl tracking-wider font-serif">AVAILABLE JOBS</h3>
                         <span class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-white bg-red-600 px-3.5 py-1 rounded-md shadow">
                             <span class="w-2.5 h-2.5 bg-white rounded-sm"></span> Open
                         </span>
                     </div>
 
                     <!-- Job Items List -->
-                    <div class="space-y-3.5">
+                    <div class="space-y-4">
                         
                         <!-- Job Item 1 -->
-                        <div class="p-3 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="p-3.5 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm hover:bg-slate-400/50 transition">
+                            <div class="flex items-center gap-4 min-w-0">
                                 <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-400">
                                     <img src="{% static 'LandingPage/images/LGU.png' %}" alt="Teleperformance" class="w-full h-full object-cover">
                                 </div>
                                 <div class="truncate">
-                                    <h4 class="font-extrabold text-sm sm:text-base text-slate-950 truncate">Customer Service Rep...</h4>
+                                    <h4 class="font-extrabold text-sm sm:text-base xl:text-lg text-slate-950 truncate">Customer Service Rep...</h4>
                                     <p class="text-xs sm:text-sm text-slate-800 font-semibold truncate">Teleperformance Philippines</p>
                                 </div>
                             </div>
-                            <button class="px-3.5 py-1.5 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-2">
+                            <button class="px-4 py-2 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-3">
                                 Apply Now!
                             </button>
                         </div>
 
                         <!-- Job Item 2 -->
-                        <div class="p-3 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="p-3.5 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm hover:bg-slate-400/50 transition">
+                            <div class="flex items-center gap-4 min-w-0">
                                 <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-400">
                                     <img src="{% static 'LandingPage/images/LGU.png' %}" alt="Accenture" class="w-full h-full object-cover">
                                 </div>
                                 <div class="truncate">
-                                    <h4 class="font-extrabold text-sm sm:text-base text-slate-950 truncate">Data Entry Specialist</h4>
+                                    <h4 class="font-extrabold text-sm sm:text-base xl:text-lg text-slate-950 truncate">Data Entry Specialist</h4>
                                     <p class="text-xs sm:text-sm text-slate-800 font-semibold truncate">Accenture Philippines</p>
                                 </div>
                             </div>
-                            <button class="px-3.5 py-1.5 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-2">
+                            <button class="px-4 py-2 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-3">
                                 Apply Now!
                             </button>
                         </div>
 
                         <!-- Job Item 3 -->
-                        <div class="p-3 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="p-3.5 rounded-xl bg-slate-400/35 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-sm hover:bg-slate-400/50 transition">
+                            <div class="flex items-center gap-4 min-w-0">
                                 <div class="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-400">
                                     <img src="{% static 'LandingPage/images/LGU.png' %}" alt="PNB" class="w-full h-full object-cover">
                                 </div>
                                 <div class="truncate">
-                                    <h4 class="font-extrabold text-sm sm:text-base text-slate-950 truncate">Administrative Assistant</h4>
+                                    <h4 class="font-extrabold text-sm sm:text-base xl:text-lg text-slate-950 truncate">Administrative Assistant</h4>
                                     <p class="text-xs sm:text-sm text-slate-800 font-semibold truncate">Philippine National Bank</p>
                                 </div>
                             </div>
-                            <button class="px-3.5 py-1.5 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-2">
+                            <button class="px-4 py-2 text-xs sm:text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-full shadow transition flex-shrink-0 ml-3">
                                 Apply Now!
                             </button>
                         </div>
@@ -106,7 +107,7 @@
                     </div>
 
                     <!-- View All Jobs Button -->
-                    <button class="w-full mt-4 py-3 text-sm font-extrabold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition shadow-md">
+                    <button class="w-full mt-5 py-3.5 text-sm sm:text-base font-extrabold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition shadow-md">
                         View All Jobs
                     </button>
                 </div>

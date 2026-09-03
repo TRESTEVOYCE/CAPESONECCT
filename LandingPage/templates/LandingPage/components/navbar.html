@@ -1,40 +1,41 @@
 {% load static %}
 
-<nav class="sticky top-0 z-50 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/40 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20 items-center">
+<nav class="sticky top-0 z-50 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/40 shadow-xl">
+    <!-- Removed max-w-7xl to maximize width across screen sizes -->
+    <div class="w-full px-4 sm:px-8 lg:px-12">
+        <div class="flex justify-between h-24 items-center">
             
             <!-- LOGO AND BRANDING SECTION -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
                 
                 <!-- START: LOGO IMAGE PLACEHOLDER -->
-                <div class="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/20 flex-shrink-0">
+                <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border-2 border-white/20 flex-shrink-0 shadow-inner">
                     <!-- Replace 'PESO LOGO.png' with your actual logo filename -->
                     <img src="{% static 'LandingPage/images/PESO LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
                 </div>
                 <!-- END: LOGO IMAGE PLACEHOLDER -->
 
                 <div>
-                    <h1 class="font-black text-white text-lg leading-none tracking-tight">
-                        PESO <br><span class="text-xs font-semibold tracking-normal text-slate-200">Job Matching System</span>
+                    <h1 class="font-black text-white text-xl sm:text-2xl leading-none tracking-tight">
+                        PESO <br><span class="text-sm sm:text-base font-bold tracking-normal text-slate-200">Job Matching System</span>
                     </h1>
-                    <p class="text-[10px] text-amber-400 font-medium tracking-wide">Carigara, Leyte</p>
+                    <p class="text-xs text-amber-400 font-bold tracking-wider uppercase mt-0.5">Carigara, Leyte</p>
                 </div>
             </div>
 
             <!-- NAVIGATION LINKS -->
-            <div class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-200">
+            <div class="hidden md:flex items-center space-x-10 text-base lg:text-lg font-bold text-slate-100">
                 <a href="#features" class="hover:text-amber-400 transition-colors">Features</a>
                 <a href="#how-it-works" class="hover:text-amber-400 transition-colors">How it works</a>
                 <a href="#programs" class="hover:text-amber-400 transition-colors">Programs</a>
             </div>
 
             <!-- ACTION BUTTONS -->
-            <div class="flex items-center space-x-4">
-                <a href="#" class="px-4 py-2 text-sm font-semibold text-white hover:text-amber-400 transition-colors">
+            <div class="flex items-center space-x-6">
+                <a href="#" class="px-5 py-2.5 text-base lg:text-lg font-bold text-white hover:text-amber-400 transition-colors">
                     Sign in
                 </a>
-                <a href="#" class="px-6 py-2.5 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5">
+                <a href="#" class="px-7 py-3 text-base lg:text-lg font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 border border-amber-500/40">
                     Register Now
                 </a>
             </div>
