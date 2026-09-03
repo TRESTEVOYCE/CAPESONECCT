@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <!-- Top Navigation / Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <a href="{% url 'AdminSide:applicants_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+        &larr; Back to Applicant Registry
+      </a>
+      <h1 class="text-2xl font-bold text-gray-900 mt-2">Applicant Identity Verification</h1>
+    </div>
+    <div>
+      <span class="px-3 py-1 text-sm font-semibold rounded-full 
+        {% if applicant.status == 'approved' %}bg-green-100 text-green-800
+        {% elif applicant.status == 'pending' %}bg-yellow-100 text-yellow-800
+        {% else %}bg-red-100 text-red-800{% endif %}">
+        Current Status: {{ applicant.get_status_display }}
+      </span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Left Column: NSRP Personal Information -->
+    <div class="lg:col-span-2 bg-white shadow rounded-lg p-6 space-y-6">
+      <h2 class="text-lg font-semibold text-gray-900 border-b pb-3">Personal & Employment Information</h2>
+      
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
+        <div>
+          <dt class="font-medium text-gray-500">Full Name</dt>
+          <dd class="mt-1 text-gray-900 font-semibold">{{ applicant.first_name }} {{ applicant.middle_name|default:"" }} {{ applicant.last_name }} {{ applicant.suffix|default:"" }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Date of Birth</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.date_of_birth|date:"F d, Y" }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Sex / Civil Status</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.get_sex_display }} / {{ applicant.get_civil_status_display }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Citizenship</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.citizenship }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Contact Phone</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.phone_number }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Email Address</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.user.email }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="font-medium text-gray-500">Address</dt>
+          <dd class="mt-1 text-gray-900">{{ applicant.house_street }}, Brgy. {{ applicant.barangay }}, {{ applicant.municipality }}, {{ applicant.province }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">Employment Status</dt>
+          <dd class="mt-1 text-gray-900 font-medium">{{ applicant.get_employment_status_display }}</dd>
+        </div>
+        <div>
+          <dt class="font-medium text-gray-500">4Ps Beneficiary</dt>
+          <dd class="mt-1 text-gray-900">{% if applicant.is_4ps_beneficiary %}Yes (ID: {{ applicant.household_id_no }}){% else %}No{% endif %}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Right Column: Valid ID Document Inspection & Approval Actions -->
+    <div class="bg-white shadow rounded-lg p-6 space-y-6 flex flex-col justify-between">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 border-b pb-3 mb-4">Uploaded Identification</h2>
+        
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-2 bg-gray-50 text-center">
+          {% if applicant.applicant_id_picture %}
+            <a href="{{ applicant.applicant_id_picture.url }}" target="_blank">
+              <img src="{{ applicant.applicant_id_picture.url }}" alt="Uploaded Valid ID" class="max-h-72 w-auto mx-auto rounded shadow-sm object-contain hover:opacity-95 transition">
+            </a>
+            <p class="text-xs text-gray-500 mt-2">Click image to inspect full size</p>
+          {% else %}
+            <div class="py-12 text-gray-400">
+              <p class="text-sm font-medium">No ID Document Uploaded</p>
+              <p class="text-xs mt-1">Applicant must present physical ID in person.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Verification Form Action Buttons -->
+      <div class="pt-4 border-t border-gray-200">
+        <form method="POST" class="space-y-3">
+          {% csrf_token %}
+          <button type="submit" name="action" value="verify" 
+                  class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition">
+            Verify & Approve Account
+          </button>
+          
+          <button type="submit" name="action" value="reject" 
+                  class="w-full bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-md border border-red-200 transition">
+            Reject Verification
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
