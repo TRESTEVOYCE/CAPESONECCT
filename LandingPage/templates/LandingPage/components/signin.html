@@ -1,0 +1,133 @@
+{% load static %}
+
+<!-- MODAL BACKDROP CONTAINER -->
+<div id="signin-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex flex-col justify-center items-center overflow-y-auto p-4 transition-opacity duration-300">
+
+    <!-- MAIN LOGIN CARD -->
+    <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 sm:p-10 border border-slate-100 my-8">
+        
+        <!-- CLOSE BUTTON -->
+        <button onclick="toggleSignInModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 transition">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- HEADER LOGO & TITLE -->
+        <div class="text-center space-y-2 mb-6">
+            <div class="w-20 h-20 mx-auto rounded-full bg-slate-100 p-1 flex items-center justify-center border-2 border-slate-200 shadow-md overflow-hidden">
+                <img src="{% static 'LandingPage/images/PESO LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 font-serif tracking-tight">
+                Welcome Back!!
+            </h2>
+            <p class="text-slate-500 font-semibold text-xs sm:text-sm">
+                Sign in to your PESO Account
+            </p>
+        </div>
+
+        <!-- FORM -->
+        <form method="POST" action="" class="space-y-5">
+            {% csrf_token %}
+            
+            <!-- USER TYPE TAB TOGGLE -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button type="button" id="tab-seeker" onclick="selectRole('seeker')" 
+                    class="py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-slate-600 text-white hover:bg-slate-700">
+                    Job Seeker
+                </button>
+                <button type="button" id="tab-employer" onclick="selectRole('employer')" 
+                    class="py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm">
+                    Employer
+                </button>
+            </div>
+
+            <input type="hidden" name="user_type" id="user_type" value="employer">
+
+            <!-- EMAIL FIELD -->
+            <div class="space-y-1.5">
+                <label for="email" class="block font-black text-slate-900 text-sm">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="yourexample@email" 
+                    class="w-full px-4 py-3 rounded-lg bg-slate-100 border border-transparent focus:border-blue-600 focus:bg-white text-slate-900 font-medium placeholder-slate-400 focus:outline-none transition">
+            </div>
+
+            <!-- PASSWORD FIELD -->
+            <div class="space-y-1.5">
+                <label for="password" class="block font-black text-slate-900 text-sm">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required placeholder="••••••••" 
+                        class="w-full px-4 py-3 rounded-lg bg-slate-100 border border-transparent focus:border-blue-600 focus:bg-white text-slate-900 font-medium placeholder-slate-400 focus:outline-none transition pr-12">
+                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">
+                        <i id="eye-icon" class="fa-solid fa-eye-slash text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- REMEMBER ME & FORGOT PASSWORD -->
+            <div class="flex items-center justify-between text-xs sm:text-sm font-bold pt-1">
+                <label class="flex items-center gap-2 cursor-pointer text-slate-800">
+                    <input type="checkbox" name="remember_me" class="w-4 h-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="text-slate-900 hover:text-blue-700 transition">Forgot Password?</a>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="pt-2">
+                <button type="submit" class="w-full py-3.5 bg-blue-700 hover:bg-blue-800 text-white font-black text-base rounded-xl shadow-lg transition">
+                    Sign in
+                </button>
+            </div>
+
+            <!-- REGISTER LINK -->
+            <div class="text-center pt-2 text-sm font-bold text-slate-900">
+                <span>Don't have an account? </span>
+                <a href="#roles" onclick="toggleSignInModal(false)" class="text-amber-500 hover:text-amber-600 transition underline">
+                    Register here
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleSignInModal(show) {
+        const modal = document.getElementById('signin-modal');
+        if (show) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        } else {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    function selectRole(role) {
+        const seekerBtn = document.getElementById('tab-seeker');
+        const employerBtn = document.getElementById('tab-employer');
+        const roleInput = document.getElementById('user_type');
+
+        roleInput.value = role;
+
+        if (role === 'seeker') {
+            seekerBtn.className = "py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm";
+            employerBtn.className = "py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-slate-600 text-white hover:bg-slate-700";
+        } else {
+            employerBtn.className = "py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm";
+            seekerBtn.className = "py-2.5 px-4 rounded-lg font-bold text-sm transition-all bg-slate-600 text-white hover:bg-slate-700";
+        }
+    }
+
+    function togglePassword() {
+        const passInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        } else {
+            passInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+    }
+</script>
