@@ -186,3 +186,12 @@ class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     #to ensure that the employer can only delete their own profile
     def get_queryset(self):
         return EmployerProfile.objects.filter(user=self.request.user)
+
+
+class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+    template_name = 'settings.html'
+
+    #to ensure that only authenticated employers can access this view
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_employer
