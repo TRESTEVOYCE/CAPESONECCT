@@ -387,22 +387,26 @@ class EmployerListView(ListView):
     context_object_name = 'employers'
 
     def post(self, request, *args, **kwargs):
-        """Handles inline admin verification status updates via POST."""
         employer_id = request.POST.get('employer_id')
         action = request.POST.get('action')
         
-        if employer_id and action == 'approve':
+        if employer_id:
             employer = get_object_or_404(EmployerProfile, id=employer_id)
-            employer.verification_status = 'Approved'  # Matches your model's 'verification_status' field
-            employer.save()
-            messages.success(request, f"{employer.company_name} has been verified successfully.")
+            if action == 'approve':
+                employer.verification_status = 'verified'
+                employer.save()
+                messages.success(request, f"{employer.business_name} has been verified.")
+            elif action == 'reject':
+                employer.verification_status = 'rejected'
+                employer.save()
+                messages.warning(request, f"{employer.business_name} registration rejected.")
             
-        return redirect('employers:registry')
+        return redirect('AdminSide:employers_list') # Adjust URL name as needed
 
     def get_queryset(self):
         active_jobs_subquery = Jobs.objects.filter(
             employer=OuterRef('pk'),
-            status='Active'  # Adjust if your choice token is lowercase like 'active'
+            status='Active'
         ).values('employer').annotate(count=Count('id')).values('count')
 
         hired_applied_subquery = AppliedJobs.objects.filter(
@@ -426,8 +430,10 @@ class EmployerListView(ListView):
 
         if self.search_query:
             queryset = queryset.filter(
-                Q(company_name__icontains=self.search_query) |
-                Q(company_address__icontains=self.search_query)
+                Q(business_name__icontains=self.search_query) |
+                Q(street_address__icontains=self.search_query) |
+                Q(barangay__icontains=self.search_query) |
+                Q(municipality__icontains=self.search_query)
             )
 
         if self.selected_status != 'All':
@@ -439,8 +445,8 @@ class EmployerListView(ListView):
         context = super().get_context_data(**kwargs)
         
         kpi_counts = EmployerProfile.objects.aggregate(
-            approved_count=Count('id', filter=Q(verification_status='Approved')),
-            pending_count=Count('id', filter=Q(verification_status='Pending'))
+            approved_count=Count('id', filter=Q(verification_status='verified')),
+            pending_count=Count('id', filter=Q(verification_status='pending'))
         )
 
         for employer in context['employers']:
@@ -456,6 +462,29 @@ class EmployerListView(ListView):
             'total_results': self.get_queryset().count(),
         })
         return context
+
+class EmployerVerificationView(DetailView):
+    model = EmployerProfile
+    template_name = 'employer_verification.html'
+    context_object_name = 'employer'
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def post(self, request, *args, **kwargs):
+        employer = self.get_object()
+        action = request.POST.get('action')
+        remarks = request.POST.get('remarks', '').strip()
+
+        if action == 'approve':
+            employer.verification_status = 'verified'
+            employer.save()
+            messages.success(request, f"{employer.business_name} has been successfully verified.")
+        elif action == 'reject':
+            employer.verification_status = 'rejected'
+            employer.save()
+            messages.warning(request, f"Registration for {employer.business_name} has been rejected.")
+
+        return redirect('AdminSide:employers_list')
     
 class ReferralListView(ListView):
     model = OfferedJobs

@@ -40,8 +40,9 @@ class EmployerProfile(models.Model):
 
     EMPLOYER_TYPE_CHOICES = (
         # Public
-        ('nga', 'National Government Agency'),
         ('lgu', 'Local Government Unit'),
+        ('nga_regional', 'National Government Agency - Regional Office'),
+        ('nga_national', 'National Government Agency - National Office'),
         ('gocc', 'Government-Owned and Controlled Corporation'),
         ('suc', 'State/Local University or College'),
         # Private
@@ -49,6 +50,12 @@ class EmployerProfile(models.Model):
         ('local_agency', 'Local Recruitment Agency'),
         ('overseas_agency', 'Overseas Recruitment Agency'),
         ('do_174', 'D.O. 174 Contractor/Subcontractor'),
+    )
+
+    PUBLIC_DOC_CHOICES = (
+        ('csc_appointment', 'CSC Appointment Paper / Designation Order'),
+        ('gov_id', 'Government ID of Authorized Representative'),
+        ('plantilla_extract', 'DBM Plantilla Extract (PSIPOP)'),
     )
 
     WORKFORCE_CHOICES = (
@@ -90,13 +97,22 @@ class EmployerProfile(models.Model):
 
     # Contact Details
     owner_name = models.CharField(max_length=150, blank=True, null=True)
+    designation = models.CharField(max_length=100, blank=True, null=True, help_text="Designation/Position of the authorized representative (e.g., HRMO II, Administrative Officer V)")
     contact_person = models.CharField(max_length=100)
     contact_position = models.CharField(max_length=100, blank=True, null=True)
     telephone_number = models.CharField(max_length=20, blank=True, null=True)
     mobile_number = models.CharField(max_length=20)
     email = models.EmailField(unique=True)
 
-    business_permit = models.FileField(upload_to='business_permits/', blank=True, null=True)
+    # Verification Document Attachments for Private Sector
+    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/', blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/business_permits/', blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+
+    # Verification Document Attachments for Public Sector
+    public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
+
     verification_status = models.CharField(
         max_length=20,
         choices=VERIFICATION_STATUS_CHOICES,
@@ -106,9 +122,13 @@ class EmployerProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def is_public_agency(self):
+        return self.employer_type in ['lgu', 'nga_regional', 'nga_national', 'gocc', 'suc']
+
     def __str__(self):
         return f"{self.business_name} - {self.email}"
-
+    
 class Jobs(models.Model):
     NATURE_OF_WORK_CHOICES = (
         ('permanent', 'Permanent'),

@@ -33,8 +33,10 @@ class EmployerRegistrationForm(TailwindFormMixin, forms.ModelForm):
             'business_name', 'trade_name', 'acronym', 'office_type', 
             'tin_number', 'employer_type', 'total_workforce', 'line_of_business',
             'street_address', 'barangay', 'municipality', 'province',
-            'owner_name', 'contact_person', 'contact_position',
-            'telephone_number', 'mobile_number', 'email'
+            'owner_name', 'designation', 'contact_person', 'contact_position',
+            'telephone_number', 'mobile_number', 'email',
+            'certificate_of_registration', 'dti_sec_registration', 'business_permit',
+            'public_doc_type', 'public_verification_document'
         ]
 
 class EmployerJobVacancyForm(TailwindFormMixin, forms.ModelForm):
@@ -48,6 +50,32 @@ class EmployerJobVacancyForm(TailwindFormMixin, forms.ModelForm):
             'other_qualifications': forms.Textarea(attrs={'rows': 2}),
         }
 
+class EmployerVerificationForm(forms.ModelForm):
+    class Meta:
+        model = EmployerProfile
+        fields = ['employer_type', 'office_type', 'public_doc_type', 'public_verification_document']
+        widgets = {
+            'employer_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_employer_type'}),
+            'office_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_office_type'}),
+            'public_doc_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_public_doc_type'}),
+            'public_verification_document': forms.FileInput(attrs={'class': 'form-control', 'id': 'id_public_verification_document'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        employer_type = cleaned_data.get('employer_type')
+        public_doc_type = cleaned_data.get('public_doc_type')
+        document = cleaned_data.get('public_verification_document')
+
+        # Enforce document requirements for government agencies
+        if self.instance and self.instance.is_public_agency:
+            if not public_doc_type:
+                self.add_error('public_doc_type', 'Please select a document type for government verification.')
+            if not document and not self.instance.public_verification_document:
+                self.add_error('public_verification_document', 'Please upload a proof document to proceed.')
+
+        return cleaned_data
+    
 class JobVacancyForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Jobs

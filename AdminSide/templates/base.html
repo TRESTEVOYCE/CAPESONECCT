@@ -126,16 +126,15 @@
                 </button>
             </div>
 
-            <!-- Navigation Links (Reduced vertical spacing) -->
+            <!-- Navigation Links -->
             <div class="px-3 py-2 space-y-0.5">
                 <p class="sidebar-text-node text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-1">Navigation</p>
                 
                 <!-- Dashboard -->
                 <a href="{% url 'AdminSide:dashboard' %}" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'dashboard' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <!-- Red Indicator Inside Fixed Box -->
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if request.resolver_match.url_name in 'dashboard' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name in 'dashboard' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-table-cells-large text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -144,9 +143,9 @@
 
                 <!-- Job Postings -->
                 <a href="{% url 'AdminSide:job_postings_list' %}" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'job_postings_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'job_postings_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'job_postings_list' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-briefcase text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -155,9 +154,9 @@
 
                 <!-- Applicants -->
                 <a href="{% url 'AdminSide:applicants_list' %}" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'applicants_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'applicants_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'applicant' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'applicant' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-users text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -166,9 +165,9 @@
 
                 <!-- Employers -->
                 <a href="{% url 'AdminSide:employer_list' %}" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'employer_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'employer_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'employer' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'employer' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-building text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -177,9 +176,9 @@
 
                 <!-- Applications & Referrals -->
                 <a href="{% url 'AdminSide:referrals_list' %}"
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'referrals_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'referrals_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'referral' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'referral' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -188,9 +187,9 @@
 
                 <!-- Special Programs -->
                 <a href="{% url 'AdminSide:special_programs_list' %}"
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'special_programs_list' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'special_programs_list' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'special_program' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'special_program' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-graduation-cap text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -199,9 +198,9 @@
 
                 <!-- Reports -->
                 <a href="{% url 'AdminSide:peso_monthly_report' %}" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'peso_monthly_report' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'peso_monthly_report' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'report' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'report' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-chart-line text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
@@ -210,11 +209,11 @@
 
                 <!-- User Management -->
                 <a href="#" 
-                   class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                   {% if request.resolver_match.url_name == 'user_management' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'user_management' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'user_management' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'user_management' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
-                        <i class="fa-solid fa-shield-halved text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                        <i class="fa-solid fa-users text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
                     <span class="sidebar-text-node pl-2 truncate">User Management</span>
                 </a>
