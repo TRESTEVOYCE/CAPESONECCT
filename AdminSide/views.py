@@ -371,16 +371,16 @@ class ApplicantVerificationView(DetailView):
                 applicant.verified_by = request.user
             applicant.save()
             messages.success(request, f"Applicant {applicant.first_name} {applicant.last_name} has been successfully verified.")
-            return redirect('applicant_registry')
+            return redirect('AdminSide:applicants_list')
             
         elif action == 'reject':
             applicant.status = 'rejected'
             applicant.save()
             messages.warning(request, f"Applicant {applicant.first_name} {applicant.last_name} has been marked as rejected.")
-            return redirect('applicant_registry')
+            return redirect('AdminSide:applicants_list')
 
-        return redirect('applicant_verification', uuid=applicant.uuid)
-    
+        return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
+
 class EmployerListView(ListView):
     model = EmployerProfile
     template_name = 'employer_list.html'

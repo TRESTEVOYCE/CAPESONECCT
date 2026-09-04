@@ -224,6 +224,20 @@ class ApplicantProfile(models.Model):
         ('F', 'Female'),
     )
 
+    EMPLOYMENT_STATUS_CHOICES = [
+        ('employed', 'Employed'),
+        ('unemployed', 'Unemployed'),
+    ]
+
+    UNEMPLOYMENT_REASON_CHOICES = [
+        ('fresh_grad', 'New Entrant / Fresh Graduate'),
+        ('finished_contract', 'Finished Contract'),
+        ('resigned', 'Resigned'),
+        ('retired', 'Retired'),
+        ('laid_off_local', 'Terminated / Laid off (Local)'),
+        ('laid_off_abroad', 'Terminated / Laid off (Abroad)'),
+    ]
+
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     user = models.OneToOneField(
@@ -242,24 +256,36 @@ class ApplicantProfile(models.Model):
     middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
-
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
     phone_number = models.CharField(max_length=20)
 
+    house_street = models.CharField(max_length=255, blank=True, null=True)
     barangay = models.CharField(max_length=100)
     municipality = models.CharField(max_length=100)
     province = models.CharField(max_length=100)
-    region = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
+    region = models.CharField(max_length=100, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
+
+    employment_status = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS_CHOICES, default='unemployed')
+    unemployment_reason = models.CharField(max_length=50, choices=UNEMPLOYMENT_REASON_CHOICES, blank=True, null=True)
+    actively_looking = models.BooleanField(default=True)
+    looking_duration = models.CharField(max_length=50, blank=True, null=True)
+    is_4ps_beneficiary = models.BooleanField(default=False)
+    household_id_no = models.CharField(max_length=50, blank=True, null=True)
+    is_ofw = models.BooleanField(default=False)
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    school_name = models.CharField(max_length=255, blank=True, null=True)
+    course_program = models.CharField(max_length=255, blank=True, null=True)
+    year_graduated = models.CharField(max_length=10, blank=True, null=True)
+    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
+    preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
     applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
-    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
-    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
-    preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
-
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -276,6 +302,10 @@ class ApplicantProfile(models.Model):
                 < (self.date_of_birth.month, self.date_of_birth.day)
             )
         )
+
+    @property
+    def email(self):
+        return self.user.email
 
     @property
     def formatted_id(self):

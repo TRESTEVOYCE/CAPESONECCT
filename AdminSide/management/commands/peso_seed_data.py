@@ -1,11 +1,13 @@
+import io
 import random
 from datetime import timedelta
+from PIL import Image, ImageDraw, ImageFont
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from faker import Faker
 
-# Adjust import path if your app name is different
 from AdminSide.models import (
     EmployerProfile,
     Jobs,
@@ -21,7 +23,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Seeds test data matching DOLE NSRP Form 2 models for Employers, Jobs, Applicants, and Activities."
+    help = "Seeds test data matching DOLE NSRP Form 1 & 2 models for Employers, Jobs, Applicants, and Activities."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -30,6 +32,35 @@ class Command(BaseCommand):
             default=10,
             help="Base multiplier for generating applicants and jobs.",
         )
+
+    def generate_dummy_id_image(self, applicant_name, applicant_id):
+        """Generates a dummy Government / National ID card image using PIL."""
+        width, height = 600, 380
+        img = Image.new("RGB", (width, height), color=(245, 247, 250))
+        draw = ImageDraw.Draw(img)
+
+        # Draw card header banner
+        draw.rectangle([0, 0, width, 70], fill=(17, 41, 84))
+        draw.text((20, 20), "REPUBLIC OF THE PHILIPPINES", fill=(255, 255, 255))
+        draw.text((20, 42), "NATIONAL SKILLS REGISTRATION PROGRAM - ID", fill=(220, 220, 220))
+
+        # Draw photo placeholder box
+        draw.rectangle([30, 90, 170, 260], fill=(210, 215, 225), outline=(100, 110, 120), width=2)
+        draw.text((65, 165), "[ PHOTO ]", fill=(100, 110, 120))
+
+        # Draw applicant details
+        draw.text((190, 100), f"NAME: {applicant_name.upper()}", fill=(20, 20, 20))
+        draw.text((190, 130), f"ID NO: {applicant_id}", fill=(20, 20, 20))
+        draw.text((190, 160), "ISSUER: PESO CARIGARA, LEYTE", fill=(20, 20, 20))
+        draw.text((190, 190), f"VERIFIED DATE: {timezone.now().strftime('%Y-%m-%d')}", fill=(20, 20, 20))
+
+        # Draw footer bar
+        draw.rectangle([0, 330, width, height], fill=(220, 225, 230))
+        draw.text((20, 348), "FOR PESO OFFICIAL VERIFICATION USE ONLY", fill=(80, 80, 80))
+
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG")
+        return ContentFile(buffer.getvalue(), name=f"id_{applicant_id}.jpg")
 
     def handle(self, *args, **options):
         count = options["count"]
@@ -246,7 +277,7 @@ class Command(BaseCommand):
                     job_description=j["desc"],
                     nature_of_work=j["nature"],
                     place_of_work=f"{emp.business_name}, {emp.street_address}, Carigara, Leyte",
-                    salary=random.randint(450, 1000) * 26, # Monthly basic salary
+                    salary=random.randint(450, 1000) * 26,
                     vacancy=random.randint(1, 8),
                     work_experience_months=j["exp"],
                     other_qualifications=j["qual"],
@@ -268,8 +299,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"✔ Seeded {len(created_jobs)} NSRP Job Vacancies."))
 
         # -------------------------------------------------------------
-        # 5. SEED APPLICANTS & PROFILES
+        # 5. SEED APPLICANTS & PROFILES (NSRP FORM 1 UPDATED)
         # -------------------------------------------------------------
+        unemployment_reasons = [
+            "fresh_grad", "finished_contract", "resigned",
+            "retired", "laid_off_local", "laid_off_abroad"
+        ]
         created_applicant_profiles = []
 
         for i in range(count):
@@ -279,6 +314,7 @@ class Command(BaseCommand):
             username = f"applicant_{i+1}"
             email = f"{username}@gmail.com"
 
+            # Step 1: Create User with required email field
             user, created = User.objects.get_or_create(
                 username=username,
                 defaults={
@@ -293,7 +329,10 @@ class Command(BaseCommand):
                 user.save()
 
             dob = fake.date_of_birth(minimum_age=18, maximum_age=45)
+            emp_status = random.choice(["unemployed", "unemployed", "employed"])
+            unemp_reason = random.choice(unemployment_reasons) if emp_status == "unemployed" else None
 
+            # Step 2: Create ApplicantProfile
             app_profile = ApplicantProfile.objects.create(
                 user=user,
                 first_name=f_name,
@@ -303,21 +342,42 @@ class Command(BaseCommand):
                 sex=sex,
                 civil_status=random.choice(["single", "married"]),
                 phone_number=self.philippine_phone(),
+                house_street=f"Block {random.randint(1,15)} Lot {random.randint(1,30)}",
                 barangay=fake.random_element(["Jugaban", "Baybay", "Ponong", "Buntay", "Sawang", "Cogon"]),
                 municipality="Carigara",
                 province="Leyte",
                 region="Eastern Visayas",
                 zip_code="6529",
+                
+                # NSRP Form 1 Specific Fields
+                employment_status=emp_status,
+                unemployment_reason=unemp_reason,
+                actively_looking=True,
+                looking_duration=f"{random.randint(1, 12)} months",
+                is_4ps_beneficiary=random.choice([True, False]),
+                household_id_no=f"4PS-{random.randint(100000, 999999)}" if random.choice([True, False]) else None,
+                is_ofw=random.choice([True, False]),
+                expected_salary=random.randint(12000, 35000),
+                
                 education_level=random.choice(["high_school", "college", "vocational"]),
+                school_name=f"{fake.city()} State University",
+                course_program="BS Information Technology" if sex == "M" else "BS Business Administration",
+                year_graduated="2023",
                 status=random.choice(["approved", "pending"]),
             )
+
+            # Step 3: Attach generated ID Image file
+            formatted_name = f"{f_name} {l_name}"
+            app_id_code = f"APP-2026-{i+1:04d}"
+            id_file = self.generate_dummy_id_image(formatted_name, app_id_code)
+            app_profile.applicant_id_picture.save(f"id_{app_id_code}.jpg", id_file, save=True)
 
             # Assign random skills & preferred jobs
             app_profile.skills.set(random.sample(created_skills, k=random.randint(2, 4)))
             app_profile.preferred_job.set(random.sample(created_jobs, k=random.randint(1, 3)))
             created_applicant_profiles.append(app_profile)
 
-        self.stdout.write(self.style.SUCCESS(f"✔ Seeded {len(created_applicant_profiles)} Applicants."))
+        self.stdout.write(self.style.SUCCESS(f"✔ Seeded {len(created_applicant_profiles)} Applicants with generated ID images."))
 
         # -------------------------------------------------------------
         # 6. SEED APPLIED JOBS & OFFERED JOBS
@@ -369,7 +429,7 @@ class Command(BaseCommand):
 
         AuditLog.objects.create(
             user=admin_user, 
-            action="Executed updated seed_peso_data script with NSRP Form 2 model compliance."
+            action="Executed updated seed_peso_data script with NSRP Form 1 & 2 model compliance."
         )
 
         self.stdout.write(self.style.SUCCESS("✔ Seeded PESO Activities & Audit Logs."))
