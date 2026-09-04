@@ -35,17 +35,9 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <select name="sector" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
-                    <option value="All">All Sectors</option>
-                    {% for key, val in jobs.model.SECTOR_CHOICES %}
-                        <option value="{{ key }}" {% if selected_sector == key %}selected{% endif %}>{{ val }}</option>
-                    {% endfor %}
-                </select>
-
                 <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
                     <option value="All">All Status</option>
                     <option value="Active" {% if selected_status == "Active" %}selected{% endif %}>Active</option>
-                    <option value="Pending" {% if selected_status == "Pending" %}selected{% endif %}>Pending</option>
                     <option value="Filled" {% if selected_status == "Filled" %}selected{% endif %}>Filled</option>
                     <option value="Closed" {% if selected_status == "Closed" %}selected{% endif %}>Closed</option>
                 </select>
@@ -58,7 +50,6 @@
                     <tr class="border-b border-slate-200 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
                         <th class="py-3 px-4">ID</th>
                         <th class="py-3 px-4">Job Title / Employer</th>
-                        <th class="py-3 px-4">Sector</th>
                         <th class="py-3 px-4 text-center">Vacancies</th>
                         <th class="py-3 px-4">Salary</th>
                         <th class="py-3 px-4">Deadline</th>
@@ -75,15 +66,14 @@
                             <div class="font-bold text-slate-800 text-[13px] leading-tight mb-1">{{ job.job_title }}</div>
                             <div class="flex flex-col space-y-0.5 text-[11px] text-slate-400 font-medium">
                                 <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-building text-[10px]"></i> {{ job.employer.company_name }}
+                                    <i class="fa-solid fa-building text-[10px]"></i> {{ job.employer.business_name }}
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-location-dot text-[10px] pl-0.5"></i> {{ job.job_location }}
+                                    <i class="fa-solid fa-location-dot text-[10px] pl-0.5"></i> {{ job.employer.municipality }}, {{ job.employer.province }}
                                 </span>
                             </div>
                         </td>
                         
-                        <td class="py-4 px-4 font-medium text-slate-500">{{ job.sector }}</td>
                         <td class="py-4 px-4 text-center font-bold text-slate-800">{{ job.vacancy }}</td>
                         <td class="py-4 px-4 font-semibold text-slate-600">₱{{ job.salary|floatformat:0 }}</td>
                         
@@ -97,8 +87,6 @@
                         <td class="py-4 px-4 text-center">
                             {% if job.status == 'Active' %}
                                 <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700">Active</span>
-                            {% elif job.status == 'Pending' %}
-                                <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700">Pending</span>
                             {% elif job.status == 'Filled' %}
                                 <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700">Filled</span>
                             {% else %}
@@ -106,18 +94,15 @@
                             {% endif %}
                         </td>
                         
-                        <td class="py-4 px-4 text-right space-x-1.5 whitespace-nowrap">
-                            {% if job.status == 'Pending' %}
-                                <button class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-extrabold px-3 py-1 rounded transition">Approve</button>
-                            {% elif job.status == 'Active' %}
-                                <button class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-extrabold px-3 py-1 rounded transition">Close</button>
-                            {% endif %}
-                            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1 rounded transition">View</button>
+                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                            <a href="{% url 'AdminSide:job_detail' job.uuid %}" class="inline-block bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1 rounded transition">
+                            View
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No job vacancies found.</td>
+                        <td colspan="7" class="py-8 text-center text-slate-400 font-medium">No job vacancies found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -129,69 +114,187 @@
     </div>
 </div>
 
-<!-- MODAL ADD FORM -->
+<!-- POST VACANCY MODAL -->
 <div id="vacancyModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-200">
         <div class="px-6 py-4 bg-[#112954] text-white flex items-center justify-between">
-            <h3 class="font-bold text-sm">Post Direct Vacancy</h3>
-            <button onclick="toggleModal(false)" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-sm">Post Direct Vacancy (NSRP Form 2)</h3>
+            <button type="button" onclick="toggleModal(false)" class="text-slate-300 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         
-        <form method="POST" action="" class="p-6 space-y-4 text-xs">
+        <form method="POST" action="{% url 'AdminSide:job_postings_list' %}" onsubmit="this.querySelector('button[type=submit]').disabled = true;" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             {% csrf_token %}
-            <div>
-                <label class="block font-bold text-slate-600 mb-1">Job Title</label>
-                <input type="text" name="job_title" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
-            </div>
+
+            <input type="hidden" name="status" value="Active">
+            
+            <!-- SECTION 1: ESTABLISHMENT & TITLE -->
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-600 mb-1">Sector</label>
-                    <select name="sector" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
-                        <option value="BPO / IT">BPO / IT</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Construction">Construction</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Hospitality">Hospitality</option>
-                        <option value="Manufacturing">Manufacturing</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-600 mb-1">Job Type</label>
-                    <select name="job_type" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
-                        <option value="full_time">Full Time</option>
-                        <option value="part_time">Part Time</option>
-                        <option value="contract">Contract</option>
-                        <option value="internship">Internship</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-600 mb-1">Location</label>
-                    <input type="text" name="job_location" value="Manila" class="w-full border border-slate-300 rounded-lg px-3 py-2">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-600 mb-1">Vacancies</label>
-                    <input type="number" name="vacancy" value="1" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                <div class="col-span-2">
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.employer.label }}</label>
+                    {{ form.employer }}
+                    {{ form.employer.errors }}
                 </div>
                 <div class="col-span-2">
-                    <label class="block font-bold text-slate-600 mb-1">Offer Salary (PHP)</label>
-                    <input type="number" name="salary" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
-                </div>
-                <div class="col-span-2">
-                    <label class="block font-bold text-slate-600 mb-1">Description summary</label>
-                    <textarea name="job_description" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.job_title.label }}</label>
+                    {{ form.job_title }}
+                    {{ form.job_title.errors }}
                 </div>
             </div>
+
+            <!-- SECTION 2: VACANCY & COMPENSATION -->
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.nature_of_work.label }}</label>
+                    {{ form.nature_of_work }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.vacancy.label }}</label>
+                    {{ form.vacancy }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.salary.label }}</label>
+                    {{ form.salary }}
+                </div>
+            </div>
+
+            <!-- SECTION 3: LOCATION & EXPIRY -->
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.place_of_work.label }}</label>
+                    {{ form.place_of_work }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.job_posting_expiry.label }}</label>
+                    {{ form.job_posting_expiry }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">Max Quota (Optional)</label>
+                    {{ form.application_quota }}
+                    {{ form.application_quota.errors }}
+                </div>
+            </div>
+
+            <!-- SECTION 4: NSRP QUALIFICATIONS -->
+            <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.educational_level.label }}</label>
+                    {{ form.educational_level }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.course_or_strand.label }}</label>
+                    {{ form.course_or_strand }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.work_experience_months.label }}</label>
+                    {{ form.work_experience_months }}
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.languages_spoken.label }}</label>
+                    {{ form.languages_spoken }}
+                </div>
+            </div>
+
+            <!-- SECTION 5: SPECIAL ACCOMMODATIONS -->
+            <div class="space-y-3 pt-2">
+                <div class="flex items-center gap-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                        {{ form.accepts_pwd }} {{ form.accepts_pwd.label }}
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                        {{ form.accepts_ofw }} {{ form.accepts_ofw.label }}
+                    </label>
+                </div>
+
+                <!-- CONDITIONAL PWD DISABILITIES FIELD -->
+                <div id="pwdDisabilitiesContainer" class="hidden transition-all duration-200">
+                    <label class="block font-bold text-slate-700 text-xs mb-1">
+                        {{ form.pwd_disabilities.label }} <span class="text-slate-400 font-normal">(Specify acceptable disability types)</span>
+                    </label>
+                    {{ form.pwd_disabilities }}
+                    {{ form.pwd_disabilities.errors }}
+                </div>
+            </div>
+
+            <!-- SECTION 6: DESCRIPTION -->
+            <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">{{ form.job_description.label }}</label>
+                {{ form.job_description }}
+            </div>
+
+            <!-- SECTION 7: OTHER QUALIFICATIONS (OPTIONAL) -->
+            <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">
+                    {{ form.other_qualifications.label }} <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                {{ form.other_qualifications }}
+                {{ form.other_qualifications.errors }}
+            </div>
+
+            <!-- SUBMIT BUTTONS -->
             <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                <button type="button" onclick="toggleModal(false)" class="px-4 py-2 bg-slate-100 rounded-lg font-bold">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-[#112954] text-white rounded-lg font-bold">Post Vacancy</button>
+                <button type="button" onclick="toggleModal(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-[#112954] hover:bg-[#0c1e3f] text-white rounded-lg text-xs font-bold transition">
+                    Save Vacancy
+                </button>
             </div>
+
+        {% if form.errors %}
+            <div class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg mb-4">
+                <p class="font-bold mb-1">Please fix the following errors:</p>
+                <ul class="list-disc pl-4 space-y-1">
+                    {% for field, errors in form.errors.items %}
+                        <li>
+                            <strong>{{ field|title }}:</strong> 
+                            {% for error in errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
         </form>
     </div>
 </div>
 
 <script>
     function toggleModal(show) {
-        document.getElementById('vacancyModal').classList.toggle('hidden', !show);
+        const modal = document.getElementById('vacancyModal');
+        if (show) {
+            modal.classList.remove('hidden');
+        } else {
+            modal.classList.add('hidden');
+        }
     }
+
+    function togglePwdContainer() {
+        const pwdCheckbox = document.querySelector('input[name="accepts_pwd"]');
+        const pwdContainer = document.getElementById('pwdDisabilitiesContainer');
+        
+        if (pwdCheckbox && pwdContainer) {
+            if (pwdCheckbox.checked) {
+                pwdContainer.classList.remove('hidden');
+            } else {
+                pwdContainer.classList.add('hidden');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const pwdCheckbox = document.querySelector('input[name="accepts_pwd"]');
+        if (pwdCheckbox) {
+            togglePwdContainer(); // Initial state check
+            pwdCheckbox.addEventListener('change', togglePwdContainer);
+        }
+
+        // Auto-open modal if Django passed show_modal=True after form invalidation
+        {% if show_modal %}
+            toggleModal(true);
+        {% endif %}
+    });
 </script>
 {% endblock %}
