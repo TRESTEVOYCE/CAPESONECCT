@@ -391,40 +391,20 @@ class OfferedJobs(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
-    applicant = models.ForeignKey(
-        ApplicantProfile,
-        on_delete=models.CASCADE,
-        related_name='offered_jobs'
-    )
-
-    offered_job = models.ForeignKey(
-        Jobs,
-        on_delete=models.CASCADE,
-        related_name='offered_to_applicants'
-    )
-
-    referred_by = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True
-    )
-
+    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE, related_name='offered_jobs')
+    offered_job = models.ForeignKey(Jobs, on_delete=models.CASCADE, related_name='offered_to_applicants')
+    referred_by = models.CharField(max_length=100, null=True, blank=True)
     date_offered = models.DateTimeField(auto_now_add=True)
-
-    status = models.CharField(
-        max_length=20,
-        choices=APPLICATION_STATUS,
-        default='pending'
-    )
-
-    remarks = models.TextField(
-        null=True,
-        blank=True
-    )
+    status = models.CharField(max_length=20, choices=APPLICATION_STATUS, default='pending')
+    remarks = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.applicant} {self.offered_job}"
 
+    @property
+    def employer(self):
+        """Dynamically pulls the employer through the linked job vacancy."""
+        return self.offered_job.employer if self.offered_job else None
 
 # ============================================================
 # BENEFICIARY PROGRAMS
