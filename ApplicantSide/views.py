@@ -7,7 +7,7 @@ from AdminSide.models import Jobs,ApplicantProfile
 
 #recomendations views for the applicant dashboard
 class RecommendationsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
-    template_name = 'recommendations.html'
+    template_name = 'feed.html'
     model = Jobs
     context_object_name = 'jobs'
 
