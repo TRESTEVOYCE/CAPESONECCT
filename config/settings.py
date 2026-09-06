@@ -128,14 +128,12 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static Files
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'LandingPage/static'),
-]
+# Leave STATICFILES_DIRS empty if files live inside LandingPage/static/
+STATICFILES_DIRS = []
 
 # Storage Configuration
 CLOUDINARY_STORAGE = {
