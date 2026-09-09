@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}NSRP Form Verification - {{ applicant.first_name }} {{ applicant.last_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6 pb-12">
+
+    <a href="{% url 'AdminSide:applicants_list' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+        <i class="fa-solid fa-arrow-left"></i> Back to Applicants Registry
+    </a>
+
+    <!-- HEADER & ACTION BAR -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">NSRP Form 1. REV 3 - Profile Verification</h1>
+            <p class="text-xs text-slate-500 font-medium">DOLE National Skills Registration Program Record</p>
+            <span class="px-3 py-1 text-xs font-bold rounded-full mt-1 inline-block
+                {% if applicant.status == 'approved' %}bg-green-100 text-green-700
+                {% elif applicant.status == 'pending' %}bg-amber-100 text-amber-700
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                Status: {{ applicant.get_status_display|default:applicant.status|title }}
+            </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <form method="POST" action="" class="flex items-center gap-2">
+                {% csrf_token %}
+                {% if applicant.status != 'approved' %}
+                    <button type="submit" name="action" value="verify" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-check"></i> Verify Applicant
+                    </button>
+                {% endif %}
+                {% if applicant.status != 'rejected' %}
+                    <button type="submit" name="action" value="reject" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-xmark"></i> Reject
+                    </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+        <!-- LEFT COLUMN: MAIN FORM DETAILS (2 COLUMNS WIDE) -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- SECTION I: PERSONAL INFORMATION -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-user text-slate-400"></i> I. Personal Information
+                </h2>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-6 text-xs">
+                    <!-- Names Row -->
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Last Name</span>
+                        <span class="font-bold text-slate-800 text-sm">{{ applicant.last_name|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">First Name</span>
+                        <span class="font-bold text-slate-800 text-sm">{{ applicant.first_name|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Middle Name</span>
+                        <span class="font-semibold text-slate-700 text-sm">{{ applicant.middle_name|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Suffix</span>
+                        <span class="font-semibold text-slate-700 text-sm">{{ applicant.suffix|default:"N/A" }}</span>
+                    </div>
+
+                    <!-- Birth & Status Row -->
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Date of Birth</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.date_of_birth|date:"M d, Y"|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Age / Sex</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.age|default:"--" }} yrs / {{ applicant.get_sex_display|default:applicant.sex }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Place of Birth</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.place_of_birth|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Civil Status</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.get_civil_status_display|default:applicant.civil_status }}</span>
+                    </div>
+
+                    <!-- Physical & Citizenship Row -->
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Citizenship</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.citizenship|default:"Filipino" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Height / Weight</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.height|default:"--" }} cm / {{ applicant.weight|default:"--" }} kg</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Disability</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.disability_type|default:"None" }}</span>
+                    </div>
+
+                    <!-- Single Integrated Address Field -->
+                    <div class="col-span-2 sm:col-span-4 border-t border-slate-100 pt-4">
+                        <span class="block text-slate-400 font-bold uppercase text-[10px] mb-1">Address</span>
+                        <span class="font-semibold text-slate-800 text-sm">
+                            {% if applicant.house_street or applicant.barangay or applicant.municipality or applicant.province %}
+                                {{ applicant.house_street }}, Brgy. {{ applicant.barangay }}, {{ applicant.municipality }}, {{ applicant.province }}
+                            {% else %}
+                                {{ applicant.perm_house_street|default:"" }} Brgy. {{ applicant.perm_barangay|default:"" }}, {{ applicant.perm_municipality|default:"" }}, {{ applicant.perm_province|default:"" }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Contact Details -->
+                    <div class="col-span-2 sm:col-span-4 border-t border-slate-100 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">Primary Mobile</span>
+                            <span class="font-bold text-slate-800">{{ applicant.phone_number }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">Secondary Phone</span>
+                            <span class="font-semibold text-slate-700">{{ applicant.secondary_phone|default:"N/A" }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">Email Address</span>
+                            <span class="font-bold text-slate-800 break-all">{{ applicant.user.email }}</span>
+                        </div>
+                    </div>
+
+                    <!-- NSRP Classifications & Employment Status -->
+                    <div class="col-span-2 sm:col-span-4 border-t border-slate-100 pt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">Employment Status</span>
+                            <span class="font-bold text-slate-800">
+                                {{ applicant.get_employment_status_display|default:"Unemployed" }}
+                            </span>
+                            {% if applicant.unemployment_reason %}
+                                <span class="text-slate-500 text-[11px] block">({{ applicant.get_unemployment_reason_display }})</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">Actively Looking?</span>
+                            <span class="font-semibold text-slate-700">{% if applicant.actively_looking %}Yes ({{ applicant.looking_duration|default:"" }}){% else %}No{% endif %}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">4Ps Beneficiary</span>
+                            <span class="font-semibold text-slate-700">{% if applicant.is_4ps_beneficiary %}Yes (ID: {{ applicant.household_id_no }}){% else %}No{% endif %}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold uppercase text-[10px]">OFW / Returning</span>
+                            <span class="font-semibold text-slate-700">{% if applicant.is_ofw %}Yes{% else %}No{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION II: JOB PREFERENCE -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-slate-400"></i> II. Job Preference
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px] mb-2">Preferred Occupation & Industry</span>
+                        <ul class="space-y-1.5">
+                            {% for job in applicant.preferred_job.all %}
+                                <li class="bg-slate-50 p-2.5 rounded-md border border-slate-200 font-semibold text-slate-700 flex justify-between items-center">
+                                    <span>{{ forloop.counter }}. {{ job.job_title }}</span>
+                                    <span class="text-slate-400 font-normal text-[11px]">{{ job.industry|default:"General" }}</span>
+                                </li>
+                            {% empty %}
+                                <li class="text-slate-400 italic">No specific preferences listed</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px] mb-2">Preferred Location & Salary</span>
+                        <div class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-3">
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold block">Local / Overseas</span>
+                                <span class="font-semibold text-slate-700">{{ applicant.preferred_locations|default:"Local" }}</span>
+                            </div>
+                            <div class="border-t border-slate-200 pt-2">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold block">Expected Monthly Salary</span>
+                                <span class="font-extrabold text-emerald-600 text-sm">₱{{ applicant.expected_salary|default:"0.00" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION III: EDUCATIONAL BACKGROUND -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-slate-400"></i> III. Educational Background
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Currently In School?</span>
+                        <span class="font-semibold text-slate-700">{% if applicant.currently_in_school %}Yes{% else %}No{% endif %}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Highest Educational Level</span>
+                        <span class="font-bold text-slate-800">{{ applicant.get_education_level_display|default:applicant.education_level }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Year Graduated / Attended</span>
+                        <span class="font-semibold text-slate-700">{{ applicant.year_graduated|default:"N/A" }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs border-t border-slate-100 pt-3">
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">School / University</span>
+                        <span class="font-semibold text-slate-800">{{ applicant.school_name|default:"N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px]">Course / Program</span>
+                        <span class="font-semibold text-slate-800">{{ applicant.course_program|default:"N/A" }}</span>
+                    </div>
+                </div>
+
+                {% if applicant.awards_received %}
+                <div class="text-xs border-t border-slate-100 pt-3">
+                    <span class="block text-slate-400 font-bold uppercase text-[10px] mb-1">Awards / Honors Received</span>
+                    <p class="font-medium text-slate-700 bg-amber-50/60 p-2.5 rounded-md border border-amber-200/60">{{ applicant.awards_received }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- SECTION IV & V: TRAINING & ELIGIBILITY -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3">
+                    <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3">
+                        IV. Technical / Vocational Training
+                    </h2>
+                    <ul class="space-y-2 text-xs">
+                        {% for training in applicant.trainings.all %}
+                            <li class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-1">
+                                <p class="font-bold text-slate-800">{{ training.course_title }}</p>
+                                <p class="text-[11px] text-slate-500">{{ training.institution }} • {{ training.duration }}</p>
+                                <p class="text-[10px] text-emerald-600 font-bold">Cert: {{ training.certificate_received|default:"Yes" }}</p>
+                            </li>
+                        {% empty %}
+                            <li class="text-slate-400 italic">No formal TVET training recorded.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3">
+                    <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3">
+                        V. Eligibility & Professional Licenses
+                    </h2>
+                    <ul class="space-y-2 text-xs">
+                        {% for eligibility in applicant.eligibilities.all %}
+                            <li class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-1">
+                                <p class="font-bold text-slate-800">{{ eligibility.title }}</p>
+                                <p class="text-[11px] text-slate-500">License No: {{ eligibility.license_no|default:"N/A" }}</p>
+                                <p class="text-[10px] text-slate-400">Expiry: {{ eligibility.expiry_date|date:"M Y"|default:"N/A" }}</p>
+                            </li>
+                        {% empty %}
+                            <li class="text-slate-400 italic">No professional licenses or eligibilities.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION VI: WORK EXPERIENCE -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-slate-400"></i> VI. Work Experience (Past 10 Years)
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="py-2.5 px-3">Company / Office</th>
+                                <th class="py-2.5 px-3">Position Held</th>
+                                <th class="py-2.5 px-3">Inclusive Dates</th>
+                                <th class="py-2.5 px-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            {% for work in applicant.work_experiences.all %}
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold">{{ work.company_name }}</td>
+                                    <td class="py-2.5 px-3">{{ work.position_title }}</td>
+                                    <td class="py-2.5 px-3 text-slate-500">{{ work.start_date|date:"M Y" }} - {{ work.end_date|date:"M Y"|default:"Present" }}</td>
+                                    <td class="py-2.5 px-3 font-medium">{{ work.appointment_status|default:"Permanent" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="py-4 text-center text-slate-400 italic">No previous work history registered.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION VII & IX: SKILLS -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-slate-400"></i> VII & IX. Skills & Competencies
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px] mb-2">21st Century Skills</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            {% for skill in applicant.skills.all %}
+                                <span class="bg-indigo-50 text-indigo-700 text-[11px] font-semibold px-2.5 py-1 rounded-md border border-indigo-100">
+                                    {{ skill.skill_name }}
+                                </span>
+                            {% empty %}
+                                <span class="text-slate-400 italic">None selected</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 font-bold uppercase text-[10px] mb-2">Non-Formal Technical Skills</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            {% for tech_skill in applicant.informal_skills.all %}
+                                <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-md border border-slate-200">
+                                    {{ tech_skill.name }}
+                                </span>
+                            {% empty %}
+                                <span class="text-slate-400 italic">None selected</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: STICKY VALID ID PREVIEW CARD -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-id-card text-slate-400 mr-1.5"></i> Valid Identification</span>
+                    <span class="text-[10px] text-slate-400 font-normal">Govt ID / Document</span>
+                </h2>
+
+                <div class="border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50 text-center flex flex-col items-center justify-center min-h-[220px]">
+                    {% if applicant.applicant_id_pictures %}
+                        {% if applicant.applicant_id_pictures.url %}
+                            <a href="{{ applicant.applicant_id_pictures.url }}" target="_blank" title="Click to view full size">
+                                <img src="{{ applicant.applicant_id_pictures.url }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
+                            </a>
+                        {% else %}
+                            <a href="/media/{{ applicant.applicant_id_pictures }}" target="_blank" title="Click to view full size">
+                                <img src="/media/{{ applicant.applicant_id_pictures }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
+                            </a>
+                        {% endif %}
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Click image to inspect full size</p>
+                    {% else %}
+                        <div class="py-8 space-y-2">
+                            <i class="fa-regular fa-image text-3xl text-slate-300"></i>
+                            <p class="text-xs font-bold text-slate-500">No Digital ID Uploaded</p>
+                            <p class="text-[11px] text-slate-400 max-w-[200px] mx-auto">Applicant must present a physical Government ID at the PESO office.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

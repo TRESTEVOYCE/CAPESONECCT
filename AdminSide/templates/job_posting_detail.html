@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.job_title }} - Details{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- HEADER / NAVIGATION -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'AdminSide:job_postings_list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to Job Postings
+        </a>
+        <div class="flex items-center gap-2">
+            {% if job.status == 'Active' %}
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700">Active</span>
+            {% elif job.status == 'Pending' %}
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700">Pending</span>
+            {% elif job.status == 'Filled' %}
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-700">Filled</span>
+            {% else %}
+                <span class="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500">Closed</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
+        
+        <!-- HEADER INFO -->
+        <div class="border-b border-slate-100 pb-5 flex justify-between items-start">
+            <div>
+                <span class="text-xs font-mono font-bold text-blue-600">{{ job.formatted_job_id }}</span>
+                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight mt-1">{{ job.job_title }}</h1>
+                <p class="text-xs font-semibold text-slate-500 mt-2 flex items-center gap-3">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-building text-slate-400"></i> {{ job.employer.business_name }}
+                    </span>
+                    <span class="text-slate-300">•</span>
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-location-dot text-slate-400"></i> {{ job.place_of_work }}
+                    </span>
+                </p>
+            </div>
+            <div class="text-right">
+                <span class="text-[11px] text-slate-400 block font-medium uppercase tracking-wider">Monthly Salary</span>
+                <span class="text-xl font-extrabold text-slate-800">₱{{ job.salary|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- KEY METRICS GRID -->
+        <div class="grid grid-cols-4 gap-4 bg-slate-50/80 p-4 rounded-lg border border-slate-100 text-xs">
+            <div>
+                <span class="text-slate-400 font-medium block text-[11px] uppercase tracking-wider mb-0.5">Nature of Work</span>
+                <span class="font-bold text-slate-700">{{ job.get_nature_of_work_display }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 font-medium block text-[11px] uppercase tracking-wider mb-0.5">Vacancies</span>
+                <span class="font-bold text-slate-700">{{ job.vacancy }} Slot(s)</span>
+            </div>
+            <div>
+                <span class="text-slate-400 font-medium block text-[11px] uppercase tracking-wider mb-0.5">Application Quota</span>
+                <span class="font-bold text-slate-700">{% if job.application_quota %}{{ job.application_quota }} Applicants{% else %}Unlimited{% endif %}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 font-medium block text-[11px] uppercase tracking-wider mb-0.5">Posting Expiry</span>
+                <span class="font-bold text-slate-700">{{ job.job_posting_expiry|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <!-- QUALIFICATIONS SECTION -->
+        <div class="space-y-3">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Requirements & Qualifications</h3>
+            <div class="grid grid-cols-2 gap-y-3 gap-x-6 text-xs bg-slate-50/40 p-4 rounded-lg border border-slate-100">
+                <div>
+                    <span class="text-slate-400 font-medium">Educational Level:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.educational_level|default:"Not specified" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-medium">Course/Strand:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.course_or_strand|default:"Not specified" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-medium">Work Experience:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.work_experience_months }} Month(s)</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-medium">Languages Spoken:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.languages_spoken|default:"Not specified" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-medium">Required License:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.required_license|default:"None required" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 font-medium">Required Eligibility:</span>
+                    <span class="font-semibold text-slate-700 ml-1">{{ job.required_eligibility|default:"None required" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPECIAL ACCOMMODATIONS -->
+        <div class="border-t border-slate-100 pt-4 space-y-3 text-xs">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Special Accommodations</h3>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold {% if job.accepts_pwd %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-slate-100 text-slate-400{% endif %}">
+                    <i class="fa-solid fa-wheelchair"></i> Accepts PWD
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold {% if job.accepts_ofw %}bg-blue-50 text-blue-700 border border-blue-200{% else %}bg-slate-100 text-slate-400{% endif %}">
+                    <i class="fa-solid fa-plane text-[11px]"></i> Accepts Returning OFW
+                </span>
+            </div>
+
+            {% if job.accepts_pwd and job.pwd_disabilities %}
+                <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs">
+                    <strong class="text-amber-800 font-bold block mb-0.5">Accepted Disability Types:</strong>
+                    <p class="text-slate-700">{{ job.pwd_disabilities }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- OTHER QUALIFICATIONS (IF PRESENT) -->
+        {% if job.other_qualifications %}
+        <div class="border-t border-slate-100 pt-4 space-y-2 text-xs">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Other Qualifications</h3>
+            <p class="text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50/50 p-3 rounded-lg border border-slate-100">{{ job.other_qualifications }}</p>
+        </div>
+        {% endif %}
+
+        <!-- JOB DESCRIPTION -->
+        <div class="border-t border-slate-100 pt-4 space-y-2 text-xs">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Job Description</h3>
+            <p class="text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50/50 p-4 rounded-lg border border-slate-100">{{ job.job_description }}</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

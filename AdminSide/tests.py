@@ -40,6 +40,30 @@ class EnrollBeneficiaryViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_edit_form_shows_unsaved_changes_warning_when_switching_programs(self):
+        beneficiary = SpecialProgramForEmploymentOfStudents.objects.create(
+            first_name='Ana',
+            last_name='Rivera',
+            sex='F',
+            date_of_birth='2000-01-01',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            region='Region VIII',
+            zip_code='6519',
+            daily_salary='1000.00',
+            start_date='2024-01-01',
+            end_date='2024-02-01',
+            education_level='college',
+        )
+
+        client = Client()
+        response = client.get(f'/special-programs/enroll/?program=spes&edit={beneficiary.uuid}')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please finish or save your changes before switching programs')
+
     def test_enroll_post_preserves_municipality_and_barangay_from_current_form_fields(self):
         client = Client()
         response = client.post('/special-programs/enroll/?program=spes', {

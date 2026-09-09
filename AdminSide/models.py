@@ -1,6 +1,7 @@
 from datetime import date
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 import uuid
 
 
@@ -14,7 +15,7 @@ class User(AbstractUser):
         ('mswdo', 'MSWDO'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='applicant')
@@ -31,141 +32,196 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.email} ({self.username}) - {self.role}"
 
-
 class EmployerProfile(models.Model):
-
-    COMPANY_TYPE_CHOICES = (
-        ('private', 'Private'),
-        ('government', 'Government'),
-        ('non_profit', 'Non-Profit'),
-        ('other', 'Other'),
+    OFFICE_TYPE_CHOICES = (
+        ('main', 'Main Office'),
+        ('branch', 'Branch'),
     )
 
-    VARIFICATION_STATUS_CHOICES = (
+    EMPLOYER_TYPE_CHOICES = (
+        # Public
+        ('lgu', 'Local Government Unit'),
+        ('nga_regional', 'National Government Agency - Regional Office'),
+        ('nga_national', 'National Government Agency - National Office'),
+        ('gocc', 'Government-Owned and Controlled Corporation'),
+        ('suc', 'State/Local University or College'),
+        # Private
+        ('direct_hire', 'Direct Hire'),
+        ('local_agency', 'Local Recruitment Agency'),
+        ('overseas_agency', 'Overseas Recruitment Agency'),
+        ('do_174', 'D.O. 174 Contractor/Subcontractor'),
+    )
+
+    PUBLIC_DOC_CHOICES = (
+        ('csc_appointment', 'CSC Appointment Paper / Designation Order'),
+        ('gov_id', 'Government ID of Authorized Representative'),
+        ('plantilla_extract', 'DBM Plantilla Extract (PSIPOP)'),
+    )
+
+    WORKFORCE_CHOICES = (
+        ('micro', 'Micro (1-9)'),
+        ('small', 'Small (10-99)'),
+        ('medium', 'Medium (100-199)'),
+        ('large', 'Large (200 and up)'),
+    )
+
+    VERIFICATION_STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('verified', 'Verified'),
         ('rejected', 'Rejected'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     user = models.OneToOneField(
-        User,
+        'User',
         on_delete=models.CASCADE,
         related_name='employer_profile'
     )
 
-    company_name = models.CharField(max_length=100)
-    company_type = models.CharField(
-        max_length=20,
-        choices=COMPANY_TYPE_CHOICES
-    )
-    business_permit = models.FileField(upload_to='business_permits/')
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20)
-    company_address = models.CharField(max_length=255)
+    # Establishment Details
+    business_name = models.CharField(max_length=150)
+    trade_name = models.CharField(max_length=150, blank=True, null=True)
+    acronym = models.CharField(max_length=50, blank=True, null=True)
+    office_type = models.CharField(max_length=10, choices=OFFICE_TYPE_CHOICES, default='main')
+    tin_number = models.CharField(max_length=30, blank=True, null=True)
+    employer_type = models.CharField(max_length=30, choices=EMPLOYER_TYPE_CHOICES, default='direct_hire')
+    total_workforce = models.CharField(max_length=10, choices=WORKFORCE_CHOICES, default='micro')
+    line_of_business = models.CharField(max_length=150, blank=True, null=True)
+
+    # Address Breakdown
+    street_address = models.CharField(max_length=255, blank=True, null=True)
+    barangay = models.CharField(max_length=100)
+    municipality = models.CharField(max_length=100)
+    province = models.CharField(max_length=100)
+
+    # Contact Details
+    owner_name = models.CharField(max_length=150, blank=True, null=True)
+    designation = models.CharField(max_length=100, blank=True, null=True, help_text="Designation/Position of the authorized representative (e.g., HRMO II, Administrative Officer V)")
     contact_person = models.CharField(max_length=100)
+    contact_position = models.CharField(max_length=100, blank=True, null=True)
+    telephone_number = models.CharField(max_length=20, blank=True, null=True)
+    mobile_number = models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
+
+    # Verification Document Attachments for Private Sector
+    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/', blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/business_permits/', blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+
+    # Verification Document Attachments for Public Sector
+    public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
 
     verification_status = models.CharField(
         max_length=20,
-        choices=VARIFICATION_STATUS_CHOICES,
+        choices=VERIFICATION_STATUS_CHOICES,
         default='pending'
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def is_public_agency(self):
+        return self.employer_type in ['lgu', 'nga_regional', 'nga_national', 'gocc', 'suc']
+
     def __str__(self):
-        return f"{self.company_name} - {self.user.email}"
-
-
+        return f"{self.business_name} - {self.email}"
+    
 class Jobs(models.Model):
-
-    JOB_TYPE_CHOICES = (
-        ('full_time', 'Full Time'),
-        ('part_time', 'Part Time'),
-        ('contract', 'Contract'),
-        ('internship', 'Internship'),
-    )
-
-    SECTOR_CHOICES = (
-        ('BPO / IT', 'BPO / IT Services'),
-        ('Finance', 'Finance and Insurance'),
-        ('Administrative', 'Administrative & Support Services'),
-        ('Hospitality', 'Hospitality / Tourism / Food Service'),
-        ('Wholesale & Retail', 'Wholesale & Retail Trade (Sales)'),
-        ('Logistics', 'Transportation and Storage'),
-        ('Manufacturing', 'Manufacturing / Production'),
-        ('Construction', 'Construction and Trades (SMAW, Engineering)'),
-        ('Power & Energy', 'Electricity, Gas, and Water Supply'),
-        ('Healthcare', 'Healthcare and Social Work'),
-        ('Education', 'Education / Academic Institutions'),
-        ('Public Sector', 'Government / Public Administration'),
-        ('Agriculture', 'Agriculture, Forestry, and Fishing'),
+    NATURE_OF_WORK_CHOICES = (
+        ('permanent', 'Permanent'),
+        ('contractual', 'Contractual'),
+        ('project_based', 'Project-based'),
+        ('internship', 'Internship / OJT'),
+        ('part_time', 'Part-time'),
+        ('wfh', 'Work from home / online job'),
     )
 
     STATUS_CHOICES = (
         ('Active', 'Active'),
-        ('Pending', 'Pending'),
         ('Filled', 'Filled'),
         ('Closed', 'Closed'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    job_id_number = models.PositiveIntegerField(
-        unique=True,
-        null=True,
-        blank=True
-    )
-
-    job_title = models.CharField(max_length=100)
-    job_description = models.TextField()
-    job_requirements = models.TextField()
-    job_location = models.CharField(max_length=255)
-
-    job_type = models.CharField(
-        max_length=50,
-        choices=JOB_TYPE_CHOICES
-    )
-
-    vacancy = models.PositiveIntegerField()
-    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     employer = models.ForeignKey(
-        EmployerProfile,
-        on_delete=models.CASCADE,
-        related_name='jobs'
+        EmployerProfile, 
+        on_delete=models.CASCADE, 
+        related_name='jobs', 
+        limit_choices_to={'verification_status': 'verified'}
     )
 
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='Pending'
-    )
+    job_title = models.CharField(max_length=150)
+    job_description = models.TextField()
+    nature_of_work = models.CharField(max_length=20, choices=NATURE_OF_WORK_CHOICES, default='permanent')
+    place_of_work = models.CharField(max_length=255)
+    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    vacancy = models.PositiveIntegerField(default=1)
 
-    time_posted = models.DateTimeField(auto_now_add=True)
-    job_posting_expiry = models.DateTimeField()
+    work_experience_months = models.PositiveIntegerField(default=0, help_text="Experience in months")
+    other_qualifications = models.TextField(blank=True, null=True)
+    
+    accepts_pwd = models.BooleanField(default=False)
+    pwd_disabilities = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        help_text="e.g., Visual, Hearing, Speech, Physical, Mental"
+    )
+    accepts_ofw = models.BooleanField(default=False)
+
+    educational_level = models.CharField(max_length=100, blank=True, null=True)
+    course_or_strand = models.CharField(max_length=150, blank=True, null=True)
+    required_license = models.CharField(max_length=150, blank=True, null=True)
+    required_eligibility = models.CharField(max_length=150, blank=True, null=True)
+    required_certification = models.CharField(max_length=150, blank=True, null=True)
+    languages_spoken = models.CharField(max_length=255, blank=True, null=True)
+
+    # Added default to prevent validation errors on missing POST fields
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
+    application_quota = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum allowed applicants before automatic closure.")
+    
+    posting_date = models.DateField(auto_now_add=True)
+    job_posting_expiry = models.DateField()
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def formatted_job_id(self):
-        if self.job_id_number:
-            return f"JP-{self.job_id_number:04d}"
-        return "JP-NEW"
+        return f"JP-{self.id:04d}"
+
+    def check_and_close(self):
+        """
+        Evaluates quota or expiry and automatically updates status to 'Closed'.
+        """
+        today = timezone.localdate()
+        total_applications = self.applied_applicants.count()
+        quota_reached = self.application_quota is not None and total_applications >= self.application_quota
+        expired = self.job_posting_expiry and self.job_posting_expiry <= today
+
+        if (quota_reached or expired) and self.status == 'Active':
+            self.status = 'Closed'
+            self.save(update_fields=['status'])
 
     def __str__(self):
-        return f"{self.job_title} - {self.employer.company_name}"
-
-
+        return f"{self.job_title} - {self.employer.business_name}"
+        
 class ApplicantSkills(models.Model):
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     skill_name = models.CharField(max_length=100)
 
-
 class ApplicantProfile(models.Model):
+
+    APPLICATION_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
 
     CIVIL_STATUS_CHOICES = (
         ('single', 'Single'),
@@ -183,18 +239,26 @@ class ApplicantProfile(models.Model):
         ('other', 'Other'),
     )
 
-    APPLICATION_STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    )
-
     SEX_CHOICES = (
         ('M', 'Male'),
         ('F', 'Female'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    EMPLOYMENT_STATUS_CHOICES = [
+        ('employed', 'Employed'),
+        ('unemployed', 'Unemployed'),
+    ]
+
+    UNEMPLOYMENT_REASON_CHOICES = [
+        ('fresh_grad', 'New Entrant / Fresh Graduate'),
+        ('finished_contract', 'Finished Contract'),
+        ('resigned', 'Resigned'),
+        ('retired', 'Retired'),
+        ('laid_off_local', 'Terminated / Laid off (Local)'),
+        ('laid_off_abroad', 'Terminated / Laid off (Abroad)'),
+    ]
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     user = models.OneToOneField(
         User,
@@ -209,73 +273,40 @@ class ApplicantProfile(models.Model):
     )
 
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
+    middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100)
-
     date_of_birth = models.DateField()
-
-    sex = models.CharField(
-        max_length=1,
-        choices=SEX_CHOICES
-    )
-
-    civil_status = models.CharField(
-        max_length=20,
-        choices=CIVIL_STATUS_CHOICES
-    )
-
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
     phone_number = models.CharField(max_length=20)
 
+    house_street = models.CharField(max_length=255, blank=True, null=True)
     barangay = models.CharField(max_length=100)
     municipality = models.CharField(max_length=100)
     province = models.CharField(max_length=100)
-    region = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
+    region = models.CharField(max_length=100, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
 
-    resume = models.FileField(
-        upload_to='resumes/',
-        blank=True,
-        null=True
-    )
+    employment_status = models.CharField(max_length=20, choices=EMPLOYMENT_STATUS_CHOICES, default='unemployed')
+    unemployment_reason = models.CharField(max_length=50, choices=UNEMPLOYMENT_REASON_CHOICES, blank=True, null=True)
+    actively_looking = models.BooleanField(default=True)
+    looking_duration = models.CharField(max_length=50, blank=True, null=True)
+    is_4ps_beneficiary = models.BooleanField(default=False)
+    household_id_no = models.CharField(max_length=50, blank=True, null=True)
+    is_ofw = models.BooleanField(default=False)
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    curriculum_vitae = models.FileField(
-        upload_to='curriculum_vitae/',
-        blank=True,
-        null=True
-    )
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    school_name = models.CharField(max_length=255, blank=True, null=True)
+    course_program = models.CharField(max_length=255, blank=True, null=True)
+    year_graduated = models.CharField(max_length=10, blank=True, null=True)
+    skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
+    preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    applicant_id_picture = models.ImageField(
-        upload_to='applicant_id_pictures/',
-        blank=True,
-        null=True
-    )
-
-    education_level = models.CharField(
-        max_length=100,
-        choices=EDUCATIONAL_ATTACHMENT_CHOICES
-    )
-
-    status = models.CharField(
-        max_length=20,
-        choices=APPLICATION_STATUS_CHOICES,
-        default='pending'
-    )
-
-    skills = models.ManyToManyField(
-        ApplicantSkills,
-        blank=True,
-        related_name='applicants'
-    )
-
-    preferred_job = models.ManyToManyField(
-        Jobs,
-        blank=True,
-        related_name='preferred_applicants'
-    )
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
+    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -291,6 +322,10 @@ class ApplicantProfile(models.Model):
                 < (self.date_of_birth.month, self.date_of_birth.day)
             )
         )
+
+    @property
+    def email(self):
+        return self.user.email
 
     @property
     def formatted_id(self):
@@ -310,7 +345,6 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
-
 
 class AppliedJobs(models.Model):
 
@@ -345,7 +379,6 @@ class AppliedJobs(models.Model):
         default='pending'
     )
 
-
 class OfferedJobs(models.Model):
 
     APPLICATION_STATUS = (
@@ -356,7 +389,7 @@ class OfferedJobs(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     applicant = models.ForeignKey(
         ApplicantProfile,
@@ -408,7 +441,8 @@ class Beneficiaries(models.Model):
         ('F', 'Female'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(
@@ -447,7 +481,6 @@ class Beneficiaries(models.Model):
     class Meta:
         abstract = True
 
-
 class SpecialProgramForEmploymentOfStudents(Beneficiaries):
 
     SPES_EDUCATION_CHOICES = (
@@ -483,7 +516,6 @@ class SpecialProgramForEmploymentOfStudents(Beneficiaries):
     def __str__(self):
         return f"[SPES] {self.first_name} {self.last_name}"
 
-
 class GovernmentInternshipProgram(Beneficiaries):
 
     GIP_EDUCATION_CHOICES = (
@@ -504,7 +536,6 @@ class GovernmentInternshipProgram(Beneficiaries):
 
     def __str__(self):
         return f"[GIP] {self.first_name} {self.last_name}"
-
 
 class TupadBeneficiary(Beneficiaries):
 
@@ -527,7 +558,6 @@ class TupadBeneficiary(Beneficiaries):
 
     def __str__(self):
         return f"[TUPAD] {self.first_name} {self.last_name}"
-
 
 class DisplacedInformalLaborProgram(Beneficiaries):
 
@@ -556,7 +586,6 @@ class DisplacedInformalLaborProgram(Beneficiaries):
 
     def __str__(self):
         return f"[DILP] {self.first_name} {self.last_name}"
-
 
 class CareerGuidanceBeneficiary(Beneficiaries):
 
@@ -633,7 +662,6 @@ class CareerGuidanceBeneficiary(Beneficiaries):
             f"Career Guidance ({self.get_activity_type_display()})"
         )
 
-
 class PESOActivities(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -657,7 +685,6 @@ class PESOActivities(models.Model):
 
     def __str__(self):
         return f"{self.activity_name} - {self.activity_date}"
-
 
 class AuditLog(models.Model):
 

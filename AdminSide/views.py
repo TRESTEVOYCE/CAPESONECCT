@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
-from django.views.generic import TemplateView, ListView
+from django.views.generic import DetailView, TemplateView, ListView
 from .service import generate_complete_peso_matrix
 from .models import (
     ApplicantProfile, 
@@ -26,8 +26,47 @@ from .forms import (
     CareerGuidanceBeneficiaryForm,
     TupadBeneficiaryForm,
     DisplacedInformalLaborProgramForm,
+    JobVacancyForm
 )
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
+class SuperuserRequiredMixin(UserPassesTestMixin):
+    """Custom mixin to ensure the user is both authenticated and a superuser."""
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Unauthorized access. Superuser credentials required.")
+        return redirect('AdminSide:admin_login')
+
+class AdminLoginView(View):
+    """Class-Based View handling administrator authentication."""
+    template_name = 'login.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_superuser:
+            return redirect('AdminSide:dashboard')
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        username_str = request.POST.get('username')
+        password_str = request.POST.get('password')
+
+        user = authenticate(request, username=username_str, password=password_str)
+
+        if user is not None and user.is_superuser:
+            login(request, user)
+            return redirect('AdminSide:dashboard')
+        
+        messages.error(request, "Invalid administrator credentials! Please Try Again.")
+        return render(request, self.template_name)
+
+class AdminLogoutView(View):
+    """Class-Based View handling administrator logout."""
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('AdminSide:admin_login')
 
 PROGRAM_CONFIG = {
     'spes': {
@@ -62,7 +101,7 @@ PROGRAM_CONFIG = {
     },
 }
 
-class DashboardView(TemplateView):
+class DashboardView(SuperuserRequiredMixin, TemplateView):
     template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
@@ -123,12 +162,12 @@ class DashboardView(TemplateView):
             near_hire_data.append(monthly_applications.filter(status__in=['reviewed', 'for interview']).count())
 
         # Doughnut/Pie Chart Metrics Generation
-        job_type_counts = Jobs.objects.values('job_type').annotate(count=Count('id'))
-        job_type_lookup = {item['job_type']: item['count'] for item in job_type_counts}
+        job_type_counts = Jobs.objects.values('nature_of_work').annotate(count=Count('id'))
+        job_type_lookup = {item['nature_of_work']: item['count'] for item in job_type_counts}
         sector_items = []
         colors = ['#1d3d75', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#94a3b8']
         
-        for code, label in Jobs.JOB_TYPE_CHOICES:
+        for code, label in Jobs.NATURE_OF_WORK_CHOICES:
             count = job_type_lookup.get(code, 0)
             sector_items.append({
                 'label': label, 
@@ -159,37 +198,34 @@ class JobPostingsListView(View):
     template_name = 'job_posting.html'
 
     def get(self, request, *args, **kwargs):
-        # Read Filtering Parameters
         search_query = request.GET.get('search', '').strip()
         sector_filter = request.GET.get('sector', '').strip()
         status_filter = request.GET.get('status', '').strip()
 
-        # Database Query Construction
-        jobs = Jobs.objects.all().select_related('employer').order_by('-job_id_number')
+        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
 
-        # Baseline Status Counters
-        total_active = Jobs.objects.filter(status='Active').count()
-        total_pending = Jobs.objects.filter(status='Pending').count()
+        # Trigger self-contained model check for each record
+        for job in jobs:
+            job.check_and_close()
 
-        # Execute Queries Filters
         if search_query:
-            jobs = jobs.filter(
-                Q(job_title__icontains=search_query) |
-                Q(employer__company_name__icontains=search_query) |
-                Q(job_id_number__icontains=search_query.replace('JP-', '').replace('jp-', ''))
-            )
+            query_filter = Q(job_title__icontains=search_query) | Q(employer__business_name__icontains=search_query)
+            cleaned_id = search_query.replace('JP-', '').replace('jp-', '').strip()
+            if cleaned_id.isdigit():
+                query_filter |= Q(id=int(cleaned_id))
+            jobs = jobs.filter(query_filter)
+
         if sector_filter and sector_filter != "All":
             jobs = jobs.filter(sector=sector_filter)
         if status_filter and status_filter != "All":
             jobs = jobs.filter(status=status_filter)
 
-        total_results = jobs.count()
-
         context = {
             'jobs': jobs,
-            'total_active': total_active,
-            'total_pending': total_pending,
-            'total_results': total_results,
+            'form': JobVacancyForm(),
+            'total_active': Jobs.objects.filter(status='Active').count(),
+            'total_pending': Jobs.objects.filter(status='Pending').count(),
+            'total_results': jobs.count(),
             'search_query': search_query,
             'selected_sector': sector_filter,
             'selected_status': status_filter,
@@ -197,35 +233,41 @@ class JobPostingsListView(View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        # Create or resolve default placeholder profile for admin postings
-        admin_employer, _ = EmployerProfile.objects.get_or_create(
-            company_name="PESO Internal Postings",
-            defaults={"location": "Manila"}
-        )
+        form = JobVacancyForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            if not job.status:
+                job.status = 'Active'
+            job.save()
+            messages.success(request, f"Job vacancy '{job.job_title}' created successfully!")
+            
+            # Post/Redirect/Get pattern prevents double submission on browser refresh
+            return redirect('AdminSide:job_postings_list')
 
-        # Generate automatic incremented numeric string ID entries
-        last_job = Jobs.objects.order_by('-job_id_number').first()
-        next_numeric_id = (last_job.job_id_number + 1) if (last_job and last_job.job_id_number) else 301
+        # Re-render list with invalid form errors inside the modal
+        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
+        context = {
+            'jobs': jobs,
+            'form': form,
+            'total_active': Jobs.objects.filter(status='Active').count(),
+            'total_pending': Jobs.objects.filter(status='Pending').count(),
+            'total_results': jobs.count(),
+            'show_modal': True,
+        }
+        return render(request, self.template_name, context)
 
-        # Process dates expiration values
-        expiry_date = timezone.now() + timedelta(days=30)
+class JobPostingDetailView(View):
+    template_name = 'job_posting_detail.html'
 
-        # Insert new Record
-        Jobs.objects.create(
-            job_id_number=next_numeric_id,
-            job_title=request.POST.get('job_title'),
-            sector=request.POST.get('sector'),
-            job_description=request.POST.get('job_description', 'No description provided.'),
-            job_requirements=request.POST.get('job_requirements', 'No requirements provided.'),
-            job_location=request.POST.get('job_location', 'Manila'),
-            job_type=request.POST.get('job_type', 'full_time'),
-            vacancy=int(request.POST.get('vacancy', 1)),
-            salary=float(request.POST.get('salary', 0)),
-            employer=admin_employer,
-            status=request.POST.get('status', 'Active'),
-            job_posting_expiry=expiry_date
-        )
-        return redirect('job_postings_list')
+    def get(self, request, job_uuid, *args, **kwargs):
+        # Fetch job record and verify status on loading
+        job = get_object_or_404(Jobs.objects.select_related('employer'), uuid=job_uuid)
+        job.check_and_close()
+
+        context = {
+            'job': job,
+        }
+        return render(request, self.template_name, context)
     
 class ApplicantListView(ListView):
     model = ApplicantProfile
@@ -285,39 +327,86 @@ class ApplicantListView(ListView):
         return context
 
     def post(self, request, *args, **kwargs):
+        """
+        Admin action dedicated ONLY to verifying/approving accounts 
+        created directly by jobseekers (including walk-ins).
+        """
         applicant_uuid = request.POST.get('applicant_uuid')
         new_status = request.POST.get('status')
         
-        if new_status in ['approved', 'rejected']:
+        if applicant_uuid and new_status in ['approved', 'rejected', 'pending']:
             applicant = get_object_or_404(ApplicantProfile, uuid=applicant_uuid)
             applicant.status = new_status
-            applicant.save()
-            messages.success(request, f"Application for {applicant.first_name} has been verified successfully.")
             
+            # Record who verified the account for audit logging
+            if hasattr(applicant, 'verified_by'):
+                applicant.verified_by = request.user
+                
+            applicant.save()
+            
+            messages.success(
+                request, 
+                f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
+            )
+            return redirect('applicant_registry')
+
+        messages.error(request, "Invalid request parameters.")
         return redirect('applicant_registry')
-    
+
+class ApplicantVerificationView(DetailView):
+    model = ApplicantProfile
+    template_name = 'applicant_verification.html'
+    context_object_name = 'applicant'
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def post(self, request, *args, **kwargs):
+        applicant = self.get_object()
+        action = request.POST.get('action')
+        
+        if action == 'verify':
+            applicant.status = 'approved'
+            # Optional: Record which PESO officer verified the account
+            if hasattr(applicant, 'verified_by'):
+                applicant.verified_by = request.user
+            applicant.save()
+            messages.success(request, f"Applicant {applicant.first_name} {applicant.last_name} has been successfully verified.")
+            return redirect('AdminSide:applicants_list')
+            
+        elif action == 'reject':
+            applicant.status = 'rejected'
+            applicant.save()
+            messages.warning(request, f"Applicant {applicant.first_name} {applicant.last_name} has been marked as rejected.")
+            return redirect('AdminSide:applicants_list')
+
+        return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
+
 class EmployerListView(ListView):
     model = EmployerProfile
     template_name = 'employer_list.html'
     context_object_name = 'employers'
 
     def post(self, request, *args, **kwargs):
-        """Handles inline admin verification status updates via POST."""
         employer_id = request.POST.get('employer_id')
         action = request.POST.get('action')
         
-        if employer_id and action == 'approve':
+        if employer_id:
             employer = get_object_or_404(EmployerProfile, id=employer_id)
-            employer.verification_status = 'Approved'  # Matches your model's 'verification_status' field
-            employer.save()
-            messages.success(request, f"{employer.company_name} has been verified successfully.")
+            if action == 'approve':
+                employer.verification_status = 'verified'
+                employer.save()
+                messages.success(request, f"{employer.business_name} has been verified.")
+            elif action == 'reject':
+                employer.verification_status = 'rejected'
+                employer.save()
+                messages.warning(request, f"{employer.business_name} registration rejected.")
             
-        return redirect('employers:registry')
+        return redirect('AdminSide:employers_list') # Adjust URL name as needed
 
     def get_queryset(self):
         active_jobs_subquery = Jobs.objects.filter(
             employer=OuterRef('pk'),
-            status='Active'  # Adjust if your choice token is lowercase like 'active'
+            status='Active'
         ).values('employer').annotate(count=Count('id')).values('count')
 
         hired_applied_subquery = AppliedJobs.objects.filter(
@@ -341,8 +430,10 @@ class EmployerListView(ListView):
 
         if self.search_query:
             queryset = queryset.filter(
-                Q(company_name__icontains=self.search_query) |
-                Q(company_address__icontains=self.search_query)
+                Q(business_name__icontains=self.search_query) |
+                Q(street_address__icontains=self.search_query) |
+                Q(barangay__icontains=self.search_query) |
+                Q(municipality__icontains=self.search_query)
             )
 
         if self.selected_status != 'All':
@@ -354,8 +445,8 @@ class EmployerListView(ListView):
         context = super().get_context_data(**kwargs)
         
         kpi_counts = EmployerProfile.objects.aggregate(
-            approved_count=Count('id', filter=Q(verification_status='Approved')),
-            pending_count=Count('id', filter=Q(verification_status='Pending'))
+            approved_count=Count('id', filter=Q(verification_status='verified')),
+            pending_count=Count('id', filter=Q(verification_status='pending'))
         )
 
         for employer in context['employers']:
@@ -371,6 +462,29 @@ class EmployerListView(ListView):
             'total_results': self.get_queryset().count(),
         })
         return context
+
+class EmployerVerificationView(DetailView):
+    model = EmployerProfile
+    template_name = 'employer_verification.html'
+    context_object_name = 'employer'
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def post(self, request, *args, **kwargs):
+        employer = self.get_object()
+        action = request.POST.get('action')
+        remarks = request.POST.get('remarks', '').strip()
+
+        if action == 'approve':
+            employer.verification_status = 'verified'
+            employer.save()
+            messages.success(request, f"{employer.business_name} has been successfully verified.")
+        elif action == 'reject':
+            employer.verification_status = 'rejected'
+            employer.save()
+            messages.warning(request, f"Registration for {employer.business_name} has been rejected.")
+
+        return redirect('AdminSide:employers_list')
     
 class ReferralListView(ListView):
     model = OfferedJobs
@@ -447,11 +561,14 @@ class SpecialProgramsListView(ListView):
 
         # Text search
         if self.search_query:
-            queryset = queryset.filter(
+            search_filters = (
                 Q(first_name__icontains=self.search_query) |
                 Q(last_name__icontains=self.search_query) |
                 Q(uuid__icontains=self.search_query)
             )
+            if self.search_query.isdigit():
+                search_filters |= Q(id=int(self.search_query))
+            queryset = queryset.filter(search_filters)
 
         # Sex / Gender filter
         if self.sex_filter:
@@ -552,10 +669,6 @@ class SpecialProgramsListView(ListView):
             'beneficiaries': beneficiaries_list
         })
         return context
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.contrib import messages
 
 class EnrollBeneficiaryView(View):
     """
@@ -659,7 +772,18 @@ class EnrollBeneficiaryView(View):
                 request,
                 f"Successfully {action_text} {beneficiary.first_name} {beneficiary.last_name} under {config['name']}!"
             )
-            return redirect(f"/special-programs/?program={active_program}")
+
+            form = config['form_class']()
+            context = {
+                'form': form,
+                'active_program': active_program,
+                'program_name': config['name'],
+                'badge_color': config['badge_color'],
+                'available_programs': PROGRAM_CONFIG,
+                'is_editing': False,
+                'beneficiary': None,
+            }
+            return render(request, self.template_name, context)
 
         messages.error(request, "Please correct the errors in the form below.")
         context = {
