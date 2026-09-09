@@ -4,7 +4,7 @@ from AdminSide.models import Jobs
 from JobMatchingEngine.database import get_job_collection,build_applicant_profile_text
 from AdminSide.models import Jobs,ApplicantProfile
 
-
+ 
 #recomendations views for the applicant dashboard
 class RecommendationsView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     template_name = 'feed.html'
