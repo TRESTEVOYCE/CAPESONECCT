@@ -1,88 +1,146 @@
-<section id="about" class="py-16 bg-white border-b border-slate-200">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+<section id="about" class="relative py-20 bg-slate-900 border-b border-slate-800 overflow-hidden">
+    <!-- BACKGROUND PATTERN & GLOW DECORATIONS -->
+    <div class="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none"></div>
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         <!-- HEADER SECTION -->
-        <div class="text-center space-y-3">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-                <i class="fa-regular fa-book-open text-slate-500"></i>
+        <div class="text-center space-y-4">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/40 border border-blue-700/50 text-xs font-bold text-blue-300 shadow-sm backdrop-blur-sm">
+                <i class="fa-solid fa-scale-balanced text-amber-400"></i>
                 <span>Powered by CAPESONNECT · RA 8759, PESO Act of 1999</span>
             </div>
             
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                About the Public Employment Service Office
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+                About the <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">Public Employment Service Office</span>
             </h2>
             
-            <p class="text-slate-500 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                Everything you need to know about PESO — its mandate, objectives, functions, and the clients it serves.
+            <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                Everything you need to know about PESO — its legal mandate, core objectives, primary functions, and the communities it serves.
             </p>
         </div>
 
-        <!-- ACCORDION ITEMS -->
-        <div class="space-y-3">
+        <!-- ACCORDION ITEMS CONTAINER -->
+        <div class="space-y-4">
             
-            <!-- ITEM 1 -->
-            <details class="group bg-white border border-slate-200 rounded-2xl p-5 [&_summary::-webkit-details-marker]:hidden transition-all duration-200 hover:border-slate-300">
-                <summary class="flex items-center justify-between font-bold text-slate-900 cursor-pointer text-base sm:text-lg">
-                    <span>What is the PESO?</span>
-                    <span class="ml-4 transition duration-300 group-open:-rotate-180 text-slate-400 group-open:text-slate-600">
-                        <i class="fa-solid fa-chevron-down text-sm"></i>
-                    </span>
+            <!-- ITEM 1: WHAT IS PESO -->
+            <details class="group bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300 hover:border-amber-400/50 group-open:border-amber-400 group-open:ring-1 group-open:ring-amber-400/30">
+                <summary class="flex items-center justify-between font-bold text-white cursor-pointer text-base sm:text-xl select-none">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-blue-950 text-amber-400 border border-amber-400/20 flex items-center justify-center flex-shrink-0 group-open:bg-amber-400 group-open:text-slate-950 transition-colors duration-300">
+                            <i class="fa-solid fa-building-columns text-lg"></i>
+                        </div>
+                        <span>What is the PESO?</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700/50 group-open:bg-amber-400/20 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 group-open:text-amber-400 text-sm transition-transform duration-300"></i>
+                    </div>
                 </summary>
-                <div class="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-100 pt-3">
-                    The Public Employment Service Office (PESO) is a non-fee charging multi-employment service facility provider or entity established in all Local Government Units (LGUs) in coordination with the Department of Labor and Employment (DOLE).
+                <div class="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed border-t border-slate-700/50 pt-4">
+                    The <strong class="text-white">Public Employment Service Office (PESO)</strong> is a non-fee charging multi-employment service facility entity established in all Local Government Units (LGUs) in coordination with the <strong class="text-white">Department of Labor and Employment (DOLE)</strong>. It ensures full employment and equality of employment opportunities for all.
                 </div>
             </details>
 
-            <!-- ITEM 2 -->
-            <details class="group bg-white border border-slate-200 rounded-2xl p-5 [&_summary::-webkit-details-marker]:hidden transition-all duration-200 hover:border-slate-300">
-                <summary class="flex items-center justify-between font-bold text-slate-900 cursor-pointer text-base sm:text-lg">
-                    <span>What are the objectives of the PESO?</span>
-                    <span class="ml-4 transition duration-300 group-open:-rotate-180 text-slate-400 group-open:text-slate-600">
-                        <i class="fa-solid fa-chevron-down text-sm"></i>
-                    </span>
+            <!-- ITEM 2: OBJECTIVES -->
+            <details class="group bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300 hover:border-amber-400/50 group-open:border-amber-400 group-open:ring-1 group-open:ring-amber-400/30">
+                <summary class="flex items-center justify-between font-bold text-white cursor-pointer text-base sm:text-xl select-none">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-950/50 text-amber-400 border border-amber-400/20 flex items-center justify-center flex-shrink-0 group-open:bg-amber-400 group-open:text-slate-950 transition-colors duration-300">
+                            <i class="fa-solid fa-bullseye text-lg"></i>
+                        </div>
+                        <span>What are the objectives of the PESO?</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700/50 group-open:bg-amber-400/20 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 group-open:text-amber-400 text-sm transition-transform duration-300"></i>
+                    </div>
                 </summary>
-                <div class="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-100 pt-3">
-                    <ul class="list-disc pl-5 space-y-1.5">
-                        <li>Ensure prompt, timely, and efficient delivery of employment services.</li>
-                        <li>Provide relevant information on DOLE programs and services.</li>
-                        <li>Serve as a venue for job seekers and employers to connect seamlessly.</li>
+                <div class="mt-4 border-t border-slate-700/50 pt-4">
+                    <ul class="grid sm:grid-cols-2 gap-3 text-sm sm:text-base text-slate-300">
+                        <li class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-900/50 border border-slate-700/40">
+                            <i class="fa-solid fa-circle-check text-amber-400 mt-1 flex-shrink-0"></i>
+                            <span>Ensure prompt, timely, and efficient delivery of employment services.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-900/50 border border-slate-700/40">
+                            <i class="fa-solid fa-circle-check text-amber-400 mt-1 flex-shrink-0"></i>
+                            <span>Provide relevant information on DOLE programs and services.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-900/50 border border-slate-700/40 sm:col-span-2">
+                            <i class="fa-solid fa-circle-check text-amber-400 mt-1 flex-shrink-0"></i>
+                            <span>Serve as a central venue for job seekers and employers to connect seamlessly.</span>
+                        </li>
                     </ul>
                 </div>
             </details>
 
-            <!-- ITEM 3 -->
-            <details class="group bg-white border border-slate-200 rounded-2xl p-5 [&_summary::-webkit-details-marker]:hidden transition-all duration-200 hover:border-slate-300">
-                <summary class="flex items-center justify-between font-bold text-slate-900 cursor-pointer text-base sm:text-lg">
-                    <span>What are the functions of the PESO?</span>
-                    <span class="ml-4 transition duration-300 group-open:-rotate-180 text-slate-400 group-open:text-slate-600">
-                        <i class="fa-solid fa-chevron-down text-sm"></i>
-                    </span>
+            <!-- ITEM 3: FUNCTIONS -->
+            <details class="group bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300 hover:border-amber-400/50 group-open:border-amber-400 group-open:ring-1 group-open:ring-amber-400/30">
+                <summary class="flex items-center justify-between font-bold text-white cursor-pointer text-base sm:text-xl select-none">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-950/50 text-emerald-400 border border-emerald-400/20 flex items-center justify-center flex-shrink-0 group-open:bg-emerald-400 group-open:text-slate-950 transition-colors duration-300">
+                            <i class="fa-solid fa-gears text-lg"></i>
+                        </div>
+                        <span>What are the functions of the PESO?</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700/50 group-open:bg-emerald-400/20 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 group-open:text-emerald-400 text-sm transition-transform duration-300"></i>
+                    </div>
                 </summary>
-                <div class="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-100 pt-3">
-                    <ul class="list-disc pl-5 space-y-1.5">
-                        <li>Encourage employers to submit lists of vacancies for job matching.</li>
-                        <li>Conduct career guidance, counseling, and employment coaching.</li>
-                        <li>Facilitate local and overseas job placements and recruitment activities.</li>
-                        <li>Provide information on various livelihood and skill training programs.</li>
-                    </ul>
+                <div class="mt-4 border-t border-slate-700/50 pt-4">
+                    <div class="grid sm:grid-cols-2 gap-3 text-sm sm:text-base text-slate-300">
+                        <div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/40 space-y-1">
+                            <span class="font-bold text-amber-400 block text-xs uppercase tracking-wider">Job Matching</span>
+                            <p>Encourage employers to submit vacancy lists for automated matching.</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/40 space-y-1">
+                            <span class="font-bold text-amber-400 block text-xs uppercase tracking-wider">Career Guidance</span>
+                            <p>Conduct career counseling, guidance, and employment coaching.</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/40 space-y-1">
+                            <span class="font-bold text-amber-400 block text-xs uppercase tracking-wider">Placement</span>
+                            <p>Facilitate local and overseas job placement and recruitment events.</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/40 space-y-1">
+                            <span class="font-bold text-amber-400 block text-xs uppercase tracking-wider">Skills & Livelihood</span>
+                            <p>Provide information on technical skill training and livelihood programs.</p>
+                        </div>
+                    </div>
                 </div>
             </details>
 
-            <!-- ITEM 4 -->
-            <details class="group bg-white border border-slate-200 rounded-2xl p-5 [&_summary::-webkit-details-marker]:hidden transition-all duration-200 hover:border-slate-300">
-                <summary class="flex items-center justify-between font-bold text-slate-900 cursor-pointer text-base sm:text-lg">
-                    <span>Who are the PESO clients?</span>
-                    <span class="ml-4 transition duration-300 group-open:-rotate-180 text-slate-400 group-open:text-slate-600">
-                        <i class="fa-solid fa-chevron-down text-sm"></i>
-                    </span>
+            <!-- ITEM 4: CLIENTS -->
+            <details class="group bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-2xl p-6 [&_summary::-webkit-details-marker]:hidden transition-all duration-300 hover:border-amber-400/50 group-open:border-amber-400 group-open:ring-1 group-open:ring-amber-400/30">
+                <summary class="flex items-center justify-between font-bold text-white cursor-pointer text-base sm:text-xl select-none">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-950/50 text-indigo-400 border border-indigo-400/20 flex items-center justify-center flex-shrink-0 group-open:bg-indigo-400 group-open:text-slate-950 transition-colors duration-300">
+                            <i class="fa-solid fa-users text-lg"></i>
+                        </div>
+                        <span>Who are the PESO clients?</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-700/50 group-open:bg-indigo-400/20 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 group-open:text-indigo-400 text-sm transition-transform duration-300"></i>
+                    </div>
                 </summary>
-                <div class="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-100 pt-3">
-                    <ul class="list-disc pl-5 space-y-1.5">
-                        <li>Job seekers and displaced workers</li>
-                        <li>Students and out-of-school youth</li>
-                        <li>Registered employers and business establishments</li>
-                        <li>Persons with disabilities (PWDs) and senior citizens</li>
-                    </ul>
+                <div class="mt-4 border-t border-slate-700/50 pt-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs sm:text-sm font-semibold">
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/40 text-slate-300">
+                            <i class="fa-solid fa-briefcase text-amber-400 text-lg mb-1 block"></i>
+                            Job Seekers & Displaced Workers
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/40 text-slate-300">
+                            <i class="fa-solid fa-graduation-cap text-amber-400 text-lg mb-1 block"></i>
+                            Students & Out-of-School Youth
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/40 text-slate-300">
+                            <i class="fa-solid fa-building text-amber-400 text-lg mb-1 block"></i>
+                            Registered Employers & Businesses
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/40 text-slate-300">
+                            <i class="fa-solid fa-hands-holding-child text-amber-400 text-lg mb-1 block"></i>
+                            PWDs & Senior Citizens
+                        </div>
+                    </div>
                 </div>
             </details>
 

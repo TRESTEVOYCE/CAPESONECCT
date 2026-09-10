@@ -8,87 +8,115 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-b from-[#0b132b] via-[#1c2541] to-[#0b132b] min-h-screen text-white flex flex-col justify-between font-sans antialiased relative selection:bg-amber-400 selection:text-slate-900 overflow-x-hidden">
+<body class="bg-slate-950 min-h-screen text-white flex flex-col justify-between font-sans antialiased relative selection:bg-amber-400 selection:text-slate-900 overflow-x-hidden">
 
-    <!-- BACKGROUND AMBIENT GLOW EFFECTS -->
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 blur-[120px] pointer-events-none rounded-full"></div>
-    <div class="absolute bottom-10 right-10 w-[400px] h-[400px] bg-amber-500/5 blur-[100px] pointer-events-none rounded-full"></div>
+    <!-- AMBIENT BACKDROP LIGHTING & GRID -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-600/25 rounded-full blur-[130px] animate-pulse"></div>
+        <div class="absolute top-1/2 -right-40 w-[35rem] h-[35rem] bg-amber-500/20 rounded-full blur-[150px]"></div>
+        <div class="absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] bg-indigo-600/25 rounded-full blur-[130px]"></div>
+        
+        <!-- Modern Grid Texture -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30"></div>
+    </div>
 
     <!-- TOP NAVIGATION / BACK LINK -->
-    <header class="w-full p-4 sm:p-6 lg:px-12 flex items-center justify-between z-10">
-        <a href="{% url 'landing_page' %}" class="inline-flex items-center gap-3 text-slate-200 hover:text-amber-400 font-extrabold transition-all duration-200 group">
-            <div class="w-10 h-10 rounded-full bg-white/5 border border-white/20 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-400/10 shadow-lg backdrop-blur-md transition-all">
-                <i class="fa-solid fa-house text-sm group-hover:scale-110 transition-transform"></i>
+    <header class="relative z-10 w-full p-6 sm:p-8 flex items-center justify-between max-w-7xl mx-auto">
+        <a href="{% url 'landing_page' %}" class="inline-flex items-center gap-3 text-slate-300 hover:text-amber-400 font-extrabold transition duration-300 group">
+            <div class="w-11 h-11 rounded-2xl border border-slate-700/80 group-hover:border-amber-400 group-hover:shadow-[0_0_15px_rgba(251,191,36,0.3)] flex items-center justify-center transition duration-300 bg-slate-900/60 backdrop-blur-md">
+                <i class="fa-solid fa-house text-lg group-hover:scale-110 transition-transform"></i>
             </div>
-            <span class="text-sm sm:text-base tracking-wide">Back To Home</span>
+            <span class="text-base sm:text-lg tracking-wide">Back To Home</span>
         </a>
     </header>
 
     <!-- MAIN SELECTION CONTAINER -->
-    <main class="flex-grow flex items-center justify-center px-4 py-8 z-10">
-        <div class="w-full max-w-3xl flex flex-col items-center">
+    <main class="relative z-10 flex-grow flex items-center justify-center px-4 py-6">
+        <div class="w-full max-w-4xl flex flex-col items-center">
             
-            <!-- CIRCULAR LOGO HEADER WITH GLOW -->
-            <div class="relative group mb-6">
-                <div class="absolute -inset-1 bg-gradient-to-r from-amber-400 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
-                <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center p-1.5 shadow-2xl border-2 border-white/30 overflow-hidden">
-                    <img src="{% static 'LandingPage/images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
+            <!-- CIRCULAR LOGO HEADER WITH GLOW & FLOAT ANIMATION -->
+            <div class="relative group mb-6 animate-float">
+                <div class="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-400 via-blue-600 to-amber-500 opacity-75 blur transition duration-500 group-hover:opacity-100"></div>
+                <div class="relative w-28 h-28 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center p-2 shadow-2xl border-2 border-white/50 overflow-hidden">
+                    <img src="{% static 'LandingPage/images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover rounded-full">
                 </div>
             </div>
 
             <!-- HEADING SECTION -->
-            <div class="text-center mb-10 max-w-lg">
-                <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md mb-2">Join CAPESCONNECT</h1>
-                <p class="text-slate-300 text-sm sm:text-base font-medium">Choose your registration type to get started with local employment opportunities.</p>
+            <div class="text-center mb-10 max-w-xl">
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight gradient-text drop-shadow-sm mb-3">
+                    Join CAPESCONNECT
+                </h1>
+                <p class="text-slate-400 text-sm sm:text-base font-medium leading-relaxed">
+                    Choose your registration type to get started with local employment opportunities.
+                </p>
             </div>
 
             <!-- ROLE CARDS GRID -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full mb-10">
                 
                 <!-- JOB SEEKER CARD -->
-                <a href="#" class="group relative bg-white rounded-2xl p-7 text-slate-900 shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-amber-400 flex flex-col justify-between overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
-                    <div>
-                        <div class="w-14 h-14 rounded-2xl bg-blue-100/80 text-blue-700 flex items-center justify-center text-2xl font-black mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                            <i class="fa-solid fa-user"></i>
+                <div class="relative group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600/40 to-indigo-600/40 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                    <a href="{% url 'register_jobseeker' %}" class="relative bg-white rounded-3xl p-8 sm:p-10 text-slate-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] transition-all duration-300 group-hover:-translate-y-2 border border-slate-100 flex flex-col justify-between overflow-hidden h-full">
+                        <div class="absolute top-0 right-0 w-36 h-36 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
+                        <div>
+                            <div class="w-16 h-16 rounded-2xl bg-blue-100/80 text-blue-700 flex items-center justify-center text-3xl font-black mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl font-black mb-3 text-slate-900 group-hover:text-blue-900 transition-colors">Job Seeker</h2>
+                            <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 font-medium">Create a profile to explore job matches, submit applications, and connect with local employers.</p>
                         </div>
-                        <h2 class="text-2xl font-black mb-2 text-slate-900 group-hover:text-blue-900 transition-colors">Job Seeker</h2>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6 font-medium">Create a profile to explore job matches, submit applications, and connect with local employers.</p>
-                    </div>
-                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-sm font-extrabold text-slate-900 group-hover:text-amber-500 transition-colors">
-                        <span>Register as Applicant</span>
-                        <div class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                        <div class="flex items-center justify-between pt-5 border-t border-slate-100 text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                            <span>Register as Applicant</span>
+                            <div class="w-9 h-9 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all shadow-sm">
+                                <i class="fa-solid fa-arrow-right-long text-sm transition-transform group-hover:translate-x-1"></i>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
 
                 <!-- EMPLOYER CARD -->
-                <a href="#" class="group relative bg-white rounded-2xl p-7 text-slate-900 shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-amber-400 flex flex-col justify-between overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full pointer-events-none group-hover:bg-amber-500/10 transition-colors"></div>
-                    <div>
-                        <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-black mb-5 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-sm">
-                            <i class="fa-solid fa-building"></i>
+                <div class="relative group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-500/40 to-orange-500/40 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                    <a href="{% url 'register_employer' %}" class="relative bg-white rounded-3xl p-8 sm:p-10 text-slate-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] transition-all duration-300 group-hover:-translate-y-2 border border-slate-100 flex flex-col justify-between overflow-hidden h-full">
+                        <div class="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 rounded-bl-full pointer-events-none group-hover:bg-amber-500/10 transition-colors"></div>
+                        <div>
+                            <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-3xl font-black mb-6 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl font-black mb-3 text-slate-900 group-hover:text-amber-600 transition-colors">Employer</h2>
+                            <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-8 font-medium">Post career vacancies, manage applicants, and find qualified talent in Carigara, Leyte.</p>
                         </div>
-                        <h2 class="text-2xl font-black mb-2 text-slate-900 group-hover:text-amber-600 transition-colors">Employer</h2>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6 font-medium">Post career vacancies, manage applicants, and find qualified talent in Carigara, Leyte.</p>
-                    </div>
-                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-sm font-extrabold text-slate-900 group-hover:text-amber-500 transition-colors">
-                        <span>Register as Company</span>
-                        <div class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                        <div class="flex items-center justify-between pt-5 border-t border-slate-100 text-sm sm:text-base font-black text-slate-900 group-hover:text-amber-500 transition-colors">
+                            <span>Register as Company</span>
+                            <div class="w-9 h-9 rounded-full bg-slate-100 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-all shadow-sm">
+                                <i class="fa-solid fa-arrow-right-long text-sm transition-transform group-hover:translate-x-1"></i>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
 
             </div>
 
             <!-- FOOTER SIGN-IN LINK -->
-            <div class="bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-lg">
-                <p class="text-xs sm:text-sm text-slate-300 font-semibold">
+            <div class="bg-slate-900/80 backdrop-blur-md px-8 py-3.5 rounded-full border border-slate-800 shadow-xl">
+                <p class="text-xs sm:text-sm text-slate-300 font-extrabold">
                     Already have an account? 
-                    <a href="{% url 'signin' %}" class="text-amber-400 hover:text-amber-300 underline font-extrabold ml-1 transition-colors">Sign in here</a>
+                    <a href="{% url 'signin' %}" class="text-amber-400 hover:text-amber-300 underline font-black ml-1 transition-colors">Sign in here</a>
                 </p>
             </div>
 
@@ -96,7 +124,7 @@
     </main>
 
     <!-- FOOTER COPYRIGHT -->
-    <footer class="w-full py-4 text-center text-slate-400 text-xs z-10">
+    <footer class="relative z-10 w-full py-6 text-center text-slate-400 text-xs sm:text-sm font-medium">
         &copy; {% now "Y" %} LGU PESO Carigara, Leyte. All rights reserved.
     </footer>
 

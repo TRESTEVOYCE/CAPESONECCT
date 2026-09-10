@@ -28,3 +28,15 @@ def signin(request):
 
 def register_selection(request):
     return render(request, 'LandingPage/register_selection.html')
+
+def register_jobseeker(request):
+    if request.method == 'POST':
+        # Handle job seeker account creation logic here
+        return redirect('signin')
+    return render(request, 'LandingPage/register_jobseeker.html')
+
+def register_employer(request):
+    if request.method == 'POST':
+        # Handle employer account creation logic here
+        return redirect('signin')
+    return render(request, 'LandingPage/register_employer.html')

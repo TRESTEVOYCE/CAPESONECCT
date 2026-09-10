@@ -1,118 +1,144 @@
 {% load static %}
 
-<section class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center text-white py-8 sm:py-14 lg:py-20 overflow-hidden border-b border-slate-800">
+<section aria-labelledby="hero-heading" class="relative min-h-[calc(100vh-80px)] flex flex-col justify-center text-white py-16 sm:py-20 lg:py-28 overflow-hidden border-b border-slate-800/80">
     
-    <!-- BACKGROUND IMAGE & DARK OVERLAY FOR HIGH CONTRAST -->
-    <div class="absolute inset-0 z-0">
-        <img src="{% static 'LandingPage/images/LGU.png' %}" alt="LGU Building Background" class="w-full h-full object-cover object-center">
-        <!-- Dark tint ensures yellow & white text is always readable -->
-        <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-[2px]"></div>
+    <!-- ENHANCED AMBIENT GLOW EFFECTS & BACKGROUND IMAGE -->
+    <div class="absolute inset-0 z-0 select-none pointer-events-none">
+        <img src="{% static 'LandingPage/images/LGU.png' %}" alt="LGU Building Background" class="w-full h-full object-cover object-center transform scale-105 filter brightness-90 contrast-110">
+        <!-- Multi-stage ambient overlay with rich color blending -->
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/70 backdrop-blur-[2px]"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-blue-950/30"></div>
+        
+        <!-- Dynamic Glow Orbs -->
+        <div class="absolute top-1/4 -left-32 w-[32rem] h-[32rem] bg-amber-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+        <div class="absolute bottom-10 right-0 w-[30rem] h-[30rem] bg-blue-600/20 rounded-full blur-[140px] pointer-events-none"></div>
+
+        <!-- Modern Grid Texture Overlay -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20"></div>
     </div>
 
     <div class="relative z-10 w-full px-4 sm:px-8 lg:px-12 xl:px-16">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            <!-- LEFT COLUMN: CONTENT -->
-            <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-left">
+            <!-- LEFT COLUMN: MAIN CALL TO ACTION -->
+            <div class="lg:col-span-7 space-y-6 sm:space-y-8 text-left">
                 
-                <!-- Tag Badge -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold uppercase tracking-wide shadow-md">
-                    <span class="w-2 h-2 rounded-full bg-slate-950"></span>
-                    Official PESO Digital Employment Service
+                <!-- Status Badge -->
+                <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/90 text-amber-400 text-xs sm:text-sm font-extrabold tracking-wide border border-amber-400/30 shadow-xl backdrop-blur-md">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+                    </span>
+                    <span>Official PESO Digital Employment Portal</span>
                 </div>
                 
                 <!-- Headline -->
-                <h1 class="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-tight text-white">
+                <h1 id="hero-heading" class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-white">
                     Find Your Next <br>
-                    <span class="text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">Career Opportunity</span>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 drop-shadow-[0_4px_20px_rgba(251,191,36,0.35)]">
+                        Career Opportunity
+                    </span>
                 </h1>
                 
                 <!-- Subtitle -->
-                <p class="text-sm sm:text-lg lg:text-xl text-slate-200 max-w-2xl font-normal leading-relaxed">
-                    The Public Employment Service Office connects qualified Filipino workers to employers across all industries — faster, smarter, and fully digital.
+                <p class="text-base sm:text-lg lg:text-xl text-slate-300 max-w-2xl font-normal leading-relaxed">
+                    Connecting qualified workers directly with verified employers across Carigara and beyond — faster, safer, and completely digital.
                 </p>
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
-                    <a href="{% url 'register_selection' %}" class="inline-flex items-center justify-center px-8 py-4 text-base sm:text-lg font-black text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-xl hover:shadow-amber-400/20 transition-all transform hover:-translate-y-1 border border-amber-500/40">
-                        Get Started Free
+                <!-- Primary Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 pt-2">
+                    <a href="{% url 'register_selection' %}" 
+                       class="group relative inline-flex items-center justify-center px-8 py-4 text-base sm:text-lg font-black text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 active:scale-[0.98] rounded-2xl shadow-xl shadow-amber-400/20 hover:shadow-amber-400/40 transition-all duration-300 border border-amber-200 cursor-pointer overflow-hidden">
+                        <div class="absolute inset-0 w-1/2 h-full bg-white/30 transform -skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000"></div>
+                        <span>Get Started Free</span>
+                        <i class="fa-solid fa-arrow-right text-sm ml-2.5 transform group-hover:translate-x-1.5 transition-transform duration-200"></i>
                     </a>
-                    <a href="{% url 'signin' %}" class="inline-flex items-center justify-center px-8 py-4 text-base sm:text-lg font-bold text-white bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 hover:border-amber-400/50 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 backdrop-blur-md">
-                        Sign in To Dashboard
+                    
+                    <a href="{% url 'signin' %}" 
+                       class="inline-flex items-center justify-center px-8 py-4 text-base sm:text-lg font-bold text-white bg-slate-900/80 hover:bg-slate-800/95 active:scale-[0.98] border border-slate-700 hover:border-amber-400/50 rounded-2xl shadow-lg transition-all duration-300 backdrop-blur-md cursor-pointer">
+                        <i class="fa-solid fa-right-to-bracket text-sm mr-2.5 text-amber-400"></i>
+                        <span>Sign In</span>
                     </a>
                 </div>
+
+                <!-- Trust Badges & System Stats -->
+                <div class="pt-6 grid grid-cols-3 gap-3 sm:gap-6 max-w-lg border-t border-slate-800/90">
+                    <div class="space-y-0.5">
+                        <p class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">100%</p>
+                        <p class="text-xs sm:text-sm text-slate-300 font-semibold">Free Service</p>
+                    </div>
+                    <div class="space-y-0.5">
+                        <p class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">24/7</p>
+                        <p class="text-xs sm:text-sm text-slate-300 font-semibold">Online Portal</p>
+                    </div>
+                    <div class="space-y-0.5">
+                        <p class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">Direct</p>
+                        <p class="text-xs sm:text-sm text-slate-300 font-semibold">LGU Support</p>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- RIGHT COLUMN: AVAILABLE JOBS CARD -->
-            <div class="lg:col-span-5 w-full">
-                <div class="w-full bg-slate-900/80 backdrop-blur-xl rounded-2xl p-5 sm:p-6 text-slate-100 shadow-2xl border border-slate-700/80">
-                    
-                    <!-- Card Header -->
-                    <div class="flex justify-between items-center pb-3 border-b border-slate-700/60 mb-4">
-                        <h2 class="font-extrabold text-white text-base sm:text-lg tracking-wider">AVAILABLE JOBS</h2>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-red-600 px-3 py-1 rounded-md shadow">
-                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> Open
-                        </span>
+            <!-- RIGHT COLUMN: ENHANCED HIGH-IMPACT FEATURE CARDS WITH GRADIENT BORDERS -->
+            <div class="lg:col-span-5 w-full space-y-4">
+                
+                <!-- Feature 1: Matching -->
+                <div class="relative group p-[1px] rounded-3xl bg-gradient-to-br from-amber-400/50 via-slate-800 to-slate-900 transition-all duration-300 hover:shadow-[0_0_30px_rgba(251,191,36,0.15)] transform hover:-translate-y-1">
+                    <div class="relative p-6 rounded-[23px] bg-slate-900/95 backdrop-blur-xl h-full flex items-start gap-4">
+                        <div class="p-4 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 group-hover:scale-110 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 flex-shrink-0 shadow-inner">
+                            <i class="fa-solid fa-bolt-lightning text-xl sm:text-2xl"></i>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-black text-white text-base sm:text-lg group-hover:text-amber-300 transition-colors">
+                                    Automated Job Matching
+                                </h2>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                                Get instantly recommended for job opportunities tailored specifically to your skills, education, and qualifications.
+                            </p>
+                        </div>
                     </div>
-
-                    <!-- Job Items List -->
-                    <div class="space-y-3">
-                        
-                        <!-- Job Item 1 -->
-                        <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 flex items-center justify-between shadow-sm hover:bg-slate-800 transition">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0 border border-slate-700">
-                                    <img src="{% static 'LandingPage/images/LGU.png' %}" alt="Teleperformance" class="w-full h-full object-cover">
-                                </div>
-                                <div class="truncate">
-                                    <h3 class="font-bold text-xs sm:text-sm text-white truncate">Customer Service Rep...</h3>
-                                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Teleperformance Philippines</p>
-                                </div>
-                            </div>
-                            <button class="px-3 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition flex-shrink-0 ml-2">
-                                Apply
-                            </button>
-                        </div>
-
-                        <!-- Job Item 2 -->
-                        <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 flex items-center justify-between shadow-sm hover:bg-slate-800 transition">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0 border border-slate-700">
-                                    <img src="{% static 'LandingPage/images/LGU.png' %}" alt="Accenture" class="w-full h-full object-cover">
-                                </div>
-                                <div class="truncate">
-                                    <h3 class="font-bold text-xs sm:text-sm text-white truncate">Data Entry Specialist</h3>
-                                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Accenture Philippines</p>
-                                </div>
-                            </div>
-                            <button class="px-3 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition flex-shrink-0 ml-2">
-                                Apply
-                            </button>
-                        </div>
-
-                        <!-- Job Item 3 -->
-                        <div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 flex items-center justify-between shadow-sm hover:bg-slate-800 transition">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0 border border-slate-700">
-                                    <img src="{% static 'LandingPage/images/LGU.png' %}" alt="PNB" class="w-full h-full object-cover">
-                                </div>
-                                <div class="truncate">
-                                    <h3 class="font-bold text-xs sm:text-sm text-white truncate">Administrative Assistant</h3>
-                                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">Philippine National Bank</p>
-                                </div>
-                            </div>
-                            <button class="px-3 py-1.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition flex-shrink-0 ml-2">
-                                Apply
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <!-- View All Jobs Button -->
-                    <button class="w-full mt-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition border border-slate-700">
-                        View All Jobs
-                    </button>
                 </div>
+
+                <!-- Feature 2: Verification -->
+                <div class="relative group p-[1px] rounded-3xl bg-gradient-to-br from-emerald-400/50 via-slate-800 to-slate-900 transition-all duration-300 hover:shadow-[0_0_30px_rgba(52,211,153,0.15)] transform hover:-translate-y-1">
+                    <div class="relative p-6 rounded-[23px] bg-slate-900/95 backdrop-blur-xl h-full flex items-start gap-4">
+                        <div class="p-4 rounded-2xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 group-hover:scale-110 group-hover:bg-emerald-400 group-hover:text-slate-950 transition-all duration-300 flex-shrink-0 shadow-inner">
+                            <i class="fa-solid fa-shield-halved text-xl sm:text-2xl"></i>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-black text-white text-base sm:text-lg group-hover:text-emerald-300 transition-colors">
+                                    Verified Employers
+                                </h2>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                                Apply safely to legitimate openings vetted directly by the Public Employment Service Office.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3: Programs -->
+                <div class="relative group p-[1px] rounded-3xl bg-gradient-to-br from-sky-400/50 via-slate-800 to-slate-900 transition-all duration-300 hover:shadow-[0_0_30px_rgba(56,189,248,0.15)] transform hover:-translate-y-1">
+                    <div class="relative p-6 rounded-[23px] bg-slate-900/95 backdrop-blur-xl h-full flex items-start gap-4">
+                        <div class="p-4 rounded-2xl bg-sky-400/10 text-sky-400 border border-sky-400/20 group-hover:scale-110 group-hover:bg-sky-400 group-hover:text-slate-950 transition-all duration-300 flex-shrink-0 shadow-inner">
+                            <i class="fa-solid fa-hand-holding-hand text-xl sm:text-2xl"></i>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-black text-white text-base sm:text-lg group-hover:text-sky-300 transition-colors">
+                                    Livelihood & Special Programs
+                                </h2>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                                Seamlessly apply for community employment initiatives, skill trainings, and government support.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
