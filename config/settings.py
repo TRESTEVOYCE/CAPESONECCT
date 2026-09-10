@@ -129,27 +129,23 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Leave STATICFILES_DIRS empty if files live inside LandingPage/static/
+# Leave empty since static files live inside app directories (e.g., LandingPage/static/)
 STATICFILES_DIRS = []
 
-# Storage Configuration
+# Storage Configuration for Cloudinary (Media) and WhiteNoise (Static)
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = [
     'jpg', 'jpeg', 'png', 'gif', 'webp', 'zip', 'gz', 'tgz', 'bz2', 'tbz', 'xz', 'br'
 ]
-
-# Prevent race conditions during collectstatic thread pooling
-WHITENOISE_AUTOREFRESH = True
-
 
 STORAGES = {
     "default": {
@@ -159,9 +155,6 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
-
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
