@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Role - PESO Job Matching System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-b from-[#0b132b] via-[#1c2541] to-[#0b132b] min-h-screen text-white flex flex-col justify-between font-sans antialiased relative selection:bg-amber-400 selection:text-slate-900 overflow-x-hidden">
+
+    <!-- BACKGROUND AMBIENT GLOW EFFECTS -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 blur-[120px] pointer-events-none rounded-full"></div>
+    <div class="absolute bottom-10 right-10 w-[400px] h-[400px] bg-amber-500/5 blur-[100px] pointer-events-none rounded-full"></div>
+
+    <!-- TOP NAVIGATION / BACK LINK -->
+    <header class="w-full p-4 sm:p-6 lg:px-12 flex items-center justify-between z-10">
+        <a href="{% url 'landing_page' %}" class="inline-flex items-center gap-3 text-slate-200 hover:text-amber-400 font-extrabold transition-all duration-200 group">
+            <div class="w-10 h-10 rounded-full bg-white/5 border border-white/20 flex items-center justify-center group-hover:border-amber-400 group-hover:bg-amber-400/10 shadow-lg backdrop-blur-md transition-all">
+                <i class="fa-solid fa-house text-sm group-hover:scale-110 transition-transform"></i>
+            </div>
+            <span class="text-sm sm:text-base tracking-wide">Back To Home</span>
+        </a>
+    </header>
+
+    <!-- MAIN SELECTION CONTAINER -->
+    <main class="flex-grow flex items-center justify-center px-4 py-8 z-10">
+        <div class="w-full max-w-3xl flex flex-col items-center">
+            
+            <!-- CIRCULAR LOGO HEADER WITH GLOW -->
+            <div class="relative group mb-6">
+                <div class="absolute -inset-1 bg-gradient-to-r from-amber-400 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
+                <div class="relative w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center p-1.5 shadow-2xl border-2 border-white/30 overflow-hidden">
+                    <img src="{% static 'LandingPage/images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
+                </div>
+            </div>
+
+            <!-- HEADING SECTION -->
+            <div class="text-center mb-10 max-w-lg">
+                <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md mb-2">Join CAPESCONNECT</h1>
+                <p class="text-slate-300 text-sm sm:text-base font-medium">Choose your registration type to get started with local employment opportunities.</p>
+            </div>
+
+            <!-- ROLE CARDS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full mb-10">
+                
+                <!-- JOB SEEKER CARD -->
+                <a href="#" class="group relative bg-white rounded-2xl p-7 text-slate-900 shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-amber-400 flex flex-col justify-between overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-blue-100/80 text-blue-700 flex items-center justify-center text-2xl font-black mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <h2 class="text-2xl font-black mb-2 text-slate-900 group-hover:text-blue-900 transition-colors">Job Seeker</h2>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6 font-medium">Create a profile to explore job matches, submit applications, and connect with local employers.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-sm font-extrabold text-slate-900 group-hover:text-amber-500 transition-colors">
+                        <span>Register as Applicant</span>
+                        <div class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-all">
+                            <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- EMPLOYER CARD -->
+                <a href="#" class="group relative bg-white rounded-2xl p-7 text-slate-900 shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-amber-400 flex flex-col justify-between overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full pointer-events-none group-hover:bg-amber-500/10 transition-colors"></div>
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-black mb-5 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-sm">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <h2 class="text-2xl font-black mb-2 text-slate-900 group-hover:text-amber-600 transition-colors">Employer</h2>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6 font-medium">Post career vacancies, manage applicants, and find qualified talent in Carigara, Leyte.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-sm font-extrabold text-slate-900 group-hover:text-amber-500 transition-colors">
+                        <span>Register as Company</span>
+                        <div class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-400 group-hover:text-slate-950 flex items-center justify-center transition-all">
+                            <i class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5"></i>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- FOOTER SIGN-IN LINK -->
+            <div class="bg-white/5 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-lg">
+                <p class="text-xs sm:text-sm text-slate-300 font-semibold">
+                    Already have an account? 
+                    <a href="{% url 'signin' %}" class="text-amber-400 hover:text-amber-300 underline font-extrabold ml-1 transition-colors">Sign in here</a>
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER COPYRIGHT -->
+    <footer class="w-full py-4 text-center text-slate-400 text-xs z-10">
+        &copy; {% now "Y" %} LGU PESO Carigara, Leyte. All rights reserved.
+    </footer>
+
+</body>
+</html>

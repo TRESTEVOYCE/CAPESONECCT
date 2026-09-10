@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key')
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
 # Host & Origin Settings
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
@@ -134,7 +134,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Leave empty since static files live inside app directories (e.g., LandingPage/static/)
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [
+    BASE_DIR / 'LandingPage' / 'static',
+]
 
 # Storage Configuration for Cloudinary (Media) and WhiteNoise (Static)
 CLOUDINARY_STORAGE = {

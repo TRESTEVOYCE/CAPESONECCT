@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - PESO Job Matching System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-[#0b132b] via-[#1c2541] to-[#0b132b] min-h-screen flex flex-col justify-between text-white font-sans antialiased relative selection:bg-amber-400 selection:text-slate-900">
+
+    <!-- TOP NAVIGATION / BACK LINK -->
+    <header class="w-full p-4 sm:p-6 flex items-center justify-between">
+        <!-- UPDATED URL LOOKUP TO 'landing_page' -->
+        <a href="{% url 'landing_page' %}" class="inline-flex items-center gap-2 text-white hover:text-amber-400 font-bold transition group">
+            <div class="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center group-hover:border-amber-400 transition">
+                <i class="fa-solid fa-house text-lg"></i>
+            </div>
+            <span class="text-sm sm:text-base tracking-wide">Back To Home</span>
+        </a>
+    </header>
+
+    <!-- MAIN SIGN IN CONTAINER -->
+    <main class="w-full max-w-md mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center">
+        
+        <!-- LOGO & HEADING -->
+        <div class="text-center mb-6">
+            <div class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-3 rounded-full overflow-hidden border-2 border-white/20 shadow-2xl bg-white p-1">
+                <img src="{% static 'LandingPage/images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow">Welcome Back!!</h1>
+            <p class="text-slate-300 text-xs sm:text-sm mt-1">Sign in to your PESO Account</p>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="w-full bg-white text-slate-900 rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-100">
+            
+            <form method="POST" action="{% url 'signin' %}" class="space-y-5">
+                {% csrf_token %}
+
+                <!-- ROLE SELECTION TABS -->
+                <input type="hidden" name="user_role" id="user_role" value="jobseeker">
+                
+                <div class="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-xl">
+                    <button type="button" id="tab-jobseeker" onclick="selectRole('jobseeker')" 
+                        class="py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-[#6b705c] text-white shadow-sm">
+                        Job Seeker
+                    </button>
+                    <button type="button" id="tab-employer" onclick="selectRole('employer')" 
+                        class="py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-amber-400 text-slate-950 hover:bg-amber-300">
+                        Employer
+                    </button>
+                </div>
+
+                <!-- EMAIL FIELD -->
+                <div>
+                    <label for="email" class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="yourexample@email" 
+                        class="w-full px-4 py-3 bg-slate-200/80 border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition placeholder-slate-500">
+                </div>
+
+                <!-- PASSWORD FIELD -->
+                <div>
+                    <label for="password" class="block text-xs sm:text-sm font-black text-slate-800 mb-1">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required placeholder="••••••••" 
+                            class="w-full px-4 py-3 pr-12 bg-slate-200/80 border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition placeholder-slate-500">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 px-4 flex items-center text-slate-600 hover:text-slate-900 focus:outline-none">
+                            <i id="toggle-icon" class="fa-solid fa-eye-slash text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- REMEMBER ME & FORGOT PASSWORD -->
+                <div class="flex items-center justify-between text-xs sm:text-sm">
+                    <label class="flex items-center space-x-2 cursor-pointer font-semibold text-slate-700">
+                        <input type="checkbox" name="remember_me" class="w-4 h-4 rounded border-slate-300 text-blue-700 focus:ring-blue-600">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="font-bold text-slate-800 hover:text-blue-700 transition">Forgot Password?</a>
+                </div>
+
+                <!-- SUBMIT BUTTON -->
+                <button type="submit" class="w-full py-3 px-4 bg-[#004baf] hover:bg-blue-800 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition duration-200">
+                    Sign in
+                </button>
+
+                <!-- REGISTER LINK -->
+                <p class="text-center text-xs sm:text-sm font-extrabold text-slate-800 pt-2">
+                    Don't have an account? 
+                    <a href="#" class="text-amber-500 hover:text-amber-600 underline ml-1">Register here</a>
+                </p>
+
+            </form>
+
+        </div>
+    </main>
+
+    <footer class="w-full py-4 text-center text-slate-400 text-xs">
+        &copy; {% now "Y" %} LGU PESO Carigara, Leyte. All rights reserved.
+    </footer>
+
+    <!-- INTERACTION SCRIPT -->
+    <script>
+        // Role Selector Script
+        function selectRole(role) {
+            const roleInput = document.getElementById('user_role');
+            const jsTab = document.getElementById('tab-jobseeker');
+            const empTab = document.getElementById('tab-employer');
+
+            roleInput.value = role;
+
+            if (role === 'jobseeker') {
+                jsTab.className = "py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-[#6b705c] text-white shadow-sm";
+                empTab.className = "py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-transparent text-slate-700 hover:bg-slate-200";
+            } else {
+                jsTab.className = "py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-transparent text-slate-700 hover:bg-slate-200";
+                empTab.className = "py-2.5 text-xs sm:text-sm font-extrabold rounded-lg transition-all duration-200 bg-amber-400 text-slate-950 shadow-sm";
+            }
+        }
+
+        // Password Eye Toggle Script
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggle-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+    </script>
+</body>
+</html>
