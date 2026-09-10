@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
-
+from JobMatchingEngine.database import *
 
 class User(AbstractUser):
 
@@ -189,6 +189,20 @@ class Jobs(models.Model):
 
     def __str__(self):
         return f"{self.job_title} - {self.employer.business_name}"
+
+    # for the embedding vector storage in ChromaDB
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        if self.status == 'Active':
+            upsert_job_vector(self) # Pass the whole object!
+        else:
+            delete_job_vector(self.uuid)
+
+    def delete(self, *args, **kwargs):
+        delete_job_vector(self.uuid)
+        super().delete(*args, **kwargs)
+
         
 class ApplicantSkills(models.Model):
 
