@@ -13,40 +13,72 @@ def get_job_collection():
 
 def build_job_text(job):
     """
-    Converts a Jobs model instance into searchable text.
+    Converts a Jobs instance into searchable text.
     """
-    return f"""
-    Job Title: {job.job_title}
 
-    Description:
+    return f"""
+    Job Title:
+    {job.job_title}
+
+    Job Description:
     {job.job_description}
 
     Nature of Work:
-    {job.nature_of_work}
+    {job.get_nature_of_work_display()}
+
+    Place of Work:
+    {job.place_of_work}
+
+    Salary:
+    {job.salary}
+
+    Vacancies:
+    {job.vacancy}
 
     Educational Level:
-    {job.educational_level or ''}
+    {job.educational_level or ""}
 
     Course or Strand:
-    {job.course_or_strand or ''}
+    {job.course_or_strand or ""}
 
     Required License:
-    {job.required_license or ''}
+    {job.required_license or ""}
 
     Required Eligibility:
-    {job.required_eligibility or ''}
+    {job.required_eligibility or ""}
 
     Required Certification:
-    {job.required_certification or ''}
+    {job.required_certification or ""}
 
     Languages Spoken:
-    {job.languages_spoken or ''}
+    {job.languages_spoken or ""}
 
     Experience Required:
     {job.work_experience_months} months
 
     Other Qualifications:
-    {job.other_qualifications or ''}
+    {job.other_qualifications or ""}
+
+    Accepts PWD:
+    {"Yes" if job.accepts_pwd else "No"}
+
+    PWD Disabilities:
+    {job.pwd_disabilities or ""}
+
+    Accepts OFW:
+    {"Yes" if job.accepts_ofw else "No"}
+
+    Employer:
+    {job.employer.business_name}
+
+    Industry:
+    {job.employer.line_of_business or ""}
+
+    Municipality:
+    {job.employer.municipality}
+
+    Province:
+    {job.employer.province}
     """
 
 
@@ -54,61 +86,111 @@ def upsert_job_vector(job):
     """
     Creates or updates a job embedding in ChromaDB.
     """
+
     collection = get_job_collection()
+
     document = build_job_text(job)
 
-    # Using job.uuid ensures consistency with your Jobs model layout
     collection.upsert(
         ids=[str(job.uuid)],
         documents=[document],
         metadatas=[{
             "job_uuid": str(job.uuid),
             "title": job.job_title,
-            "nature_of_work": job.nature_of_work,
             "status": job.status,
+            "nature_of_work": job.nature_of_work,
+            "salary": float(job.salary),
+            "employer": job.employer.business_name,
+            "municipality": job.employer.municipality,
+            "province": job.employer.province,
+            "accepts_pwd": job.accepts_pwd,
+            "accepts_ofw": job.accepts_ofw,
         }]
     )
 
 
 def delete_job_vector(job_uuid):
     """
-    Removes a job from ChromaDB.
+    Removes a job embedding from ChromaDB.
     """
+
     collection = get_job_collection()
+
     collection.delete(
         ids=[str(job_uuid)]
     )
 
 
-# JobMatchingEngine/database.py
-
 def build_applicant_profile_text(applicant):
     """
     Converts an ApplicantProfile instance into searchable text.
     """
-    # Pull skill names from the Many-to-Many field mapping
-    skills = ", ".join(applicant.skills.values_list("skill_name", flat=True))
-    
-    # Extract preferred job titles from the relationship
-    preferred_jobs = ", ".join(applicant.preferred_job.values_list("job_title", flat=True))
+
+    skills = ", ".join(
+        applicant.skills.values_list(
+            "skill_name",
+            flat=True
+        )
+    )
+
+    preferred_jobs = ", ".join(
+        applicant.preferred_job.values_list(
+            "job_title",
+            flat=True
+        )
+    )
 
     return f"""
+    Applicant Profile
+
     Education Level:
     {applicant.get_education_level_display()}
+
+    School:
+    {applicant.school_name or ""}
+
+    Course / Program:
+    {applicant.course_program or ""}
+
+    Year Graduated:
+    {applicant.year_graduated or ""}
+
+    Employment Status:
+    {applicant.get_employment_status_display()}
+
+    Actively Looking For Work:
+    {"Yes" if applicant.actively_looking else "No"}
+
+    Expected Salary:
+    {applicant.expected_salary}
 
     Skills:
     {skills}
 
-    Preferred Job Types or Targets:
+    Preferred Jobs:
     {preferred_jobs}
+
+    Municipality:
+    {applicant.municipality}
+
+    Province:
+    {applicant.province}
+
+    OFW:
+    {"Yes" if applicant.is_ofw else "No"}
+
+    4Ps Beneficiary:
+    {"Yes" if applicant.is_4ps_beneficiary else "No"}
     """
 
 
-def query_matching_jobs(applicant, total_results=5):
+def query_matching_jobs(applicant, total_results=10):
     """
     Finds jobs matching an applicant profile.
     """
+
     collection = get_job_collection()
+
     profile_text = build_applicant_profile_text(applicant)
 
     results = collection.query(
@@ -116,12 +198,29 @@ def query_matching_jobs(applicant, total_results=5):
         n_results=total_results
     )
 
-    # ChromaDB queries return arrays nested inside an parent array: e.g., [['id1', 'id2']]
-    # Extracting the 0th array strips out that layer safely
-    ids = results.get("ids", [[]])[0] if results.get("ids") else []
-    distances = results.get("distances", [[]])[0] if results.get("distances") else []
-    metadatas = results.get("metadatas", [[]])[0] if results.get("metadatas") else []
-    documents = results.get("documents", [[]])[0] if results.get("documents") else []
+    ids = (
+        results.get("ids", [[]])[0]
+        if results.get("ids")
+        else []
+    )
+
+    distances = (
+        results.get("distances", [[]])[0]
+        if results.get("distances")
+        else []
+    )
+
+    metadatas = (
+        results.get("metadatas", [[]])[0]
+        if results.get("metadatas")
+        else []
+    )
+
+    documents = (
+        results.get("documents", [[]])[0]
+        if results.get("documents")
+        else []
+    )
 
     return {
         "ids": ids,
