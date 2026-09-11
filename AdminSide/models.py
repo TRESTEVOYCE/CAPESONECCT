@@ -426,6 +426,28 @@ class OfferedJobs(models.Model):
         return f"{self.applicant} {self.offered_job}"
 
 
+class SavedJobs(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='saved_jobs'
+    )
+
+    saved_job = models.ForeignKey(
+        Jobs,
+        on_delete=models.CASCADE,
+        related_name='saved_by_applicants'
+    )
+
+    date_saved = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('applicant', 'saved_job')
+
+
 # ============================================================
 # BENEFICIARY PROGRAMS
 # ============================================================
