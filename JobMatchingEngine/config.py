@@ -11,5 +11,6 @@ chroma_client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
 
 # Initializes a local, free, lightweight sentence-transformers model
 embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
+    model_name="all-MiniLM-L6-v2",
+    local_files_only=True
 )
