@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import (
+from AdminSide.models import (
     ApplicantProfile,
     ApplicantSkills,
 )
