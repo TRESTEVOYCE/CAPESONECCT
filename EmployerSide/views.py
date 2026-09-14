@@ -1,4 +1,4 @@
-from django.shortcuts import render
+
 from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView,TemplateView
 from .forms import EmployerProfileForm,JobsForm
@@ -6,19 +6,25 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 
 #home or the dashboard view for the employer
-class HomeView(LoginRequiredMixin, UserPassesTestMixin,TemplateView):
+class HomeView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'home.html'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        applied_jobs = AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employerprofile)
-        jobs = Jobs.objects.filter(employer=self.request.user.employerprofile)
+
+        applied_jobs = AppliedJobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
+        jobs = Jobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
+
         context['applied_jobs'] = applied_jobs.count()
         context['jobs'] = jobs.count()
+
         return context
 
     
@@ -31,7 +37,7 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateV
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only create their own profile
     def get_queryset(self):
@@ -49,11 +55,11 @@ class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
-    
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employerprofile)
+        return AppliedJobs.objects.filter(employer=self.request.user.employer_profile)
 
 #view to display details of a specific applicant
 class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -62,11 +68,11 @@ class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_employer
+        return self.request.user.role == 'employer' 
     
     def get_queryset(self):
          return ApplicantProfile.objects.filter(
-            applied_jobs__applied_job__employer=self.request.user.employerprofile
+            employer=self.request.user.employerprofile
             ).distinct()
 
 #view to update the status of an applicant's job application
@@ -77,7 +83,7 @@ class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView)
 
     #to ensure that the employer can only update their own job postings
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employerprofile)
+        return AppliedJobs.objects.filter(employer=self.request.user.employerprofile)
 
 #to ensure that only authenticated employers can access this view
 class JobCreationView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
@@ -88,7 +94,7 @@ class JobCreationView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only create their own job postings
     def get_queryset(self):
@@ -107,7 +113,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only update their own job postings
     def get_queryset(self):
@@ -119,7 +125,7 @@ class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only delete their own job postings
     def get_queryset(self):
@@ -131,7 +137,7 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
@@ -143,7 +149,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
@@ -155,7 +161,7 @@ class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own profile
     def get_queryset(self):
@@ -169,7 +175,7 @@ class CompanyProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateVi
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only update their own profile
     def get_queryset(self):
@@ -181,7 +187,7 @@ class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only delete their own profile
     def get_queryset(self):
@@ -194,4 +200,4 @@ class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
