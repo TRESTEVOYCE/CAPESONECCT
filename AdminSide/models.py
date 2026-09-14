@@ -29,9 +29,13 @@ class User(AbstractUser):
         blank=True
     )
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+    
     def __str__(self):
         return f"{self.email} ({self.username}) - {self.role}"
 
+    
 class EmployerProfile(models.Model):
     OFFICE_TYPE_CHOICES = (
         ('main', 'Main Office'),
@@ -39,13 +43,11 @@ class EmployerProfile(models.Model):
     )
 
     EMPLOYER_TYPE_CHOICES = (
-        # Public
         ('lgu', 'Local Government Unit'),
         ('nga_regional', 'National Government Agency - Regional Office'),
         ('nga_national', 'National Government Agency - National Office'),
         ('gocc', 'Government-Owned and Controlled Corporation'),
         ('suc', 'State/Local University or College'),
-        # Private
         ('direct_hire', 'Direct Hire'),
         ('local_agency', 'Local Recruitment Agency'),
         ('overseas_agency', 'Overseas Recruitment Agency'),
@@ -72,15 +74,10 @@ class EmployerProfile(models.Model):
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-
-    user = models.OneToOneField(
-        'User',
-        on_delete=models.CASCADE,
-        related_name='employer_profile'
-    )
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='employer_profile')
 
     # Establishment Details
-    business_name = models.CharField(max_length=150)
+    business_name = models.CharField(max_length=150, blank=True)
     trade_name = models.CharField(max_length=150, blank=True, null=True)
     acronym = models.CharField(max_length=50, blank=True, null=True)
     office_type = models.CharField(max_length=10, choices=OFFICE_TYPE_CHOICES, default='main')
@@ -91,18 +88,18 @@ class EmployerProfile(models.Model):
 
     # Address Breakdown
     street_address = models.CharField(max_length=255, blank=True, null=True)
-    barangay = models.CharField(max_length=100)
-    municipality = models.CharField(max_length=100)
-    province = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100, blank=True)
+    municipality = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=100, blank=True)
 
     # Contact Details
     owner_name = models.CharField(max_length=150, blank=True, null=True)
     designation = models.CharField(max_length=100, blank=True, null=True, help_text="Designation/Position of the authorized representative (e.g., HRMO II, Administrative Officer V)")
-    contact_person = models.CharField(max_length=100)
+    contact_person = models.CharField(max_length=100, blank=True)
     contact_position = models.CharField(max_length=100, blank=True, null=True)
     telephone_number = models.CharField(max_length=20, blank=True, null=True)
-    mobile_number = models.CharField(max_length=20)
-    email = models.EmailField(unique=True)
+    mobile_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True, null=True)
 
     # Verification Document Attachments for Private Sector
     certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
@@ -113,12 +110,7 @@ class EmployerProfile(models.Model):
     public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
     public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
 
-    verification_status = models.CharField(
-        max_length=20,
-        choices=VERIFICATION_STATUS_CHOICES,
-        default='pending'
-    )
-
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -126,8 +118,13 @@ class EmployerProfile(models.Model):
     def is_public_agency(self):
         return self.employer_type in ['lgu', 'nga_regional', 'nga_national', 'gocc', 'suc']
 
+    @property
+    def is_profile_complete(self):
+        return all([self.business_name, self.contact_person, self.mobile_number, self.email, self.barangay, self.municipality, self.province])
+
     def __str__(self):
-        return f"{self.business_name} - {self.email}"
+        return self.business_name or self.user.username
+    
     
 class Jobs(models.Model):
     NATURE_OF_WORK_CHOICES = (
@@ -212,8 +209,8 @@ class Jobs(models.Model):
         
 class ApplicantSkills(models.Model):
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-    skill_name = models.CharField(max_length=100)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True,blank=True, null=True)
+    skill_name = models.CharField(max_length=100,blank=True, null=True)
 
 class ApplicantProfile(models.Model):
 
@@ -356,28 +353,18 @@ class AppliedJobs(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False,blank=True, null=True, unique=True, db_index=True)
 
-    applicant = models.ForeignKey(
-        ApplicantProfile,
-        on_delete=models.CASCADE,
-        related_name='applied_jobs'
-    )
+    employer = models.ForeignKey(EmployerProfile,on_delete=models.CASCADE,related_name='received_applications',blank=True, null=True)
 
-    applied_job = models.ForeignKey(
-        Jobs,
-        on_delete=models.CASCADE,
-        related_name='applied_applicants'
-    )
+    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE,related_name='applied_jobs',blank=True, null=True)
 
-    application_date = models.DateTimeField(auto_now_add=True)
-    is_hired = models.BooleanField(default=False)
+    applied_job = models.ForeignKey(Jobs,on_delete=models.CASCADE,related_name='applied_applicants',blank=True, null=True)
 
-    status = models.CharField(
-        max_length=20,
-        choices=APPLICATION_STATUS,
-        default='pending'
-    )
+    application_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+    is_hired = models.BooleanField(default=False,blank=True, null=True)
+
+    status = models.CharField(max_length=20,choices=APPLICATION_STATUS,default='pending',blank=True, null=True)
 
 class OfferedJobs(models.Model):
 
