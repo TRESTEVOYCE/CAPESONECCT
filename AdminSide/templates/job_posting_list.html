@@ -5,21 +5,13 @@
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- HEADER STATUS ROW -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Job Postings</h1>
-        </div>
-        <button onclick="toggleModal(true)" class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2.5 rounded-md flex items-center gap-2 shadow transition">
-            <i class="fa-solid fa-plus text-[11px]"></i>
-            Post New Vacancy
-        </button>
-    </div>
-
     <!-- FILTER BAR & DATABASE GRID TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         
+        <!-- INTEGRATED ACTION & FILTER BAR -->
         <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+            
+            <!-- SEARCH INPUT -->
             <div class="relative flex-1 min-w-[280px]">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
@@ -29,6 +21,7 @@
                        class="w-full bg-white pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#112954]">
             </div>
 
+            <!-- CONTROLS & ACTION BUTTON GROUP -->
             <div class="flex items-center gap-3">
                 <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
                     <option value="All">All Status</option>
@@ -36,6 +29,12 @@
                     <option value="Filled" {% if selected_status == "Filled" %}selected{% endif %}>Filled</option>
                     <option value="Closed" {% if selected_status == "Closed" %}selected{% endif %}>Closed</option>
                 </select>
+
+                <!-- REPOSITIONED ACTION BUTTON -->
+                <button type="button" onclick="toggleModal(true)" class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition shrink-0">
+                    <i class="fa-solid fa-plus text-[11px]"></i>
+                    Post New Vacancy
+                </button>
             </div>
         </form>
 

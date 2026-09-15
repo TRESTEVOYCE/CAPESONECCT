@@ -1,14 +1,21 @@
 import calendar
 import json
+import random
 from datetime import datetime, timedelta
+from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
+from django.contrib.auth.forms import PasswordChangeForm
+from django.views.generic import FormView
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from .service import generate_complete_peso_matrix
 from .models import (
+    User,
     ApplicantProfile, 
     AppliedJobs, 
     EmployerProfile, 
@@ -26,7 +33,9 @@ from .forms import (
     CareerGuidanceBeneficiaryForm,
     TupadBeneficiaryForm,
     DisplacedInformalLaborProgramForm,
-    JobVacancyForm
+    JobVacancyForm,
+    ReferralForm,
+    EditProfileNameForm
 )
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -101,25 +110,35 @@ PROGRAM_CONFIG = {
     },
 }
 
-class DashboardView(SuperuserRequiredMixin, TemplateView):
+class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
     template_name = 'dashboard.html'
 
     def get_context_data(self, **kwargs):
-        # Fallback to parent context initialization
         context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
 
         # Counter Metrics
         applicant_count = ApplicantProfile.objects.count()
         employer_count = EmployerProfile.objects.count()
-        active_job_count = Jobs.objects.count()
+
+        # Job postings count filtered to active status
+        active_job_count = Jobs.objects.filter(status='Active').count()
+        
         referral_count = AppliedJobs.objects.count()
         placement_count = AppliedJobs.objects.filter(status='hired').count()
-        pending_approval_count = (
-            ApplicantProfile.objects.filter(status='pending').count()
-            + EmployerProfile.objects.filter(verification_status='pending').count()
-        )
+        
+        # Near hire metric: candidates who are reviewed or in interview state
+        near_hire_count = AppliedJobs.objects.filter(status__in=['reviewed', 'for interview']).count()
 
-        # Tables Slices
+        # Dynamic calculation of monthly registrations
+        first_of_month = timezone.make_aware(datetime(today.year, today.month, 1))
+        monthly_new_applicants = ApplicantProfile.objects.filter(created_at__gte=first_of_month).count()
+        monthly_new_employers = EmployerProfile.objects.filter(created_at__gte=first_of_month).count()
+
+        # Dynamic Placement Rate Calculation
+        placement_rate = round((placement_count / referral_count * 100), 1) if referral_count > 0 else 0.0
+
+        # Existing table slices...
         recent_applications = (
             AppliedJobs.objects.select_related(
                 'applicant', 'applied_job', 'applicant__user', 
@@ -134,13 +153,12 @@ class DashboardView(SuperuserRequiredMixin, TemplateView):
             EmployerProfile.objects.filter(verification_status='pending').select_related('user')[:3]
         )
 
-        # Line Chart Metrics Generation
+        # Existing chart metric logic...
         chart_labels = []
         referred_data = []
         hired_data = []
         near_hire_data = []
 
-        today = timezone.localdate()
         for offset in range(5, -1, -1):
             month_index = (today.month - 1 - offset) % 12
             year = today.year + ((today.month - 1 - offset) // 12)
@@ -161,7 +179,7 @@ class DashboardView(SuperuserRequiredMixin, TemplateView):
             hired_data.append(monthly_applications.filter(status='hired').count())
             near_hire_data.append(monthly_applications.filter(status__in=['reviewed', 'for interview']).count())
 
-        # Doughnut/Pie Chart Metrics Generation
+        # Sector chart data logic...
         job_type_counts = Jobs.objects.values('nature_of_work').annotate(count=Count('id'))
         job_type_lookup = {item['nature_of_work']: item['count'] for item in job_type_counts}
         sector_items = []
@@ -175,14 +193,18 @@ class DashboardView(SuperuserRequiredMixin, TemplateView):
                 'color': colors[len(sector_items)] if len(sector_items) < len(colors) else colors[-1]
             })
 
-        # Inject calculations directly into view context
+        # Inject updated dynamic metrics into template context
         context.update({
             'applicant_count': applicant_count,
             'employer_count': employer_count,
             'active_job_count': active_job_count,
             'referral_count': referral_count,
             'placement_count': placement_count,
-            'pending_approval_count': pending_approval_count,
+            'near_hire_count': near_hire_count,
+            'monthly_new_applicants': monthly_new_applicants,
+            'monthly_new_employers': monthly_new_employers,
+            'placement_rate': placement_rate,
+            'current_month_name': calendar.month_name[today.month],
             'recent_applications': recent_applications,
             'pending_approvals': pending_approvals,
             'chart_labels': json.dumps(chart_labels),
@@ -193,9 +215,9 @@ class DashboardView(SuperuserRequiredMixin, TemplateView):
             'sector_data': json.dumps([item['value'] for item in sector_items]),
         })
         return context
-
-class JobPostingsListView(View):
-    template_name = 'job_posting.html'
+    
+class JobPostingsListView(LoginRequiredMixin, View):
+    template_name = 'job_posting_list.html'
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get('search', '').strip()
@@ -256,7 +278,7 @@ class JobPostingsListView(View):
         }
         return render(request, self.template_name, context)
 
-class JobPostingDetailView(View):
+class JobPostingDetailView(LoginRequiredMixin, View):
     template_name = 'job_posting_detail.html'
 
     def get(self, request, job_uuid, *args, **kwargs):
@@ -269,7 +291,7 @@ class JobPostingDetailView(View):
         }
         return render(request, self.template_name, context)
     
-class ApplicantListView(ListView):
+class ApplicantListView(LoginRequiredMixin, ListView):
     model = ApplicantProfile
     template_name = 'applicant_list.html'
     context_object_name = 'applicants'
@@ -353,7 +375,7 @@ class ApplicantListView(ListView):
         messages.error(request, "Invalid request parameters.")
         return redirect('applicant_registry')
 
-class ApplicantVerificationView(DetailView):
+class ApplicantVerificationView(LoginRequiredMixin, DetailView):
     model = ApplicantProfile
     template_name = 'applicant_verification.html'
     context_object_name = 'applicant'
@@ -381,7 +403,7 @@ class ApplicantVerificationView(DetailView):
 
         return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
-class EmployerListView(ListView):
+class EmployerListView(LoginRequiredMixin, ListView):
     model = EmployerProfile
     template_name = 'employer_list.html'
     context_object_name = 'employers'
@@ -463,7 +485,7 @@ class EmployerListView(ListView):
         })
         return context
 
-class EmployerVerificationView(DetailView):
+class EmployerVerificationView(LoginRequiredMixin, DetailView):
     model = EmployerProfile
     template_name = 'employer_verification.html'
     context_object_name = 'employer'
@@ -486,7 +508,7 @@ class EmployerVerificationView(DetailView):
 
         return redirect('AdminSide:employers_list')
     
-class ReferralListView(ListView):
+class ReferralListView(LoginRequiredMixin, ListView):
     model = OfferedJobs
     template_name = 'referrals_list.html'
     context_object_name = 'referrals'
@@ -539,8 +561,28 @@ class ReferralListView(ListView):
             'total_results': self.get_queryset().count()
         })
         return context
-    
-class SpecialProgramsListView(ListView):
+
+class ReferralCreateView(LoginRequiredMixin, SuperuserRequiredMixin, View):
+    template_name = 'referrals_form.html'
+
+    def get(self, request, *args, **kwargs):
+        form = ReferralForm(initial={'referred_by': request.user.get_full_name() or request.user.username})
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = ReferralForm(request.POST)
+        if form.is_valid():
+            referral = form.save()
+            messages.success(
+                request, 
+                f"Referral for {referral.applicant.first_name} {referral.applicant.last_name} created successfully!"
+            )
+            return redirect('AdminSide:referrals_list')
+        
+        messages.error(request, "Please correct the errors in the referral form.")
+        return render(request, self.template_name, {'form': form})
+
+class SpecialProgramsListView(LoginRequiredMixin, ListView):
     template_name = 'special_program.html'
     context_object_name = 'beneficiaries'
 
@@ -670,12 +712,12 @@ class SpecialProgramsListView(ListView):
         })
         return context
 
-class EnrollBeneficiaryView(View):
+class EnrollBeneficiaryView(LoginRequiredMixin, View):
     """
     Class-Based View to handle enrollment and editing of beneficiaries 
     under the dynamically selected special program form.
     """
-    template_name = 'enroll_beneficiary.html'
+    template_name = 'special_program_beneficiary_form.html'
 
     def get_program_config(self, request):
         active_program = request.GET.get('program', 'spes')
@@ -797,7 +839,7 @@ class EnrollBeneficiaryView(View):
         }
         return render(request, self.template_name, context)
     
-class PesoMonthlyReportView(View):
+class PesoMonthlyReportView(LoginRequiredMixin, View):
     template_name = 'report.html'
 
     # 1. PLACE THE DICTIONARY HERE AS A CLASS CONSTANT
@@ -898,4 +940,158 @@ class PesoMonthlyReportView(View):
             'issues_concerns': request.POST.get('issues_concerns', '').strip()
         }
         return render(request, self.template_name, context)
-    
+
+class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = 'account_settings.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_superuser
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, {
+            'password_form': PasswordChangeForm(user=request.user)
+        })
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        user = request.user
+
+        # --- ACTION: UPDATE NAME / PROFILE ---
+        if action == 'update_profile':
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            messages.success(request, "Profile information updated successfully.")
+            return redirect('AdminSide:account_settings')
+
+        # --- ACTION: UPDATE AVATAR PHOTO ---
+        elif action == 'update_avatar':
+            avatar_file = request.FILES.get('avatar')
+            if avatar_file:
+                # Assigns to user model profile_picture field if present
+                if hasattr(user, 'profile_picture'):
+                    user.profile_picture = avatar_file
+                    user.save()
+                    messages.success(request, "Profile picture updated successfully.")
+                else:
+                    messages.error(request, "Profile picture field is not configured on the User model.")
+            else:
+                messages.error(request, "Please select a valid image file to upload.")
+
+            return redirect('AdminSide:account_settings')
+
+        # --- ACTION 1: REQUEST OTP FOR EMAIL UPDATE ---
+        elif action == 'request_email_otp':
+            new_email = request.POST.get('email', '').strip()
+            username = request.POST.get('username', '').strip()
+
+            otp = f"{random.randint(100000, 999999)}"
+            request.session['email_otp'] = otp
+            request.session['pending_email'] = new_email
+            request.session['pending_username'] = username
+
+            send_mail(
+                subject="PESO Admin - Verification Code",
+                message=f"Hello {user.first_name},\n\nYour OTP code to update your email address is: {otp}",
+                from_email=None,
+                recipient_list=[new_email],
+                fail_silently=False,
+            )
+
+            messages.info(request, f"Verification code sent to {new_email}.")
+            return render(request, self.template_name, {
+                'password_form': PasswordChangeForm(user=user),
+                'show_email_otp_modal': True
+            })
+
+        # --- ACTION 2: VERIFY EMAIL OTP ---
+        elif action == 'verify_email_otp':
+            input_otp = request.POST.get('otp', '').strip()
+            stored_otp = request.session.get('email_otp')
+
+            if stored_otp and input_otp == stored_otp:
+                user.email = request.session.pop('pending_email', user.email)
+                user.username = request.session.pop('pending_username', user.username)
+                user.save()
+                del request.session['email_otp']
+
+                messages.success(request, "Email address updated successfully.")
+            else:
+                messages.error(request, "Invalid or expired OTP code.")
+
+            return redirect('AdminSide:account_settings')
+
+        # --- ACTION 3: REQUEST OTP FOR PASSWORD CHANGE ---
+        elif action == 'request_password_otp':
+            form = PasswordChangeForm(user=user, data=request.POST)
+            if form.is_valid():
+                request.session['pending_password_data'] = request.POST.dict()
+
+                otp = f"{random.randint(100000, 999999)}"
+                request.session['password_otp'] = otp
+
+                send_mail(
+                    subject="PESO Admin - Password Security Code",
+                    message=f"Hello {user.first_name},\n\nYour security OTP to confirm your password change is: {otp}",
+                    from_email=None,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+
+                messages.info(request, f"Security code sent to your registered email ({user.email}).")
+                return render(request, self.template_name, {
+                    'password_form': form,
+                    'show_password_otp_modal': True
+                })
+            else:
+                messages.error(request, "Please correct the password errors below.")
+                return render(request, self.template_name, {
+                    'password_form': form,
+                    'open_password_modal': True
+                })
+
+        # --- ACTION 4: VERIFY PASSWORD OTP ---
+        elif action == 'verify_password_otp':
+            input_otp = request.POST.get('otp', '').strip()
+            stored_otp = request.session.get('password_otp')
+
+            if stored_otp and input_otp == stored_otp:
+                password_data = request.session.pop('pending_password_data', None)
+                del request.session['password_otp']
+
+                if password_data:
+                    form = PasswordChangeForm(user=user, data=password_data)
+                    if form.is_valid():
+                        updated_user = form.save()
+                        update_session_auth_hash(request, updated_user)
+                        messages.success(request, "Password updated successfully.")
+                    else:
+                        messages.error(request, "Form validation failed. Please try again.")
+            else:
+                messages.error(request, "Invalid security OTP code.")
+
+            return redirect('AdminSide:account_settings')
+
+        return redirect('AdminSide:account_settings')
+
+@login_required
+def account_settings(request):
+    if request.method == 'POST' and 'update_name' in request.POST:
+        name_form = EditProfileNameForm(request.POST, instance=request.user)
+        if name_form.is_valid():
+            name_form.save()
+            messages.success(request, "Your name was updated successfully.")
+            return redirect('AdminSide:account_settings')
+        else:
+            messages.error(request, "Please check the form inputs for errors.")
+    else:
+        name_form = EditProfileNameForm(instance=request.user)
+
+    context = {
+        'name_form': name_form,
+    }
+    return render(request, 'AdminSide/account_settings.html', context)

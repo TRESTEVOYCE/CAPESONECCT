@@ -5,52 +5,39 @@
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- TOP HEADER PROFILE ROW -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mt-0.5">Applications & Referrals</h1>
-            <p class="text-xs text-slate-500 font-medium mt-1">Monitor job application lifecycles and trigger automated employer reminders.</p>
-        </div>
-        <button class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2.5 rounded-md flex items-center gap-2 shadow transition">
-            <i class="fa-solid fa-plus text-[11px]"></i>
-            New Referral
-        </button>
-    </div>
-
-    <!-- METRIC TAB CONTROL PILLS -->
-    <div class="flex flex-wrap gap-2 items-center">
-        <a href="?status=All&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'All' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            All Status ({{ kpis.total|default:0 }})
-        </a>
-        <a href="?status=pending&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'pending' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            Pending ({{ kpis.pending|default:0 }})
-        </a>
-        <a href="?status=reviewed&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'reviewed' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            Reviewed ({{ kpis.reviewed|default:0 }})
-        </a>
-        <a href="?status=for interview&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'for interview' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            For Interview ({{ kpis.interview|default:0 }})
-        </a>
-        <a href="?status=hired&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'hired' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            Hired ({{ kpis.hired|default:0 }})
-        </a>
-        <a href="?status=rejected&search={{ search_query }}" class="px-3 py-1.5 rounded-full text-xs font-bold transition {% if selected_status == 'rejected' %}bg-[#112954] text-white{% else %}bg-white text-slate-600 border border-slate-200 hover:bg-slate-50{% endif %}">
-            Rejected ({{ kpis.rejected|default:0 }})
-        </a>
-    </div>
-
-    <!-- FILTER INPUT & TABLE FRAME -->
+    <!-- FILTER BAR & DATABASE GRID TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         
-        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center">
-            <input type="hidden" name="status" value="{{ selected_status }}">
-            <div class="relative w-full">
+        <!-- INTEGRATED ACTION & FILTER BAR -->
+        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+            
+            <!-- SEARCH INPUT -->
+            <div class="relative flex-1 min-w-[280px]">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
                 </span>
                 <input type="text" name="search" value="{{ search_query }}" 
                        placeholder="Search by name, employer, job title..." 
                        class="w-full bg-white pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#112954]">
+            </div>
+
+            <!-- CONTROLS & ACTION BUTTON GROUP -->
+            <div class="flex items-center gap-3">
+                <!-- STATUS FILTER DROPDOWN -->
+                <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#112954]">
+                    <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Status </option>
+                    <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending </option>
+                    <option value="reviewed" {% if selected_status == 'reviewed' %}selected{% endif %}>Reviewed </option>
+                    <option value="for interview" {% if selected_status == 'for interview' %}selected{% endif %}>For Interview </option>
+                    <option value="hired" {% if selected_status == 'hired' %}selected{% endif %}>Hired </option>
+                    <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected </option>
+                </select>
+
+                <!-- REPOSITIONED ACTION BUTTON -->
+                <a href="{% url 'AdminSide:referrals_form' %}" class="bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition shrink-0">
+                    <i class="fa-solid fa-plus text-[11px]"></i>
+                    New Referral
+                </a>
             </div>
         </form>
 
@@ -83,7 +70,7 @@
                         </td>
                         
                         <td class="py-4 px-4 font-semibold text-slate-700">{{ referral.offered_job.job_title }}</td>
-                        <td class="py-4 px-4 font-medium text-slate-500">{{ referral.offered_job.employer.company_name }}</td>
+                        <td class="py-4 px-4 font-medium text-slate-500">{{ referral.offered_job.employer.business_name }}</td>
                         <td class="py-4 px-4 text-slate-500 whitespace-nowrap">{{ referral.date_offered|date:"M d, Y" }}</td>
                         
                         <td class="py-4 px-4 text-center whitespace-nowrap">
@@ -104,12 +91,12 @@
                             {{ referral.remarks|default:"--" }}
                         </td>
                         
-                        <!-- UPDATED ACTIONS COLUMN -->
+                        <!-- ACTIONS COLUMN -->
                         <td class="py-4 px-4 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5">
                                 <!-- Read-Only Audit View Button -->
                                 <button type="button" 
-                                        onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.company_name }}', '{{ referral.status }}', '{{ referral.date_offered|date:'M d, Y' }}')"
+                                        onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.status }}', '{{ referral.date_offered|date:'M d, Y' }}')"
                                         title="View Application Audit Timeline"
                                         class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-md transition flex items-center gap-1.5">
                                     <i class="fa-solid fa-eye text-slate-500"></i>
@@ -119,7 +106,7 @@
                                 <!-- Re-trigger Notification (Nudge HR) for Pending or Reviewed Applications -->
                                 {% if referral.status == 'pending' or referral.status == 'reviewed' %}
                                     <button type="button" 
-                                            onclick="triggerEmployerNudge('{{ referral.id }}', '{{ referral.offered_job.employer.company_name }}')"
+                                            onclick="triggerEmployerNudge('{{ referral.id }}', '{{ referral.offered_job.employer.business_name }}')"
                                             title="Send automated reminder ping to employer"
                                             class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[11px] font-bold px-2.5 py-1.5 rounded-md transition flex items-center gap-1.5">
                                         <i class="fa-solid fa-bell text-amber-600"></i>
@@ -220,7 +207,6 @@
 
     function triggerEmployerNudge(id, employerName) {
         if (confirm(`Send an automated reminder email and notification ping to ${employerName} regarding this pending application?`)) {
-            // Place AJAX trigger / API call here
             alert(`Automated reminder successfully dispatched to ${employerName}!`);
         }
     }

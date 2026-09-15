@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import get_user_model
 
 from .models import (
+    ApplicantProfile,
+    OfferedJobs,
     User,
     EmployerProfile,
     Jobs, 
@@ -11,6 +14,8 @@ from .models import (
     SpecialProgramForEmploymentOfStudents,
     CareerGuidanceBeneficiary,
 )
+
+User = get_user_model() 
 
 class TailwindFormMixin:
     """Applies clean Tailwind CSS classes automatically to all form fields."""
@@ -25,6 +30,21 @@ class TailwindFormMixin:
                 field.widget.attrs.update({
                     'class': 'w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#112954]'
                 })
+
+class EditProfileNameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition',
+                'placeholder': 'First Name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition',
+                'placeholder': 'Last Name'
+            }),
+        }
 
 class EmployerRegistrationForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
@@ -98,7 +118,22 @@ class JobVacancyForm(TailwindFormMixin, forms.ModelForm):
         # Limit employers choices to verified employers only
         self.fields['employer'].queryset = EmployerProfile.objects.filter(verification_status='verified')
 
-        
+class ReferralForm(TailwindFormMixin, forms.ModelForm):
+    class Meta:
+        model = OfferedJobs
+        fields = ['applicant', 'offered_job', 'referred_by', 'remarks', 'status']
+        widgets = {
+            'remarks': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Optional notes or recommendations...'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Limit job options to active job vacancies only
+        self.fields['offered_job'].queryset = Jobs.objects.filter(status='Active')
+        # Limit applicant options to active/approved jobseekers
+        self.fields['applicant'].queryset = ApplicantProfile.objects.filter(status='approved')
+
+                
 BASE_BENEFICIARY_FIELDS = [
     'first_name',
     'middle_name',

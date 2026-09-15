@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings | CAPESONNECT{% endblock %}
+
+{% block content %}
+<div class="w-full space-y-6" x-data="{ openNameModal: false, openEmailModal: false, openPasswordModal: false }">
+
+    <!-- Flash Messages Notification Banner -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-xl text-xs font-bold border flex items-center justify-between shadow-sm transition-all
+                    {% if message.tags == 'success' %} bg-emerald-50 text-emerald-800 border-emerald-200
+                    {% else %} bg-rose-50 text-rose-800 border-rose-200 {% endif %}">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check text-emerald-600{% else %}fa-circle-exclamation text-rose-600{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Hidden Form for Avatar Upload -->
+    <form id="avatarUploadForm" method="POST" action="{% url 'AdminSide:account_settings' %}" enctype="multipart/form-data" class="hidden">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_avatar">
+        <input type="file" id="avatarFileInput" name="avatar" accept="image/*" onchange="document.getElementById('avatarUploadForm').submit()">
+    </form>
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">Account Settings</h1>
+            <p class="text-xs font-medium text-slate-500 mt-1">Manage your administrative credentials, personal identity, and security preferences.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <i class="fa-solid fa-user-shield mr-2"></i>
+                System Administrator
+            </span>
+        </div>
+    </div>
+
+    <!-- MAIN UNIFIED SETTINGS PANEL -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 divide-y divide-slate-100 overflow-hidden">
+        
+        <!-- SECTION 1: PERSONAL PROFILE -->
+        <div class="p-6 md:p-8 space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-indigo-600"></i>
+                    Personal Profile
+                </h2>
+                <p class="text-xs font-medium text-slate-500 mt-0.5">Manage public profile attributes and display settings.</p>
+            </div>
+
+            <!-- Profile Avatar Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+                <div class="flex items-center gap-4">
+                    <div class="relative group flex-shrink-0">
+                        <img src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                            alt="Profile Picture" 
+                            class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm transition group-hover:opacity-90">
+                        <button type="button" 
+                                onclick="document.getElementById('avatarFileInput').click()"
+                                class="absolute -bottom-1 -right-1 bg-slate-900 text-white p-2 rounded-xl shadow-md hover:bg-slate-800 transition text-xs cursor-pointer border-2 border-white" 
+                                title="Upload New Photo">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Profile Image</h3>
+                        <p class="text-xs font-medium text-slate-500 mt-1">PNG, JPG or GIF. Maximum file size 2MB.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <button type="button" 
+                            onclick="document.getElementById('avatarFileInput').click()"
+                            class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer flex items-center gap-2">
+                        <i class="fa-solid fa-upload text-slate-500"></i>
+                        Upload Photo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Full Name Row -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Full Name</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Your official name used across operational audit logs.</p>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-6 min-w-[280px]">
+                    <span class="text-xs font-bold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </span>
+                    <button type="button" 
+                            @click="openNameModal = true" 
+                            class="px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition cursor-pointer uppercase tracking-wider">
+                        Edit Name
+                    </button>
+                </div>
+            </div>
+
+            <!-- Designation Row -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Designation & Role</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Assigned security permissions and administrative status.</p>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-6 min-w-[280px]">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        <i class="fa-solid fa-shield-halved text-xs text-amber-500 mr-2"></i>
+                        {{ request.user.groups.first.name|default:"PESO Manager" }}
+                    </span>
+                    <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg uppercase tracking-wider" title="Role managed by System Administrator">
+                        System Locked
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: SECURITY & CREDENTIALS -->
+        <div class="p-6 md:p-8 space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-indigo-600"></i>
+                    Login & Credentials
+                </h2>
+                <p class="text-xs font-medium text-slate-500 mt-0.5">Manage email authentication and security access details.</p>
+            </div>
+
+            <!-- Email Address Row -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Email Address</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Primary email linked for sign-in and recovery notices.</p>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-6 min-w-[280px]">
+                    <span class="text-xs font-bold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                        {{ request.user.email }}
+                    </span>
+                    <button type="button" 
+                            @click="openEmailModal = true" 
+                            class="px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition cursor-pointer uppercase tracking-wider">
+                        Change Email
+                    </button>
+                </div>
+            </div>
+
+            <!-- Password Row -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Account Password</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Ensure your security with a unique password protocol.</p>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end gap-6 min-w-[280px]">
+                    <span class="text-xs font-mono font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+                        ••••••••••••
+                    </span>
+                    <button type="button" 
+                            @click="openPasswordModal = true" 
+                            class="px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition cursor-pointer uppercase tracking-wider">
+                        Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- EDIT NAME MODAL -->
+    <div x-show="openNameModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden" @click.away="openNameModal = false">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Update Display Name</h3>
+                <button @click="openNameModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{% url 'AdminSide:account_settings' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">First Name</label>
+                        <input type="text" name="first_name" value="{{ request.user.first_name }}" class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">Last Name</label>
+                        <input type="text" name="last_name" value="{{ request.user.last_name }}" class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="openNameModal = false" class="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
+                    <button type="submit" name="update_name" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHANGE EMAIL MODAL -->
+    <div x-show="openEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden" @click.away="openEmailModal = false">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Update Email Address</h3>
+                <button @click="openEmailModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{% url 'AdminSide:account_settings' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="request_email_otp">
+                <input type="hidden" name="first_name" value="{{ request.user.first_name }}">
+                <input type="hidden" name="last_name" value="{{ request.user.last_name }}">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">Username / Handle</label>
+                    <input type="text" name="username" value="{{ request.user.username }}" class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">Email Address</label>
+                    <input type="email" name="email" value="{{ request.user.email }}" class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="openEmailModal = false" class="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div x-data="{ showPassword: false }" x-show="openPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden" @click.away="openPasswordModal = false">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Change Password</h3>
+                <button @click="openPasswordModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{% url 'AdminSide:account_settings' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="request_password_otp">
+                
+                {% for field in password_form %}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">{{ field.label }}</label>
+                        <input :type="showPassword ? 'text' : 'password'" 
+                            name="{{ field.name }}" 
+                            id="{{ field.id_for_label }}"
+                            class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none {% if field.errors %}border-rose-500 bg-rose-50/50{% endif %}" 
+                            required>
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <p class="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- Show Password Checkbox -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="showPasswordToggle" x-model="showPassword" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer">
+                    <label for="showPasswordToggle" class="text-xs font-semibold text-slate-600 cursor-pointer select-none">Show passwords</label>
+                </div>
+
+                {% if password_form.non_field_errors %}
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                        {% for error in password_form.non_field_errors %}
+                            <p class="text-[11px] font-bold text-rose-700 flex items-center gap-1">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="openPasswordModal = false" class="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EMAIL OTP VERIFICATION MODAL -->
+    <div x-data="{ open: {{ show_email_otp_modal|yesno:'true,false' }} }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Verify New Email</h3>
+                <button @click="open = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{% url 'AdminSide:account_settings' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_email_otp">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">Enter 6-Digit OTP</label>
+                    <input type="text" name="otp" placeholder="123456" maxlength="6" class="w-full text-center tracking-widest text-lg font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="open = false" class="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm">Confirm Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PASSWORD OTP VERIFICATION MODAL -->
+    <div x-data="{ open: {{ show_password_otp_modal|yesno:'true,false' }} }" x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Confirm Password Change</h3>
+                <button @click="open = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form method="POST" action="{% url 'AdminSide:account_settings' %}" class="p-6 space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_password_otp">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 uppercase tracking-wide mb-1">Enter Security OTP</label>
+                    <input type="text" name="otp" placeholder="123456" maxlength="6" class="w-full text-center tracking-widest text-lg font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="open = false" class="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Alpine.js script (if not already included in base.html) -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{% endblock %}

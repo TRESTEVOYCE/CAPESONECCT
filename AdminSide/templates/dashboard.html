@@ -5,95 +5,99 @@
 {% block content %}
 <div class="space-y-8 max-w-[1600px] mx-auto">
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Dashboard</h1>
-
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+<!-- Stat Cards Row with Rigid Grid Alignment across all cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                <i class="fa-solid fa-users text-xl"></i>
+        <!-- 1. Registered Applicants -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Registered Applicants</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Applicants</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ applicant_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-emerald-600 mt-1">
-                    <i class="fa-solid fa-arrow-up"></i> 34 this month
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ applicant_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-up text-[10px]"></i> {{ monthly_new_applicants|default:0 }} this month
                 </p>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
-                <i class="fa-solid fa-building text-xl"></i>
+        <!-- 2. Registered Employers -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Registered Employers</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Employers</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ employer_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-emerald-600 mt-1">
-                    <i class="fa-solid fa-arrow-up"></i> 6 this month
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ employer_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-up text-[10px]"></i> {{ monthly_new_employers|default:0 }} this month
                 </p>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                <i class="fa-solid fa-briefcase text-xl"></i>
+        <!-- 3. Active Job Postings -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Active Job Postings</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Job Postings</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ active_job_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-amber-600 mt-1">
-                    12 pending approval
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ active_job_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-medium text-slate-500">
+                    Posted by verified employers
                 </p>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                <i class="fa-solid fa-route text-xl"></i>
+        <!-- 4. Total Referrals -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Total Referrals</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Referrals</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ referral_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-slate-500 mt-1">
-                    June cumulative
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ referral_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-medium text-slate-500">
+                    {{ current_month_name }} cumulative
                 </p>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div class="p-3 bg-cyan-50 text-cyan-600 rounded-lg">
-                <i class="fa-solid fa-circle-check text-xl"></i>
+        <!-- 5. Placements (Hired) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Placements (Hired)</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Placements (Hired)</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ placement_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-cyan-600 mt-1">
-                    25.3% placement rate
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ placement_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-semibold text-cyan-600">
+                    {{ placement_rate|default:"0.0" }}% placement rate
                 </p>
             </div>
         </div>
 
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4 col-span-1">
-            <div class="p-3 bg-red-50 text-red-600 rounded-lg">
-                <i class="fa-solid fa-chart-line text-xl"></i>
+        <!-- 6. Near Hire -->
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+            <div class="flex items-start">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Near Hire</p>
             </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Near Hire</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ pending_approval_count|default:0 }}</h3>
-                <p class="text-xs font-semibold text-slate-500 mt-1">
+            <div class="flex items-center">
+                <h3 class="text-5xl font-black text-slate-800 tracking-tight leading-none">{{ near_hire_count|default:0 }}</h3>
+            </div>
+            <div class="flex items-center">
+                <p class="text-xs font-medium text-slate-500">
                     Awaiting confirmation
                 </p>
             </div>
         </div>
+
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

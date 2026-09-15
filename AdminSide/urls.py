@@ -1,6 +1,6 @@
 # capes_admin/urls.py
 from django.urls import path
-from .views import AdminLoginView, AdminLogoutView, DashboardView, JobPostingDetailView, JobPostingsListView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView
+from .views import AdminLoginView, AdminLogoutView, DashboardView, JobPostingDetailView, JobPostingsListView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralCreateView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView, AccountSettingsView
 
 app_name = 'AdminSide'
 
@@ -15,8 +15,10 @@ urlpatterns = [
     path('employers/', EmployerListView.as_view(), name='employer_list'),
     path('employers/<uuid:uuid>/verify/', EmployerVerificationView.as_view(), name='employer_verification'),
     path('referrals/', ReferralListView.as_view(), name='referrals_list'),
+    path('referrals/create/', ReferralCreateView.as_view(), name='referrals_form'),
     path('special-programs/', SpecialProgramsListView.as_view(), name='special_programs_list'),
     path('special-programs/enroll/', EnrollBeneficiaryView.as_view(), name='enroll_beneficiary'),
     path('special-programs/<str:program_type>/', SpecialProgramsListView.as_view(), name='special_programs_filtered'),
-    path('reports/', PesoMonthlyReportView.as_view(), name='peso_monthly_report')
+    path('reports/', PesoMonthlyReportView.as_view(), name='peso_monthly_report'),
+    path('account/settings/', AccountSettingsView.as_view(), name='account_settings'),
 ]

@@ -34,6 +34,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
 <style>
+    /* Prevent Alpine modals/elements from flashing during page load */
+    [x-cloak] { 
+        display: none !important; 
+    }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -111,23 +116,25 @@
     
         <div class="flex flex-col overflow-y-auto flex-1 overflow-x-hidden">
             
-            <!-- Logo Header (Increased height container) -->
-            <div class="h-20 px-3.5 bg-sidebar-header flex items-center justify-between border-b border-sidebar-border shrink-0">
-                <button id="sidebarToggleLogo" class="flex items-center gap-3 focus:outline-none shrink-0 cursor-pointer">
+            <!-- Logo Header (Centered Top Logo & Title) -->
+            <div class="pt-6 pb-4 px-3 bg-sidebar-header flex flex-col items-center justify-center shrink-0">
+                <button id="sidebarToggleLogo" class="flex flex-col items-center justify-center text-center gap-2 focus:outline-none shrink-0 cursor-pointer w-full">
                     <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg"
                          alt="PESO Logo" 
-                         class="h-9 w-9 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-sm">
-                    <div class="sidebar-text-node text-left">
-                        <h2 class="text-xs font-bold text-white tracking-wider uppercase leading-none">PESO</h2>
-                        <p class="text-[10px] text-slate-400 font-medium tracking-tight mt-1">
-                            EMPLOYMENT SYSTEM
-                        </p>
+                         class="h-12 w-12 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-md transition-transform duration-200 hover:scale-105">
+                    <div class="sidebar-text-node text-center w-full">
+                        <h2 class="text-sm font-black text-white tracking-wider uppercase leading-none">
+                            CA<span class="text-amber-400">PESO</span>NNECT
+                        </h2>
                     </div>
                 </button>
             </div>
 
+            <!-- Separator Line -->
+            <div class="border-b border-slate-800/80 my-1 mx-4"></div>
+
             <!-- Navigation Links -->
-            <div class="px-3 py-2 space-y-0.5">
+            <div class="px-3 py-3 space-y-0.5">
                 <p class="sidebar-text-node text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-1">Navigation</p>
                 
                 <!-- Dashboard -->
@@ -206,21 +213,40 @@
                     </div>
                     <span class="sidebar-text-node pl-2 truncate">Reports</span>
                 </a>
+            </div>
 
-                <!-- User Management -->
+            <!-- Separator Line -->
+            <div class="border-b border-slate-800/80 my-1 mx-4"></div>
+
+            <!-- Account Links -->
+            <div class="px-3 py-3 space-y-0.5">
+                <p class="sidebar-text-node text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-1">Account</p>
+
+                <!-- Settings -->
+                <a href="{% url 'AdminSide:account_settings' %}" 
+                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                {% if 'setting' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'setting' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                    <div class="nav-icon-wrapper">
+                        <i class="fa-solid fa-gear text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                    </div>
+                    <span class="sidebar-text-node pl-2 truncate">Settings</span>
+                </a>
+
+                <!-- Help -->
                 <a href="#" 
                 class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
-                {% if 'user_management' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
-                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'user_management' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
+                {% if 'help' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
+                    <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'help' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
-                        <i class="fa-solid fa-users text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
+                        <i class="fa-solid fa-circle-question text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
-                    <span class="sidebar-text-node pl-2 truncate">User Management</span>
+                    <span class="sidebar-text-node pl-2 truncate">Help</span>
                 </a>
             </div>
         </div>
 
-        <!-- Sign Out Link (Reduced height container) -->
+        <!-- Sign Out Link -->
         <div class="px-3 py-2 border-t border-sidebar-border bg-sidebar-bg shrink-0">
             <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
                 <div class="nav-icon-wrapper">
@@ -236,20 +262,68 @@
 
         <!-- STICKY TOPBAR -->
         <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-40">
+            <!-- Dynamic Page Header based on Active UI -->
             <div class="flex items-center space-x-3">
-                <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-                    PESO-MANAGED JOB MATCHING & EMPLOYMENT MANAGEMENT SYSTEM &nbsp;·&nbsp; <span class="text-slate-600">PESO Carigara</span>
-                </span>
+                {% block page_header %}
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">
+                    {% if request.resolver_match.url_name == 'dashboard' %}Dashboard Overview
+                    {% elif 'special_program' in request.resolver_match.url_name %}Special Programs Management
+                    {% elif 'job' in request.resolver_match.url_name %}Job Postings Management
+                    {% elif 'applicant' in request.resolver_match.url_name %}Applicants Directory
+                    {% elif 'employer' in request.resolver_match.url_name %}Employer Registry
+                    {% elif 'referral' in request.resolver_match.url_name %}Referrals & Applications
+                    {% elif 'report' in request.resolver_match.url_name %}PESO Monitoring Reports
+                    {% elif 'setting' in request.resolver_match.url_name %}Account Settings
+                    {% elif 'help' in request.resolver_match.url_name %}Help & Support
+                    {% else %}System Dashboard{% endif %}
+                </h1>
+                {% endblock %}
             </div>
 
-            <div class="flex items-center space-x-3">
-                <span class="bg-brand-red-soft text-brand-red-dark text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-2">
-                    <span class="h-2 w-2 rounded-full bg-brand-red"></span>
-                    Admin Session
-                </span>
-                
-                <div class="h-8 w-8 bg-brand-red text-white font-bold text-xs rounded-full flex items-center justify-center">
-                    MA
+            <!-- TOPBAR RIGHT: PROFILE ACCOUNT TRIGGER & DROPDOWN -->
+            <div class="relative">
+                <button id="userMenuBtn" class="flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
+                    <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                        alt="Profile Picture" 
+                        class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm transition hover:scale-105">
+                </button>
+
+                <!-- VERTICAL PROFILE MODAL / DROPDOWN -->
+                <div id="userDropdown" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 py-4 z-50">
+                    
+                    <!-- TOP: CENTERED PROFILE HEADER -->
+                    <div class="flex flex-col items-center text-center px-4 pb-4 border-b border-slate-100">
+                        <!-- Profile Picture at Top -->
+                        <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                            alt="Profile Picture" 
+                            class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm">
+                        
+                        <!-- Name -->
+                        <p class="text-sm font-bold text-slate-800 leading-tight mt-2">
+                            {{ request.user.get_full_name|default:"Administrator" }}
+                        </p>
+                        
+                        <!-- Designation -->
+                        <p class="text-xs font-medium text-slate-500 mt-0.5">
+                            {{ request.user.groups.first.name|default:"PESO Manager" }}
+                        </p>
+                    </div>
+
+                    <!-- OPTIONS SECTION -->
+                    <div class="pt-2 px-2">
+                        <!-- Manage Account -->
+                        <a href="{% url 'AdminSide:account_settings' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+                            <i class="fa-solid fa-user-gear text-slate-400 w-4 text-center"></i>
+                            <span>Manage Account</span>
+                        </a>
+
+                        <!-- Logout -->
+                        <a href="{% url 'AdminSide:admin_logout' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition mt-1">
+                            <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </header>
@@ -318,6 +392,23 @@
             });
 
             document.addEventListener('DOMContentLoaded', initializeSidebar);
+
+            // User Profile Dropdown Toggle Script
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+
+            if(userMenuBtn && userDropdown){
+                userMenuBtn.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', (e)=>{
+                    if(!userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)){
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
         })();
     </script>
 </body>

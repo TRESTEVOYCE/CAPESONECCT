@@ -18,12 +18,12 @@
 
         <p class="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-2">
             <span class="inline-block px-3.5 py-1.5 rounded-lg text-sm font-black uppercase tracking-wider text-white shadow-sm 
-                {% if active_program == 'spes' %}bg-purple-600
-                {% elif active_program == 'gip' %}bg-blue-600
-                {% elif active_program == 'career_guidance' %}bg-teal-600
-                {% elif active_program == 'tupad' %}bg-orange-500
-                {% elif active_program == 'dilp' %}bg-emerald-600
-                {% else %}bg-indigo-600{% endif %}">
+                {% if active_program == 'spes' %}bg-[#112954]
+                {% elif active_program == 'gip' %}bg-[#112954]
+                {% elif active_program == 'career_guidance' %}bg-[#112954]
+                {% elif active_program == 'tupad' %}bg-[#112954]
+                {% elif active_program == 'dilp' %}bg-[#112954]
+                {% else %}bg-[#112954]{% endif %}">
                 {% if active_program == 'spes' %}SPES
                 {% elif active_program == 'gip' %}GIP Track
                 {% elif active_program == 'career_guidance' %}Career Guidance
@@ -44,7 +44,12 @@
     <div class="bg-slate-100 p-1.5 rounded-xl flex gap-2 overflow-x-auto border border-slate-200">
         {% for key, prog in available_programs.items %}
             <a href="?program={{ key }}" data-confirm-program-switch="true"
-               class="flex-1 min-w-[140px] text-center py-2 px-3 rounded-lg text-xs font-bold transition whitespace-nowrap {% if active_program == key %}bg-white text-slate-800 shadow-sm border border-slate-200/80{% else %}text-slate-500 hover:text-slate-700 hover:bg-slate-200/50{% endif %}">
+               class="flex-1 min-w-[140px] text-center py-2 px-3 rounded-lg text-xs font-bold transition whitespace-nowrap 
+                {% if active_program == key %}
+                    bg-[#112954] text-white shadow-sm hover:bg-[#0e2144]
+                {% else %}
+                    text-slate-500 hover:text-[#112954] hover:bg-[#112954]/10
+                {% endif %}">
                 {% if key == 'spes' %}SPES
                 {% elif key == 'gip' %}GIP Track
                 {% elif key == 'career_guidance' %}Career Guidance
@@ -61,7 +66,7 @@
         {% if messages %}
             <div id="os-notification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm transition-all duration-300 ease-out translate-y-0 opacity-100 px-4">
                 {% for message in messages %}
-                    <div class="flex items-center gap-3.5 rounded-2xl bg-white p-4 text-slate-900 shadow-xl shadow-slate-900/10 border-2 {% if active_program == 'spes' %}border-purple-600{% elif active_program == 'gip' %}border-blue-600{% elif active_program == 'career_guidance' %}border-green-600{% elif active_program == 'tupad' %}border-orange-500{% elif active_program == 'dilp' %}border-teal-600{% else %}border-slate-400{% endif %}">
+                    <div class="flex items-center gap-3.5 rounded-2xl bg-white p-4 text-slate-900 shadow-xl shadow-slate-900/10 border-2 border-[#112954]">
                         
                         <!-- Banner Content -->
                         <div class="flex-1 min-w-0">
@@ -101,21 +106,21 @@
                         <!-- First Name -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">First Name *</label>
-                            <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             {% if form.first_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.first_name.errors.0 }}</span>{% endif %}
                         </div>
 
                         <!-- Middle Name -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Middle Name</label>
-                            <input type="text" name="middle_name" value="{{ form.middle_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="middle_name" value="{{ form.middle_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             {% if form.middle_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.middle_name.errors.0 }}</span>{% endif %}
                         </div>
 
                         <!-- Last Name -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Last Name *</label>
-                            <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             {% if form.last_name.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.last_name.errors.0 }}</span>{% endif %}
                         </div>
 
@@ -136,7 +141,7 @@
                         <!-- Phone Number -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                            <input type="text" name="phone_number" value="{{ form.phone_number.value|default:'' }}" placeholder="09XXXXXXXXX" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="phone_number" value="{{ form.phone_number.value|default:'' }}" placeholder="09XXXXXXXXX" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300">
                             {% if form.phone_number.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.phone_number.errors.0 }}</span>{% endif %}
                         </div>
                     </div>
@@ -152,30 +157,30 @@
                         <!-- Region -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Region</label>
-                            <input type="text" name="region" value="{{ form.region.value|default:'VIII' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="region" value="{{ form.region.value|default:'VIII' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             {% if form.region.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.region.errors.0 }}</span>{% endif %}
                         </div>
 
                         <!-- Province -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Province *</label>
-                            <input type="text" name="province" value="{{ form.province.value|default:'Leyte' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="province" value="{{ form.province.value|default:'Leyte' }}" required class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             {% if form.province.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.province.errors.0 }}</span>{% endif %}
                         </div>
 
                         <!-- Municipality -->
                         <div>
                             <label for="id_municipality" class="block text-xs font-bold text-slate-700 mb-1">Municipality *</label>
-                            <input type="text" id="id_municipality" name="municipality" value="{% if form.municipality.value %}{{ form.municipality.value }}{% elif beneficiary %}{{ beneficiary.municipality }}{% endif %}" list="municipality_list" placeholder="Enter municipality" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" id="id_municipality" name="municipality" value="{% if form.municipality.value %}{{ form.municipality.value }}{% elif beneficiary %}{{ beneficiary.municipality }}{% endif %}" list="municipality_list" placeholder="Enter municipality" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             <datalist id="municipality_list">
-                                <option value="Alangalang"></option>
-                                <option value="Barugo"></option>
-                                <option value="Capoocan"></option>
-                                <option value="Carigara"></option>
-                                <option value="Jaro"></option>
-                                <option value="Kananga"></option>
-                                <option value="San Miguel"></option>
-                                <option value="Tunga"></option>
+                                <option value="ALANGALANG"></option>
+                                <option value="BARUGO"></option>
+                                <option value="CAPOOCAN"></option>
+                                <option value="CARIGARA"></option>
+                                <option value="JARO"></option>
+                                <option value="KANANGA"></option>
+                                <option value="SAN MIGUEL"></option>
+                                <option value="TUNGA"></option>
                             </datalist>
                             {% if form.municipality.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.municipality.errors.0 }}</span>{% endif %}
                         </div>
@@ -183,7 +188,7 @@
                         <!-- Barangay -->
                         <div>
                             <label for="id_barangay" class="block text-xs font-bold text-slate-700 mb-1">Barangay *</label>
-                            <input type="text" id="id_barangay" name="barangay" value="{% if form.barangay.value %}{{ form.barangay.value }}{% elif beneficiary %}{{ beneficiary.barangay }}{% endif %}" list="barangay_list" placeholder="Enter barangay" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" id="id_barangay" name="barangay" value="{% if form.barangay.value %}{{ form.barangay.value }}{% elif beneficiary %}{{ beneficiary.barangay }}{% endif %}" list="barangay_list" placeholder="Enter barangay" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300 uppercase">
                             <datalist id="barangay_list"></datalist>
                             {% if form.barangay.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.barangay.errors.0 }}</span>{% endif %}
                         </div>
@@ -191,7 +196,7 @@
                         <!-- Zip Code -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Zip Code</label>
-                            <input type="text" name="zip_code" value="{{ form.zip_code.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:outline-none border-slate-300">
+                            <input type="text" name="zip_code" value="{{ form.zip_code.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#112954]/20 focus:border-[#112954] focus:outline-none border-slate-300">
                             {% if form.zip_code.errors %}<span class="text-[10px] text-red-500 font-bold mt-1 block">{{ form.zip_code.errors.0 }}</span>{% endif %}
                         </div>
                     </div>
@@ -222,11 +227,11 @@
                         {% if active_program == 'spes' %}
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">School / Institution Name</label>
-                                <input type="text" name="school_name" value="{{ form.school_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                                <input type="text" name="school_name" value="{{ form.school_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300 uppercase">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">College Program / Course</label>
-                                <input type="text" name="college_program" value="{{ form.college_program.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                                <input type="text" name="college_program" value="{{ form.college_program.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300 uppercase">
                             </div>
                             <div class="flex items-center gap-2 pt-6">
                                 {{ form.is_out_of_school_youth }}
@@ -261,7 +266,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">School or Institution / Venue</label>
-                                <input type="text" name="school_or_institution" value="{{ form.school_or_institution.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                                <input type="text" name="school_or_institution" value="{{ form.school_or_institution.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300 uppercase">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Preferred Curriculum Exit</label>
@@ -285,7 +290,7 @@
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Community Project Name</label>
-                                <input type="text" name="project_name" value="{{ form.project_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300">
+                                <input type="text" name="project_name" value="{{ form.project_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300 uppercase">
                             </div>
                         {% endif %}
 
@@ -325,7 +330,7 @@
                 <a href="{% url 'AdminSide:special_programs_list' %}?program={{ active_program }}" class="px-5 py-2 rounded-lg text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-6 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-sm">
+                <button type="submit" class="px-6 py-2 rounded-lg text-xs font-bold text-white bg-[#112954] hover:bg-[#0e2144] transition shadow-sm">
                     {% if is_editing %}Save Changes{% else %}Enroll Beneficiary{% endif %}
                 </button>
             </div>
@@ -339,14 +344,32 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll("select").forEach(el => {
-            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-indigo-500/20", "focus:border-indigo-600", "focus:outline-none", "bg-white");
+            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-[#112954]/20", "focus:border-[#112954]", "focus:outline-none", "bg-white");
         });
         document.querySelectorAll("input[type='date']").forEach(el => {
-            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-indigo-500/20", "focus:border-indigo-600", "focus:outline-none");
+            el.classList.add("w-full", "px-3", "py-2", "border", "rounded-lg", "text-xs", "border-slate-300", "focus:ring-2", "focus:ring-[#112954]/20", "focus:border-[#112954]", "focus:outline-none");
         });
         document.querySelectorAll("input[type='checkbox']").forEach(el => {
-            el.classList.add("w-4", "h-4", "text-indigo-600", "border-slate-300", "rounded", "focus:ring-indigo-500");
+            el.classList.add("w-4", "h-4", "text-[#112954]", "border-slate-300", "rounded", "focus:ring-[#112954]");
         });
+
+        // Uppercase typing transform on input elements (except zip_code)
+        const inputsToTransform = document.querySelectorAll("input[type='text']:not([name='zip_code'])");
+        inputsToTransform.forEach(input => {
+            input.addEventListener("input", function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+
+        // Uppercase conversion before submit
+        const form = document.querySelector("form");
+        if (form) {
+            form.addEventListener("submit", function() {
+                inputsToTransform.forEach(input => {
+                    input.value = input.value.toUpperCase();
+                });
+            });
+        }
 
         const isEditing = {{ is_editing|yesno:"true,false" }};
         const programLinks = document.querySelectorAll('a[data-confirm-program-switch="true"]');
@@ -362,53 +385,53 @@
     });
 
     const addressData = {
-        "Capoocan": [
-            "Balucanad", "Balud", "Balugo", "Cabul-an", "Culasian", "Gayad",
-            "Guinadiongan", "Lemon", "Libertad", "Manloy", "Nauguisan", "Pinamopoan",
-            "Poblacion Zone I", "Poblacion Zone II", "Potot", "San Joaquin",
-            "Santo Niño", "Talairan", "Talisay", "Tolibao", "Visares"
+        "CAPOOCAN": [
+            "BALUCANAD", "BALUD", "BALUGO", "CABUL-AN", "CULASIAN", "GAYAD",
+            "GUINADIONGAN", "LEMON", "LIBERTAD", "MANLOY", "NAUGUISAN", "PINAMOPOAN",
+            "POBLACION ZONE I", "POBLACION ZONE II", "POTOT", "SAN JOAQUIN",
+            "SANTO NIÑO", "TALAIRAN", "TALISAY", "TOLIBAO", "VISARES"
         ],
-        "Tunga": [
-            "Astorga (Barrio Upat)", "Balire", "Banawang", "San Antonio (Poblacion)",
-            "San Pedro (Poblacion)", "San Roque (Poblacion)", "San Vicente (Poblacion)",
-            "Santo Niño (Poblacion)"
+        "TUNGA": [
+            "ASTORGA (BARRIO UPAT)", "BALIRE", "BANAWANG", "SAN ANTONIO (POBLACION)",
+            "SAN PEDRO (POBLACION)", "SAN ROQUE (POBLACION)", "SAN VICENTE (POBLACION)",
+            "SANTO NIÑO (POBLACION)"
         ],
-        "Barugo": [
-            "Abango", "Amahit", "Balire", "Balud", "Bukid", "Bulod", "Busay",
-            "Cabarasan (Daliran)", "Cabolo-an", "Calingcaguing", "Can-isak",
-            "Canomantag", "Cuta", "Domogdog", "Duka", "Guindaohan", "Hiagsam",
-            "Hilaba", "Hinugayan", "Ibag", "Minuhang", "Minuswang", "Pikas",
-            "Pitogo", "Poblacion District I", "Poblacion District II",
-            "Poblacion District III", "Poblacion District IV", "Poblacion District V",
-            "Poblacion District VI", "Pongso", "Roosevelt", "San Isidro",
-            "San Roque", "Santa Rosa", "Santarin", "Tutug-an"
+        "BARUGO": [
+            "ABANGO", "AMAHIT", "BALIRE", "BALUD", "BUKID", "BULOD", "BUSAY",
+            "CABARASAN (DALIRAN)", "CABOLO-AN", "CALINGCAGUING", "CAN-ISAK",
+            "CANOMANTAG", "CUTA", "DOMOGDOG", "DUKA", "GUINDAOHAN", "HIAGSAM",
+            "HILABA", "HINUGAYAN", "IBAG", "MINUHANG", "MINUSWANG", "PIKAS",
+            "PITOGO", "POBLACION DISTRICT I", "POBLACION DISTRICT II",
+            "POBLACION DISTRICT III", "POBLACION DISTRICT IV", "POBLACION DISTRICT V",
+            "POBLACION DISTRICT VI", "PONGSO", "ROOSEVELT", "SAN ISIDRO",
+            "SAN ROQUE", "SANTA ROSA", "SANTARIN", "TUTUG-AN"
         ],
-        "Jaro": [
-            "Alahag", "Anibongon", "Atipolo", "Badiang", "Batug", "Bias-Zabala",
-            "Buenavista", "Bukid", "Burabod", "Buri", "Caglawaan", "Canapu-an",
-            "Canhandugan", "Crossing Rubas", "Daro", "Poblacion District I",
-            "Poblacion District II", "Poblacion District III", "Poblacion District IV",
-            "Hiagsam", "Hibucawan", "Hibunawon", "Kalinawan", "La Paz", "Licod",
-            "Macanip", "Macopa", "Mag-aso", "Malobago", "Olotan", "Palanog",
-            "Pange", "Parasan", "Pitogo", "Sagkahan", "San Agustin", "San Pedro",
-            "San Roque", "Santa Cruz", "Santo Niño", "Sari-Sari", "Tinambacan",
-            "Tuba", "Uguiao", "Villa Conzoilo", "Villa Paz"
+        "JARO": [
+            "ALAHAG", "ANIBONGON", "ATIPOLO", "BADIANG", "BATUG", "BIAS-ZABALA",
+            "BUENAVISTA", "BUKID", "BURABOD", "BURI", "CAGLAWAAN", "CANAPU-AN",
+            "CANHANDUGAN", "CROSSING RUBAS", "DARO", "POBLACION DISTRICT I",
+            "POBLACION DISTRICT II", "POBLACION DISTRICT III", "POBLACION DISTRICT IV",
+            "HIAGSAM", "HIBUCAWAN", "HIBUNAWON", "KALINAWAN", "LA PAZ", "LICOD",
+            "MACANIP", "MACOPA", "MAG-ASO", "MALOBAGO", "OLOTAN", "PALANOG",
+            "PANGE", "PARASAN", "PITOGO", "SAGKAHAN", "SAN AGUSTIN", "SAN PEDRO",
+            "SAN ROQUE", "SANTA CRUZ", "SANTO NIÑO", "SARI-SARI", "TINAMBACAN",
+            "TUBA", "UGUIAO", "VILLA CONZOILO", "VILLA PAZ"
         ],
-        "Carigara": [
-            "Bagong Lipunan", "Balilit", "Barayong", "Barugohay Central", "Barugohay Norte",
-            "Barugohay Sur", "Baybay (Poblacion)", "Binibihan", "Bislig", "Caghalo",
-            "Camansi", "Canal", "Candigahub", "Canfabi", "Canlampay", "Cogon",
-            "Cutay", "East Visoria", "Guindapunan East", "Guindapunan West",
-            "Hiluctogan", "Jugaban (Poblacion)", "Libo", "Lower Hiraan", "Lower Sogod",
-            "Macalpi", "Manloy", "Nauguisan", "Paglaum", "Pangna", "Parag-um",
-            "Parina (Parena)", "Piloro", "Ponong (Poblacion)", "Rizal (Tagak East)",
-            "Sagkahan", "San Isidro", "San Juan", "San Mateo (Poblacion)", "Santa Fe",
-            "Sawang (Poblacion)", "Tagak", "Tangnan", "Tigbao", "Tinaguban",
-            "Upper Hiraan", "Upper Sogod", "Uyawan", "West Visoria"
+        "CARIGARA": [
+            "BAGONG LIPUNAN", "BALILIT", "BARAYONG", "BARUGOHAY CENTRAL", "BARUGOHAY NORTE",
+            "BARUGOHAY SUR", "BAYBAY (POBLACION)", "BINIBIHAN", "BISLIG", "CAGHALO",
+            "CAMANSI", "CANAL", "CANDIGAHUB", "CANFABI", "CANLAMPAY", "COGON",
+            "CUTAY", "EAST VISORIA", "GUINDAPUNAN EAST", "GUINDAPUNAN WEST",
+            "HILUCTOGAN", "JUGABAN (POBLACION)", "LIBO", "LOWER HIRAAN", "LOWER SOGOD",
+            "MACALPI", "MANLOY", "NAUGUISAN", "PAGLAUM", "PANGNA", "PARAG-UM",
+            "PARINA (PARENA)", "PILORO", "PONONG (POBLACION)", "RIZAL (TAGAK EAST)",
+            "SAGKAHAN", "SAN ISIDRO", "SAN JUAN", "SAN MATEO (POBLACION)", "SANTA FE",
+            "SAWANG (POBLACION)", "TAGAK", "TANGNAN", "TIGBAO", "TINAGUBAN",
+            "UPPER HIRAAN", "UPPER SOGOD", "UYAWAN", "WEST VISORIA"
         ],
-        "Alangalang": [],
-        "San Miguel": [],
-        "Kananga": []
+        "ALANGALANG": [],
+        "SAN MIGUEL": [],
+        "KANANGA": []
     };
 
     const municipalityZipCodes = {
@@ -426,9 +449,9 @@
         const barangayInput = document.getElementById('id_barangay');
         const barangayList = document.getElementById('barangay_list');
         const zipCodeInput = document.querySelector('input[name="zip_code"]');
-        const selectedMunicipality = municipalityInput ? municipalityInput.value.trim() : '';
+        const selectedMunicipality = municipalityInput ? municipalityInput.value.trim().toUpperCase() : '';
         const matchedMunicipality = Object.keys(addressData).find(
-            (name) => name.toLowerCase() === selectedMunicipality.toLowerCase()
+            (name) => name.toUpperCase() === selectedMunicipality
         );
 
         barangayList.innerHTML = '';
