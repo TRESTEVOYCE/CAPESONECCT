@@ -56,12 +56,12 @@
                 <div class="text-[10px] text-slate-400">Job Seeker Portal</div>
             </div>
 
-            <!-- Account Pending Warning Badge (Reference Match) [cite: 1] -->
+            <!-- Account Pending Warning Badge (Reference Match) -->
             <div class="mx-3 mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
                 <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 <div class="text-[11px] leading-tight">
                     <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
-                    PESO Admin is reviewing your credentials. You can browse jobs but cannot apply until approved [cite: 1].
+                    PESO Admin is reviewing your credentials. You can browse jobs but cannot apply until approved.
                 </div>
             </div>
 
@@ -94,13 +94,13 @@
                 </a>
             </nav>
 
-            <!-- Need Help Support Box (Reference Match) [cite: 1] -->
+            <!-- Need Help Support Box (Reference Match) -->
             <div class="m-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
                 <div class="flex items-center gap-1.5 font-bold text-white">
                     <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Need Help? [cite: 1]
+                    Need Help?
                 </div>
-                <p class="text-slate-400 leading-relaxed text-[10px]">If you need assistance, please contact PESO Carigara [cite: 1].</p>
+                <p class="text-slate-400 leading-relaxed text-[10px]">If you need assistance, please contact PESO Carigara.</p>
             </div>
         </aside>
 
@@ -117,22 +117,101 @@
 
                 <!-- Right profile controls -->
                 <div class="flex items-center gap-4 ml-auto">
-                    <!-- Notification Bell -->
-                    <button class="relative p-2 rounded-full bg-slate-800/80 text-slate-300 hover:text-white">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
-                    </button>
+                    
+                    <!-- ==================== ALTERED: Notification Bell with Milestone Popover ==================== -->
+                    <div class="relative" x-data="{ notifOpen: false }">
+                        <button @click="notifOpen = !notifOpen" @click.away="notifOpen = false" class="relative p-2 rounded-full bg-slate-800/80 text-slate-300 hover:text-white transition-colors" aria-label="Notifications">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        </button>
 
-                    <!-- User Pill -->
-                    <div class="flex items-center gap-2.5 bg-slate-800/60 border border-slate-700/60 rounded-full pl-1.5 pr-3 py-1">
-                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
+                        <!-- Notification Dropdown Popover -->
+                        <div x-show="notifOpen" x-transition.origin.top.right x-cloak class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#111827] border border-slate-800 shadow-2xl py-3 z-50 text-slate-200">
+                            <div class="px-4 pb-2.5 border-b border-slate-800/80 flex items-center justify-between">
+                                <span class="text-xs font-bold text-white tracking-wide">Lifecycle Notifications</span>
+                                <span class="text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">Updates</span>
+                            </div>
+                            
+                            <div class="max-h-80 overflow-y-auto divide-y divide-slate-800/50 text-xs">
+                                <!-- Offer Letter / Onboarding Notice -->
+                                <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3 bg-emerald-500/5">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-emerald-300 text-[11px] uppercase tracking-wider">Offer / Onboarding</span>
+                                            <span class="text-[10px] text-slate-500">10m ago</span>
+                                        </div>
+                                        <p class="text-slate-300 leading-snug">Employment offer extended for <strong>Administrative Assistant II</strong> pending signature.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Action-Required Alert -->
+                                <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3 bg-amber-500/5">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 shrink-0"></div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-amber-300 text-[11px] uppercase tracking-wider">Action Required</span>
+                                            <span class="text-[10px] text-slate-500">2h ago</span>
+                                        </div>
+                                        <p class="text-slate-300 leading-snug">Book your interview slot for <strong>Administrative Assistant II</strong> at PESO Carigara.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Status Progression -->
+                                <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 mt-1 shrink-0"></div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-indigo-300 text-[11px] uppercase tracking-wider">Stage Progression</span>
+                                            <span class="text-[10px] text-slate-500">1d ago</span>
+                                        </div>
+                                        <p class="text-slate-300 leading-snug">Application moved from <em>Under Review</em> to <strong>Shortlisted</strong>.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Application Received / Confirmation -->
+                                <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-emerald-300 text-[11px] uppercase tracking-wider">Received / Confirmed</span>
+                                            <span class="text-[10px] text-slate-500">3d ago</span>
+                                        </div>
+                                        <p class="text-slate-300 leading-snug">System safely logged your profile and document submission.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Rejection / Closure Notice -->
+                                <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-slate-500 mt-1 shrink-0"></div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Status Closed</span>
+                                            <span class="text-[10px] text-slate-500">5d ago</span>
+                                        </div>
+                                        <p class="text-slate-400 leading-snug">Thank you for applying. Organization decided to move forward with other candidates.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="px-4 pt-2.5 border-t border-slate-800/80 text-center">
+                                <a href="{% url 'applied_jobs' %}" class="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition-colors">View Application Status &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ==================== ALTERED END ==================== -->
+
+                    <!-- ==================== ALTERED: Clickable User Profile Pill ==================== -->
+                    <a href="{% url 'personal_info' %}" class="flex items-center gap-2.5 bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-slate-600 rounded-full pl-1.5 pr-3 py-1 transition-all group">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white group-hover:scale-105 transition-transform">
                             {{ request.user.first_name|default:"T"|slice:":1" }}{{ request.user.last_name|default:"S"|slice:":1" }}
                         </div>
                         <div class="text-left hidden md:block leading-tight">
-                            <div class="text-xs font-bold text-white">{{ request.user.get_full_name|default:"Job Seeker" }}</div>
+                            <div class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">{{ request.user.get_full_name|default:"Job Seeker" }}</div>
                             <div class="text-[10px] text-slate-400">Job Seeker</div>
                         </div>
-                    </div>
+                    </a>
+                    <!-- ==================== ALTERED END ==================== -->
 
                     <!-- Sign Out Action -->
                     <form action="{% url 'logout' %}" method="post">

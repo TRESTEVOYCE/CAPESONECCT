@@ -1,166 +1,238 @@
 {% extends 'applicant-base.html' %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto py-8 px-4">
-    <form method="POST" enctype="multipart/form-data" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
+<div class="max-w-[1300px] w-full mx-auto py-2">
+    <form method="POST" enctype="multipart/form-data" class="bg-[#161e31] p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-8 text-slate-100">
         {% csrf_token %}
         
-        <div>
-            <h1 class="text-xl font-bold text-slate-800">Applicant Personal Profile</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Please provide your complete personal, residential, and employment details.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+            <div>
+                <h1 class="text-xl font-bold text-white">Applicant Personal Profile</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Please provide your complete personal, residential, and employment details for PESO verification.</p>
+            </div>
+            <div>
+                <span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-semibold">PESO Unified Profile</span>
+            </div>
         </div>
 
         {% if form.non_field_errors %}
-            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+            <div class="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs text-rose-300">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
 
         <!-- Section 1: Basic Information -->
         <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">1. Personal Information</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">1. Personal Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.first_name.label }}</label>
-                    {{ form.first_name }}
-                    {% if form.first_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.first_name.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.first_name }}
+                    </div>
+                    {% if form.first_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.middle_name.label }}</label>
-                    {{ form.middle_name }}
-                    {% if form.middle_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.middle_name.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.middle_name.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.middle_name }}
+                    </div>
+                    {% if form.middle_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.middle_name.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.last_name.label }}</label>
-                    {{ form.last_name }}
-                    {% if form.last_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.date_of_birth.label }}</label>
-                    {{ form.date_of_birth }}
-                    {% if form.date_of_birth.errors %}<p class="text-xs text-red-500 mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.sex.label }}</label>
-                    {{ form.sex }}
-                    {% if form.sex.errors %}<p class="text-xs text-red-500 mt-1">{{ form.sex.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.civil_status.label }}</label>
-                    {{ form.civil_status }}
-                    {% if form.civil_status.errors %}<p class="text-xs text-red-500 mt-1">{{ form.civil_status.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.last_name.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.last_name }}
+                    </div>
+                    {% if form.last_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.phone_number.label }}</label>
-                    {{ form.phone_number }}
-                    {% if form.phone_number.errors %}<p class="text-xs text-red-500 mt-1">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.date_of_birth.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.date_of_birth }}
+                    </div>
+                    {% if form.date_of_birth.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.sex.label }}</label>
+                    <div class="w-full [&>select]:w-full [&>select]:bg-slate-900/90 [&>select]:border [&>select]:border-slate-700/80 [&>select]:rounded-xl [&>select]:px-3.5 [&>select]:py-2.5 [&>select]:text-xs [&>select]:text-white [&>select]:focus:outline-none [&>select]:focus:border-amber-400">
+                        {{ form.sex }}
+                    </div>
+                    {% if form.sex.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.sex.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.civil_status.label }}</label>
+                    <div class="w-full [&>select]:w-full [&>select]:bg-slate-900/90 [&>select]:border [&>select]:border-slate-700/80 [&>select]:rounded-xl [&>select]:px-3.5 [&>select]:py-2.5 [&>select]:text-xs [&>select]:text-white [&>select]:focus:outline-none [&>select]:focus:border-amber-400">
+                        {{ form.civil_status }}
+                    </div>
+                    {% if form.civil_status.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.civil_status.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.phone_number.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.phone_number }}
+                    </div>
+                    {% if form.phone_number.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.phone_number.errors.0 }}</p>{% endif %}
                 </div>
             </div>
         </div>
+
+        <hr class="border-slate-800">
 
         <!-- Section 2: Address Breakdown -->
         <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">2. Residential Address</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.house_street.label }}</label>
-                    {{ form.house_street }}
-                    {% if form.house_street.errors %}<p class="text-xs text-red-500 mt-1">{{ form.house_street.errors.0 }}</p>{% endif %}
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">2. Residential Address</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+                <div class="sm:col-span-4">
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.house_street.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.house_street }}
+                    </div>
+                    {% if form.house_street.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.house_street.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.barangay.label }}</label>
-                    {{ form.barangay }}
-                    {% if form.barangay.errors %}<p class="text-xs text-red-500 mt-1">{{ form.barangay.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.barangay.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.barangay }}
+                    </div>
+                    {% if form.barangay.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.barangay.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.municipality.label }}</label>
-                    {{ form.municipality }}
-                    {% if form.municipality.errors %}<p class="text-xs text-red-500 mt-1">{{ form.municipality.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.municipality.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.municipality }}
+                    </div>
+                    {% if form.municipality.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.municipality.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.province.label }}</label>
-                    {{ form.province }}
-                    {% if form.province.errors %}<p class="text-xs text-red-500 mt-1">{{ form.province.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.province.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.province }}
+                    </div>
+                    {% if form.province.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.province.errors.0 }}</p>{% endif %}
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.region.label }}</label>
-                        {{ form.region }}
-                        {% if form.region.errors %}<p class="text-xs text-red-500 mt-1">{{ form.region.errors.0 }}</p>{% endif %}
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.region.label }}</label>
+                        <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                            {{ form.region }}
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.zip_code.label }}</label>
-                        {{ form.zip_code }}
-                        {% if form.zip_code.errors %}<p class="text-xs text-red-500 mt-1">{{ form.zip_code.errors.0 }}</p>{% endif %}
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.zip_code.label }}</label>
+                        <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                            {{ form.zip_code }}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <hr class="border-slate-800">
+
         <!-- Section 3: Household & Socioeconomic -->
         <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">3. Household & Socioeconomic</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">3. Household & Socioeconomic</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 items-center">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.household_id_no.label }}</label>
-                    {{ form.household_id_no }}
-                    {% if form.household_id_no.errors %}<p class="text-xs text-red-500 mt-1">{{ form.household_id_no.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.household_id_no.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.household_id_no }}
+                    </div>
+                    {% if form.household_id_no.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.household_id_no.errors.0 }}</p>{% endif %}
                 </div>
-                <div class="flex items-center gap-6 pt-5">
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                <div class="flex items-center gap-6 sm:col-span-2 pt-5">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300 [&>input]:rounded [&>input]:bg-slate-900 [&>input]:border-slate-700 [&>input]:text-amber-400 [&>input]:focus:ring-0">
                         {{ form.is_4ps_beneficiary }} <span>4Ps Beneficiary</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300 [&>input]:rounded [&>input]:bg-slate-900 [&>input]:border-slate-700 [&>input]:text-amber-400 [&>input]:focus:ring-0">
                         {{ form.is_ofw }} <span>OFW</span>
                     </label>
                 </div>
             </div>
         </div>
 
+        <hr class="border-slate-800">
+
         <!-- Section 4: Employment Details -->
         <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">4. Employment Status</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">4. Employment Status</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.employment_status.label }}</label>
-                    {{ form.employment_status }}
-                    {% if form.employment_status.errors %}<p class="text-xs text-red-500 mt-1">{{ form.employment_status.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.employment_status.label }}</label>
+                    <div class="w-full [&>select,>input]:w-full [&>select,>input]:bg-slate-900/90 [&>select,>input]:border [&>select,>input]:border-slate-700/80 [&>select,>input]:rounded-xl [&>select,>input]:px-3.5 [&>select,>input]:py-2.5 [&>select,>input]:text-xs [&>select,>input]:text-white [&>select,>input]:focus:outline-none [&>select,>input]:focus:border-amber-400">
+                        {{ form.employment_status }}
+                    </div>
+                    {% if form.employment_status.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.employment_status.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.unemployment_reason.label }}</label>
-                    {{ form.unemployment_reason }}
-                    {% if form.unemployment_reason.errors %}<p class="text-xs text-red-500 mt-1">{{ form.unemployment_reason.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.unemployment_reason.label }}</label>
+                    <div class="w-full [&>select,>input]:w-full [&>select,>input]:bg-slate-900/90 [&>select,>input]:border [&>select,>input]:border-slate-700/80 [&>select,>input]:rounded-xl [&>select,>input]:px-3.5 [&>select,>input]:py-2.5 [&>select,>input]:text-xs [&>select,>input]:text-white [&>select,>input]:focus:outline-none [&>select,>input]:focus:border-amber-400">
+                        {{ form.unemployment_reason }}
+                    </div>
+                    {% if form.unemployment_reason.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.unemployment_reason.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.looking_duration.label }}</label>
-                    {{ form.looking_duration }}
-                    {% if form.looking_duration.errors %}<p class="text-xs text-red-500 mt-1">{{ form.looking_duration.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.looking_duration.label }}</label>
+                    <div class="w-full [&>select,>input]:w-full [&>select,>input]:bg-slate-900/90 [&>select,>input]:border [&>select,>input]:border-slate-700/80 [&>select,>input]:rounded-xl [&>select,>input]:px-3.5 [&>select,>input]:py-2.5 [&>select,>input]:text-xs [&>select,>input]:text-white [&>select,>input]:focus:outline-none [&>select,>input]:focus:border-amber-400">
+                        {{ form.looking_duration }}
+                    </div>
+                    {% if form.looking_duration.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.looking_duration.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.expected_salary.label }}</label>
-                    {{ form.expected_salary }}
-                    {% if form.expected_salary.errors %}<p class="text-xs text-red-500 mt-1">{{ form.expected_salary.errors.0 }}</p>{% endif %}
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.expected_salary.label }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.expected_salary }}
+                    </div>
+                    {% if form.expected_salary.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.expected_salary.errors.0 }}</p>{% endif %}
                 </div>
                 <div class="sm:col-span-2 pt-2">
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300 [&>input]:rounded [&>input]:bg-slate-900 [&>input]:border-slate-700 [&>input]:text-amber-400 [&>input]:focus:ring-0">
                         {{ form.actively_looking }} <span>Actively looking for work</span>
                     </label>
                 </div>
             </div>
         </div>
 
+        <hr class="border-slate-800">
+
+        <!-- Section 5: Supporting Documents & Attachments (Added for multipart/form-data support) -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">5. Supporting Documents & Attachments</h2>
+                <span class="text-[10px] text-slate-400">PDF, JPG, PNG up to 5MB</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {% if form.resume %}
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.resume.label|default:"Resume / CV" }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:file:mr-4 [&>input]:file:py-1 [&>input]:file:px-2.5 [&>input]:file:rounded-lg [&>input]:file:border-0 [&>input]:file:text-[11px] [&>input]:file:font-semibold [&>input]:file:bg-amber-400 [&>input]:file:text-slate-950 [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.resume }}
+                    </div>
+                    {% if form.resume.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.resume.errors.0 }}</p>{% endif %}
+                </div>
+                {% endif %}
+                {% if form.valid_id %}
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.valid_id.label|default:"Valid Government ID" }}</label>
+                    <div class="w-full [&>input]:w-full [&>input]:bg-slate-900/90 [&>input]:border [&>input]:border-slate-700/80 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:file:mr-4 [&>input]:file:py-1 [&>input]:file:px-2.5 [&>input]:file:rounded-lg [&>input]:file:border-0 [&>input]:file:text-[11px] [&>input]:file:font-semibold [&>input]:file:bg-amber-400 [&>input]:file:text-slate-950 [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                        {{ form.valid_id }}
+                    </div>
+                    {% if form.valid_id.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.valid_id.errors.0 }}</p>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Actions -->
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <a href="{% url 'applicant-dashboard' %}" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">
+        <div class="flex justify-end gap-3 pt-6 border-t border-slate-800">
+            <a href="{% url 'applicant-dashboard' %}" class="px-4 py-2.5 text-xs font-semibold text-slate-300 bg-slate-800/80 rounded-xl hover:bg-slate-700 transition-colors">
                 Cancel
             </a>
-            <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+            <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-amber-400 rounded-xl hover:bg-amber-300 transition-colors shadow-sm">
                 Save Profile
             </button>
         </div>
