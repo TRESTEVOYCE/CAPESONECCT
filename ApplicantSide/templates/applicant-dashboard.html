@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "applicant-base.html" %}
 
 {% block title %}Applicant Dashboard - PESO Connect{% endblock %}
 {% block content %}
@@ -9,7 +9,7 @@
             <p class="text-sm text-slate-500 mt-1">Ranked recommendations based on your semantic profile.</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{% url 'applicant:job_list' %}" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Browse All Jobs</a>
+            <a href="{% url 'job_list' %}" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Browse All Jobs</a> 
         </div>
     </div>
 
