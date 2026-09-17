@@ -1,10 +1,10 @@
 from django.views.generic import ListView,CreateView,UpdateView,DeleteView,DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection,build_applicant_profile_text
-from AdminSide.models import Jobs,ApplicantProfile,AppliedJobs,SavedJobs
+from AdminSide.models import Jobs,ApplicantProfile,AppliedJobs,SavedJobs,ApplicantSkills
 from django.contrib.auth.views import LogoutView
 from django.db.models import Q
-from .forms import ApplicantEducationForm, ApplicantPersonalInfoForm, ApplicantSkillFormSet, ApplicantPreferredJobForm, ApplicantDocumentsForm
+from .forms import ApplicantEducationForm, ApplicantPersonalInfoForm, ApplicantSkillFormSet, ApplicantPreferredJobForm, ApplicantDocumentsForm,ApplicantSkillForm
 from django.urls import reverse_lazy
  
 class ApplicantPersonalInfoCreateView(CreateView):
@@ -13,9 +13,8 @@ class ApplicantPersonalInfoCreateView(CreateView):
     template_name = 'applicant_personal_info_form.html'
     success_url = reverse_lazy('dashboard')
 
-
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -28,7 +27,7 @@ class ApplicantEducationCreateView(CreateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -41,7 +40,7 @@ class ApplicantPreferredJobCreateView(CreateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -54,24 +53,30 @@ class ApplicantDocumentsCreateView(CreateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
 class ApplicantSkillCreateView(CreateView):
-    model = ApplicantProfile
-    form_class = ApplicantSkillFormSet
+
+    model = ApplicantSkills
+    form_class = ApplicantSkillForm
     template_name = 'applicant_skill_form.html'
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        applicant = self.request.user.applicant_profile
+        applicant.skills.add(self.object)
+
+        return response
+    
 class ApplicantPersonalUpdateInfoView(UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPersonalInfoForm
@@ -79,7 +84,7 @@ class ApplicantPersonalUpdateInfoView(UpdateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
@@ -91,7 +96,7 @@ class ApplicantEducationUpdateView(UpdateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
@@ -103,7 +108,7 @@ class ApplicantSkillUpdateView(UpdateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
@@ -115,8 +120,7 @@ class ApplicantPreferredJobUpdateView(UpdateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
 
@@ -127,8 +131,7 @@ class ApplicantDocumentsUpdateView(UpdateView):
     success_url = reverse_lazy('dashboard')
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
 
@@ -137,26 +140,26 @@ class ApplicantProfileDeleteView(DeleteView):
     success_url = reverse_lazy('login')  # Redirect to the login page after successful deletion
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
 
 
 class LogoutView(LogoutView):
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('landing_page') 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     
 
-class DashBoardView(ListView):
+class DashBoardView(LoginRequiredMixin,UserPassesTestMixin,ListView):
     model = Jobs
-    template_name = 'applicant_dashboard.html'
+    template_name = 'applicant-dashboard.html' 
     context_object_name = 'matching_jobs'
-    
+    login_url = '/login/'
+
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -192,8 +195,7 @@ class JobListView(ListView):
     context_object_name = 'jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_queryset(self):
         return Jobs.objects.all()
     
@@ -226,21 +228,14 @@ class JobListView(ListView):
 class JobDetailsView(DetailView):
     model = Jobs
     template_name = 'job_details.html'
-    slug_field = 'uuid'
-    slug_url_kwarg = 'uuid'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.get_queryset()
-        uuid = self.kwargs.get('uuid')
-        return queryset.filter(uuid=uuid).first()
-
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['job'] = self.object
+        job_uuid = self.kwargs.get('uuid')
+        job = Jobs.objects.filter(uuid=job_uuid).first()
+        context['job'] = job
         return context
 
 class SortJobView(ListView):
@@ -248,7 +243,7 @@ class SortJobView(ListView):
     context_object_name = 'matching_jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
         sort_by = self.request.GET.get('sort_by', 'date_posted')  # Default sorting by date_posted
@@ -260,16 +255,16 @@ class SortJobView(ListView):
             return Jobs.objects.all()  # Default case if no valid sort option is provided
 
 
-class AppliedJobsListView(ListView):
+class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = AppliedJobs
     template_name = 'applied_jobs.html'
     context_object_name = 'applied_jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applicant=self.request.user)
+        return AppliedJobs.objects.filter(applicant=self.request.user.applicant_profile)
 
 
 class SavedJobsListView(ListView):
@@ -278,7 +273,11 @@ class SavedJobsListView(ListView):
     context_object_name = 'saved_jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
+    def get_queryset(self):
+        return SavedJobs.objects.filter(applicant=self.request.user)
+
 
     def get_queryset(self):
         applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
@@ -292,7 +291,7 @@ class SearchJobView(ListView):
     context_object_name = 'jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
         query = self.request.GET.get('q')
