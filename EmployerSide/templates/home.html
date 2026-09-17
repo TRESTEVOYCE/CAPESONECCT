@@ -1,17 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+<!-- templates/home.html -->
+{% extends 'base.html' %}
 
-   <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
-    
-    
-</body>
-</html>
+{% block title %}Job Postings — CAPESONCONNECT{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Job Postings</h1>
+            <p class="text-sm text-slate-500">Manage your active and past vacancies</p>
+        </div>
+        <a href="{% url 'job_create' %}" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow transition flex items-center space-x-2">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>Post New Job</span>
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
+            <p class="text-3xl font-bold text-emerald-600">{{ jobs|default:0 }}</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Active Postings</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
+            <p class="text-3xl font-bold text-indigo-600">{{ applied_jobs|default:0 }}</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Total Applicants</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
+            <p class="text-3xl font-bold text-purple-600">759</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Total Views</p>
+        </div>
+    </div>
+
+    <!-- Job Vacancies List Section -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-700">Recent Vacancies</span>
+            <a href="{% url 'job_list' %}" class="text-xs font-medium text-indigo-600 hover:underline">View All</a>
+        </div>
+
+        <div class="divide-y divide-slate-100">
+            {% for job in object_list %}
+            <div class="p-6 flex items-center justify-between hover:bg-slate-50/50 transition">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'job_detail' job.pk %}" class="font-semibold text-slate-900 text-base hover:text-indigo-600 transition">{{ job.job_title }}</a>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {% if job.status == 'Active' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ job.status }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        Posted {{ job.posting_date|date:"M j, Y" }} · Expires {{ job.job_posting_expiry|date:"M j, Y" }}
+                    </p>
+                </div>
+
+                <div class="flex items-center space-x-8">
+                    <div class="text-right">
+                        <span class="block text-sm font-bold text-slate-800">{{ job.applied_applicants.count }}</span>
+                        <span class="text-[11px] text-slate-400 uppercase">Applicants</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="block text-sm font-bold text-slate-800">342</span>
+                        <span class="text-[11px] text-slate-400 uppercase">Views</span>
+                    </div>
+                    <div class="flex items-center space-x-3 pl-4 border-l border-slate-100">
+                        <a href="{% url 'job_update' job.pk %}" class="text-slate-400 hover:text-indigo-600 transition p-1" title="Edit">
+                            <i class="fa-solid fa-pen text-sm"></i>
+                        </a>
+                        <a href="{% url 'job_delete' job.pk %}" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete">
+                            <i class="fa-solid fa-trash text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-12 text-center text-slate-400">
+                <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+                <p class="text-sm">No job postings found. Click "Post New Job" to create your first vacancy.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
