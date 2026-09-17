@@ -84,3 +84,4 @@ class SignInView(FormView):
 
 class LandingPageView(TemplateView):
     template_name = 'LandingPage/index.html'
+
