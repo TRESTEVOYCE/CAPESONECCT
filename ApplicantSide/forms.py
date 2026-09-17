@@ -10,12 +10,11 @@ TAILWIND_INPUT_CLASSES = {
 }
 
 def apply_tailwind_widgets(form):
-    """Helper to apply TAILWIND_INPUT_CLASSES across standard form fields."""
+    
     for field_name, field in form.fields.items():
         existing_class = field.widget.attrs.get('class', '')
         new_class = TAILWIND_INPUT_CLASSES['class']
         
-        # Adjust file input or checkbox styling if needed
         if isinstance(field.widget, (forms.FileInput, forms.ClearableFileInput)):
             field.widget.attrs['class'] = 'block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'
         elif isinstance(field.widget, forms.CheckboxInput):
@@ -55,6 +54,9 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
             'is_ofw',
             'expected_salary',
         ]
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 class ApplicantEducationForm(forms.ModelForm):
@@ -65,10 +67,7 @@ class ApplicantEducationForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
         fields = [
-            'education_level',
-            'school_name',
-            'course_program',
-            'year_graduated',
+            'education_level',  
         ]
 
 

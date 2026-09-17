@@ -1,126 +1,167 @@
 {% extends 'base.html' %}
-{% block title %}Personal Information - PESO Connect{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Personal Information</h1>
-        <p class="text-sm text-slate-500 mt-1">Provide your primary demographic and contact details.</p>
-    </div>
-
-    <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+<div class="max-w-3xl mx-auto py-8 px-4">
+    <form method="POST" enctype="multipart/form-data" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">First Name</label>
-                {{ form.first_name }}
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Middle Name</label>
-                {{ form.middle_name }}
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Last Name</label>
-                {{ form.last_name }}
-            </div>
+        
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Applicant Personal Profile</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Please provide your complete personal, residential, and employment details.</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Date of Birth</label>
-                {{ form.date_of_birth }}
+        {% if form.non_field_errors %}
+            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                {{ form.non_field_errors }}
             </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Sex</label>
-                {{ form.sex }}
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Civil Status</label>
-                {{ form.civil_status }}
-            </div>
-        </div>
+        {% endif %}
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
-                {{ form.phone_number }}
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Expected Salary (PHP)</label>
-                {{ form.expected_salary }}
-            </div>
-        </div>
-
-        <div class="border-t border-slate-100 pt-6">
-            <h3 class="text-sm font-semibold text-slate-900 mb-4">Address Details</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <!-- Section 1: Basic Information -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">1. Personal Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">House / Street</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.middle_name.label }}</label>
+                    {{ form.middle_name }}
+                    {% if form.middle_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.middle_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<p class="text-xs text-red-500 mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.date_of_birth.label }}</label>
+                    {{ form.date_of_birth }}
+                    {% if form.date_of_birth.errors %}<p class="text-xs text-red-500 mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.sex.label }}</label>
+                    {{ form.sex }}
+                    {% if form.sex.errors %}<p class="text-xs text-red-500 mt-1">{{ form.sex.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.civil_status.label }}</label>
+                    {{ form.civil_status }}
+                    {% if form.civil_status.errors %}<p class="text-xs text-red-500 mt-1">{{ form.civil_status.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}<p class="text-xs text-red-500 mt-1">{{ form.phone_number.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Address Breakdown -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">2. Residential Address</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.house_street.label }}</label>
                     {{ form.house_street }}
+                    {% if form.house_street.errors %}<p class="text-xs text-red-500 mt-1">{{ form.house_street.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Barangay</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.barangay.label }}</label>
                     {{ form.barangay }}
+                    {% if form.barangay.errors %}<p class="text-xs text-red-500 mt-1">{{ form.barangay.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Municipality / City</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.municipality.label }}</label>
                     {{ form.municipality }}
+                    {% if form.municipality.errors %}<p class="text-xs text-red-500 mt-1">{{ form.municipality.errors.0 }}</p>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Province</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.province.label }}</label>
                     {{ form.province }}
+                    {% if form.province.errors %}<p class="text-xs text-red-500 mt-1">{{ form.province.errors.0 }}</p>{% endif %}
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Region</label>
-                    {{ form.region }}
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Zip Code</label>
-                    {{ form.zip_code }}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.region.label }}</label>
+                        {{ form.region }}
+                        {% if form.region.errors %}<p class="text-xs text-red-500 mt-1">{{ form.region.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.zip_code.label }}</label>
+                        {{ form.zip_code }}
+                        {% if form.zip_code.errors %}<p class="text-xs text-red-500 mt-1">{{ form.zip_code.errors.0 }}</p>{% endif %}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="border-t border-slate-100 pt-6">
-            <h3 class="text-sm font-semibold text-slate-900 mb-4">Employment & Sector Status</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <!-- Section 3: Household & Socioeconomic -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">3. Household & Socioeconomic</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Employment Status</label>
-                    {{ form.employment_status }}
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Unemployment Reason (if any)</label>
-                    {{ form.unemployment_reason }}
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Actively Looking?</label>
-                    {{ form.actively_looking }}
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Looking Duration</label>
-                    {{ form.looking_duration }}
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-4">
-                <div class="flex items-center gap-2 pt-6">
-                    {{ form.is_4ps_beneficiary }} <span class="text-xs font-medium text-slate-700">4Ps Beneficiary</span>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Household ID No.</label>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.household_id_no.label }}</label>
                     {{ form.household_id_no }}
+                    {% if form.household_id_no.errors %}<p class="text-xs text-red-500 mt-1">{{ form.household_id_no.errors.0 }}</p>{% endif %}
                 </div>
-                <div class="flex items-center gap-2 pt-6">
-                    {{ form.is_ofw }} <span class="text-xs font-medium text-slate-700">Returning OFW</span>
+                <div class="flex items-center gap-6 pt-5">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                        {{ form.is_4ps_beneficiary }} <span>4Ps Beneficiary</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                        {{ form.is_ofw }} <span>OFW</span>
+                    </label>
                 </div>
             </div>
         </div>
 
+        <!-- Section 4: Employment Details -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">4. Employment Status</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.employment_status.label }}</label>
+                    {{ form.employment_status }}
+                    {% if form.employment_status.errors %}<p class="text-xs text-red-500 mt-1">{{ form.employment_status.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.unemployment_reason.label }}</label>
+                    {{ form.unemployment_reason }}
+                    {% if form.unemployment_reason.errors %}<p class="text-xs text-red-500 mt-1">{{ form.unemployment_reason.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.looking_duration.label }}</label>
+                    {{ form.looking_duration }}
+                    {% if form.looking_duration.errors %}<p class="text-xs text-red-500 mt-1">{{ form.looking_duration.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">{{ form.expected_salary.label }}</label>
+                    {{ form.expected_salary }}
+                    {% if form.expected_salary.errors %}<p class="text-xs text-red-500 mt-1">{{ form.expected_salary.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="sm:col-span-2 pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+                        {{ form.actively_looking }} <span>Actively looking for work</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
         <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors">
-                Save & Continue
+            <a href="{% url 'applicant:dashboard' %}" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">
+                Cancel
+            </a>
+            <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+                Save Profile
             </button>
         </div>
     </form>

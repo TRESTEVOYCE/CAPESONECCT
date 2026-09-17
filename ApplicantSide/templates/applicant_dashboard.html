@@ -1,4 +1,5 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block title %}Applicant Dashboard - PESO Connect{% endblock %}
 {% block content %}
 <div class="space-y-6">
@@ -8,7 +9,7 @@
             <p class="text-sm text-slate-500 mt-1">Ranked recommendations based on your semantic profile.</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{% url 'job_list' %}" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Browse All Jobs</a>
+            <a href="{% url 'applicant:job_list' %}" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Browse All Jobs</a>
         </div>
     </div>
 
@@ -29,7 +30,7 @@
                     <p class="text-xs text-slate-400">Salary</p>
                     <p class="text-sm font-bold text-slate-900">₱{{ job.salary }}</p>
                 </div>
-                <a href="{% url 'job_details' pk=job.pk %}" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">View Match</a>
+                <a href="{% url 'applicant:job_details' uuid=job.pk %}" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">View Match</a>
             </div>
         </div>
         {% empty %}

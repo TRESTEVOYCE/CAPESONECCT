@@ -6,6 +6,20 @@ import uuid
 from JobMatchingEngine.database import *
 
 class User(AbstractUser):
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        related_name='admin_user_set',
+        related_query_name='admin_user',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        related_name='admin_user_set',
+        related_query_name='admin_user',
+    )
 
     ROLE_CHOICES = (
         ('admin', 'Admin'),
@@ -31,7 +45,8 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.username}) - {self.role}"
-
+    
+    
 class EmployerProfile(models.Model):
     OFFICE_TYPE_CHOICES = (
         ('main', 'Main Office'),
@@ -279,6 +294,17 @@ class ApplicantProfile(models.Model):
     province = models.CharField(max_length=100)
     region = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
+    
+    # Insert socioeconomic & employment fields here:
+    household_id_no = models.CharField(max_length=50, blank=True, null=True)
+    actively_looking = models.BooleanField(default=True)
+    is_4ps_beneficiary = models.BooleanField(default=False)
+    looking_duration = models.CharField(max_length=50, blank=True, null=True)
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    is_ofw = models.BooleanField(default=False)
+    employment_status = models.CharField(max_length=50, blank=True, null=True)
+    unemployment_reason = models.CharField(max_length=150, blank=True, null=True)
+    house_street = models.CharField(max_length=255, blank=True, null=True)
 
     resume = models.FileField(
         upload_to='resumes/',
@@ -670,13 +696,15 @@ class CareerGuidanceBeneficiary(Beneficiaries):
     class Meta:
         verbose_name = "Career Guidance Beneficiary"
         verbose_name_plural = "Career Guidance Beneficiaries"
-        db_table = "peso_career_guidance_beneficiaries"
+        db_table = "admin_career_guidance_beneficiaries"  # <--- Change/update this line
 
     def __str__(self):
         return (
             f"{self.first_name} {self.last_name} - "
             f"Career Guidance ({self.get_activity_type_display()})"
         )
+
+
 
 
 class PESOActivities(models.Model):

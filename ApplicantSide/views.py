@@ -13,6 +13,7 @@ class ApplicantPersonalInfoCreateView(CreateView):
     template_name = 'applicant_personal_info_form.html'
     success_url = reverse_lazy('dashboard')
 
+
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_applicant
 
@@ -150,8 +151,9 @@ class LogoutView(LogoutView):
 
 class DashBoardView(ListView):
     model = Jobs
-    template_name = 'dashboard.html'
+    template_name = 'applicant_dashboard.html'
     context_object_name = 'matching_jobs'
+    
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_applicant
