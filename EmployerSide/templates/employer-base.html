@@ -57,15 +57,15 @@
                 <div>
                     <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase px-3 mb-2">Navigation</p>
                     <nav class="space-y-1">
-                        <a href="{% url 'home' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'job_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <a href="{% url 'employer-home' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'job_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-briefcase w-5 text-center"></i>
                             <span>Job Postings</span>
                         </a>
-                        <a href="{% url 'applicants_list' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'applicants_list' or request.resolver_match.url_name == 'applicant_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <a href="{% url 'applicants-list' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'applicants_list' or request.resolver_match.url_name == 'applicant_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-user-group w-5 text-center"></i>
                             <span>Applicants</span>
                         </a>
-                        <a href="{% url 'company_profile' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <a href="{% url 'company-profile' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-building w-5 text-center"></i>
                             <span>Company Profile</span>
                         </a>
