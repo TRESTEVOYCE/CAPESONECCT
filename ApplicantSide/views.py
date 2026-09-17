@@ -13,7 +13,6 @@ class ApplicantPersonalInfoCreateView(CreateView):
     template_name = 'applicant_personal_info_form.html'
     success_url = reverse_lazy('dashboard')
 
-
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
@@ -147,16 +146,17 @@ class ApplicantProfileDeleteView(DeleteView):
 
 
 class LogoutView(LogoutView):
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('landing_page') 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     
 
-class DashBoardView(ListView):
+class DashBoardView(LoginRequiredMixin,UserPassesTestMixin,ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html' 
     context_object_name = 'matching_jobs'
-    
+    login_url = '/login/'
+
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -228,14 +228,14 @@ class JobListView(ListView):
 class JobDetailsView(DetailView):
     model = Jobs
     template_name = 'job_details.html'
-    slug_field = 'uuid'
-    slug_url_kwarg = 'uuid'
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['job'] = self.object
+        job_uuid = self.kwargs.get('uuid')
+        job = Jobs.objects.filter(uuid=job_uuid).first()
+        context['job'] = job
         return context
 
 class SortJobView(ListView):
@@ -264,7 +264,14 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applicant=self.request.user.applicant_profile)
+        try:
+            applicant_profile = self.request.user.applicant_profile
+        except ApplicantProfile.DoesNotExist:
+            return AppliedJobs.objects.none()
+
+        return AppliedJobs.objects.filter(
+            applicant=applicant_profile
+        )
 
 
 class SavedJobsListView(ListView):

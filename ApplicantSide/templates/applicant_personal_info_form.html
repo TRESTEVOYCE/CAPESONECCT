@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'applicant-base.html' %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto py-8 px-4">
@@ -157,7 +157,7 @@
 
         <!-- Actions -->
         <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <a href="{% url 'applicant:dashboard' %}" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">
+            <a href="{% url 'applicant-dashboard' %}" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">
                 Cancel
             </a>
             <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
