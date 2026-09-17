@@ -146,15 +146,17 @@ class ApplicantProfileDeleteView(DeleteView):
 
 
 class LogoutView(LogoutView):
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('landing_page') 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     
 
-class DashBoardView(ListView):
+class DashBoardView(LoginRequiredMixin,UserPassesTestMixin,ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html' 
     context_object_name = 'matching_jobs'
+    login_url = '/login/'
+
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
