@@ -1,32 +1,58 @@
 {% extends 'applicant-base.html' %}
-{% block title %}Education Background - PESO Connect{% endblock %}
+{% block title %}Education Background - CAPESCONNECT PESO Carigara{% endblock %}
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Educational Background</h1>
-        <p class="text-sm text-slate-500 mt-1">Specify your highest attained educational level and school details.</p>
+<div class="max-w-2xl mx-auto space-y-6">
+    <div class="mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-white">Educational Background</h1>
+        <p class="text-xs text-slate-400 mt-1">Specify your highest attained educational level and school details.</p>
     </div>
 
-    <form method="post" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
+    <form method="post" class="bg-[#161e31] border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5">
         {% csrf_token %}
-        <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Education Level</label>
-            {{ form.education_level }}
+
+        {% if form.non_field_errors %}
+        <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300">
+            {{ form.non_field_errors }}
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">School Name</label>
-            {{ form.school_name }}
+        {% endif %}
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">Education Level</label>
+            <div class="[&>select]:w-full [&>select]:bg-slate-900 [&>select]:border [&>select]:border-slate-700 [&>select]:rounded-xl [&>select]:px-3.5 [&>select]:py-2.5 [&>select]:text-xs [&>select]:text-white [&>select]:focus:outline-none [&>select]:focus:border-amber-400">
+                {{ form.education_level }}
+            </div>
+            {% if form.education_level.errors %}<p class="text-xs text-rose-400">{{ form.education_level.errors.0 }}</p>{% endif %}
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Course / Program</label>
-            {{ form.course_program }}
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">School Name</label>
+            <div class="[&>input]:w-full [&>input]:bg-slate-900 [&>input]:border [&>input]:border-slate-700 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                {{ form.school_name }}
+            </div>
+            {% if form.school_name.errors %}<p class="text-xs text-rose-400">{{ form.school_name.errors.0 }}</p>{% endif %}
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Year Graduated</label>
-            {{ form.year_graduated }}
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">Course / Program</label>
+            <div class="[&>input]:w-full [&>input]:bg-slate-900 [&>input]:border [&>input]:border-slate-700 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                {{ form.course_program }}
+            </div>
+            {% if form.course_program.errors %}<p class="text-xs text-rose-400">{{ form.course_program.errors.0 }}</p>{% endif %}
         </div>
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
+
+        <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300">Year Graduated</label>
+            <div class="[&>input]:w-full [&>input]:bg-slate-900 [&>input]:border [&>input]:border-slate-700 [&>input]:rounded-xl [&>input]:px-3.5 [&>input]:py-2.5 [&>input]:text-xs [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:focus:outline-none [&>input]:focus:border-amber-400">
+                {{ form.year_graduated }}
+            </div>
+            {% if form.year_graduated.errors %}<p class="text-xs text-rose-400">{{ form.year_graduated.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-800">
+            <a href="{% url 'applicant-dashboard' %}" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition-colors">
                 Save Education
             </button>
         </div>

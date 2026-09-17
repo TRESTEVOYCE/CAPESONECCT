@@ -144,7 +144,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Leave empty since static files live inside app directories (e.g., LandingPage/static/)
 STATICFILES_DIRS = [
     BASE_DIR / 'LandingPage' / 'static',
+    BASE_DIR / 'ApplicantSide' / 'static',
 ]
+
 
 # Storage Configuration for Cloudinary (Media) and WhiteNoise (Static)
 CLOUDINARY_STORAGE = {

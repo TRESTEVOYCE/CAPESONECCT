@@ -1,38 +1,150 @@
 {% extends 'applicant-base.html' %}
-{% block title %}Job Directory - PESO Connect{% endblock %}
+{% block title %}Browse All Jobs - CAPESCONNECT PESO Carigara{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Job Directory</h1>
-            <p class="text-sm text-slate-500 mt-1">Search or sort open enterprise and local agency positions.</p>
-        </div>
-        
-        <div class="flex flex-wrap items-center gap-3">
-            <form action="{% url 'search_jobs' %}" method="get" class="flex gap-2">
-                <input type="text" name="q" placeholder="Search title, company..." value="{{ request.GET.q }}" class="px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600">
-                <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold">Search</button>
-            </form>
-            <a href="{% url 'sort_jobs' %}?sort_by=salary" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50">Sort Salary</a>
-        </div>
+    
+    <!-- Header Title Section -->
+    <div>
+        <h1 class="text-2xl font-extrabold text-white">Browse all Jobs</h1>
+        <p class="text-xs text-slate-400 mt-0.5"><span class="text-white font-bold">{{ jobs|length|default:"12" }}</span> of 12 listings shown</p>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
-        {% for job in jobs %}
-        <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <span class="text-xs font-medium text-indigo-600">{{ job.nature_of_work|title }}</span>
-                <h3 class="text-base font-bold text-slate-900 mt-1">{{ job.job_title }}</h3>
-                <p class="text-xs text-slate-500">{{ job.employer.business_name }} • {{ job.place_of_work }}</p>
+    <!-- Top Horizontal Filter Bar -->
+    <div class="bg-[#161e31] border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+        <form action="{% url 'search_jobs' %}" method="get" class="flex-1 min-w-[220px]">
+            <input type="text" name="q" placeholder="Job title, companies, skills..." value="{{ request.GET.q }}" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400">
+        </form>
+        <button class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-300 font-semibold hover:border-slate-600">All Industries ▼</button>
+        <button class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-300 font-semibold hover:border-slate-600">All Locations ▼</button>
+        <button class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-300 font-semibold hover:border-slate-600">All Job Types ▼</button>
+        <button class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-slate-300 font-semibold hover:border-slate-600 flex items-center gap-1.5">
+            More Filters 🎛️
+        </button>
+    </div>
+
+    <!-- Main Content Grid (Left Results / Right Sidebar Filters + Saved Jobs) -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left 3 Columns: Job Cards Grid (2x2 layout per row matching reference) -->
+        <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for job in jobs %}
+            <div class="bg-[#161e31] border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <!-- Top row: Avatar icon & Bookmark/Save button -->
+                    <div class="flex items-start justify-between">
+                        <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center text-xs font-bold text-white">
+                            🏢
+                        </div>
+                        <button class="text-slate-400 hover:text-amber-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Job title & company -->
+                    <div>
+                        <h3 class="text-sm font-bold text-white">{{ job.job_title }}</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ job.employer.business_name|default:"Teleperformance Philippines" }}</p>
+                    </div>
+
+                    <!-- Location, Work Type, Industry Badges -->
+                    <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-300">
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50">📍 {{ job.place_of_work|default:"Makati City" }}</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50">⏱️ Full Time</span>
+                        <span class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">{{ job.nature_of_work|default:"BPO/Call Center" }}</span>
+                    </div>
+
+                    <!-- Description excerpt -->
+                    <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                        {{ job.job_description|default:"Handle customer inquiries, provide support, and ensure customer satisfaction scores above 90%." }}
+                    </p>
+
+                    <!-- Skill tags -->
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-300">Communication</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-300">Customer Service</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-300">Problem Solving</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] text-slate-300">+2 more</span>
+                    </div>
+                </div>
+
+                <!-- Footer row: Salary, Posted time, Apply button -->
+                <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-white block">₱{{ job.salary|default:"18,000 - ₱22,000" }} / mo</span>
+                        <span class="text-[10px] text-slate-400">Posted 2 days ago</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'job_details' uuid=job.pk %}" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Details</a>
+                        <button class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors">Apply</button>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-sm font-bold text-slate-900">₱{{ job.salary }}</span>
-                <a href="{% url 'job_details' uuid=job.pk %}" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 text-xs font-semibold hover:bg-indigo-100">Details</a>
+            {% empty %}
+            <div class="col-span-full bg-[#161e31] border border-slate-800 rounded-2xl p-12 text-center text-xs text-slate-400">
+                No jobs found matching your criteria.
             </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="p-12 text-center text-sm text-slate-500">No jobs found matching your criteria.</div>
-        {% endfor %}
+
+        <!-- Right 1 Column: Quick Filters & Saved Jobs Summary -->
+        <div class="space-y-6">
+            
+            <!-- Quick Filters Card -->
+            <div class="bg-[#161e31] border border-slate-800 rounded-2xl p-5 space-y-4 text-xs">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-white text-sm">Quick Filters</h3>
+                    <button class="text-[11px] text-amber-400 hover:underline">Reset</button>
+                </div>
+
+                <!-- Job Types -->
+                <div class="space-y-2">
+                    <span class="font-bold text-slate-300 block">Job Types</span>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" checked class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Full-Time</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Part-Time</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Contractual</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Internship</label>
+                </div>
+
+                <!-- Industries -->
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <span class="font-bold text-slate-300 block">Industries</span>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" checked class="rounded border-slate-700 bg-slate-900 text-indigo-600"> BPO / Call Center</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> IT / Business Services</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Banking / Finances</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Retail</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Logistics / Warehouse</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Food & Beverage</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Healthcare</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> IT / Technology</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Education</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Hospitality</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Manufacturing</label>
+                    <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-indigo-600"> Media & Services</label>
+                </div>
+            </div>
+
+            <!-- Saved Jobs Summary Card -->
+            <div class="bg-[#161e31] border border-slate-800 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2 text-sm font-bold text-white">
+                    <span>🔖 Saved Jobs (1)</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                    <p class="text-xs font-bold text-white">Administrative Assistance</p>
+                    <p class="text-[11px] text-slate-400">ABC Trading</p>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-400 pt-1">
+                        <span>📍 Tacloban City</span>
+                        <span>⏱️ Full-time</span>
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <a href="{% url 'saved_jobs' %}" class="text-xs font-bold text-amber-400 hover:underline">
+                        View All Saved →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </div>
 {% endblock %}
