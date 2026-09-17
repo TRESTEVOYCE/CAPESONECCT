@@ -1,30 +1,30 @@
-from django.shortcuts import render, redirect
-from AdminSide.models import EmployerProfile, Jobs, AppliedJobs, ApplicantProfile
+
+from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView,TemplateView
 from .forms import EmployerProfileForm,JobsForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 
 #home or the dashboard view for the employer
-class HomeView(TemplateView):
+class HomeView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'home.html'
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
-    def get(self, request, *args, **kwargs):
-        # Prevent RelatedObjectDoesNotExist by checking if profile exists first
-        if not hasattr(request.user, 'employer_profile'):
-            return redirect('register_employer')  # Update with your actual URL name for creating a profile
-        return super().get(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Safe to query now because the 'get' method intercept blocks users without profiles
-        applied_jobs = AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employer_profile)
-        jobs = Jobs.objects.filter(employer=self.request.user.employer_profile)
+
+        applied_jobs = AppliedJobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
+        jobs = Jobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
+
         context['applied_jobs'] = applied_jobs.count()
         context['jobs'] = jobs.count()
+
         return context
 
     
@@ -37,7 +37,7 @@ class EmployerProfileCreateView(CreateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only create their own profile
     def get_queryset(self):
@@ -55,11 +55,11 @@ class ApplicantsListView(ListView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
-    
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employer_profile)
+        return AppliedJobs.objects.filter(employer=self.request.user.employer_profile)
 
 #view to display details of a specific applicant
 class ApplicantDetailView(DetailView):
@@ -68,11 +68,11 @@ class ApplicantDetailView(DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_employer
+        return self.request.user.role == 'employer' 
     
     def get_queryset(self):
          return ApplicantProfile.objects.filter(
-            applied_jobs__applied_job__employer=self.request.user.employer_profile
+            employer=self.request.user.employerprofile
             ).distinct()
 
 #view to update the status of an applicant's job application
@@ -83,7 +83,7 @@ class ApplicantJobStatusView(UpdateView):
 
     #to ensure that the employer can only update their own job postings
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applied_jobs_employer=self.request.user.employer_profile)
+        return AppliedJobs.objects.filter(employer=self.request.user.employerprofile)
 
 #to ensure that only authenticated employers can access this view
 class JobCreationView(CreateView):
@@ -94,7 +94,7 @@ class JobCreationView(CreateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only create their own job postings
     def get_queryset(self):
@@ -113,7 +113,7 @@ class JobUpdateView(UpdateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only update their own job postings
     def get_queryset(self):
@@ -125,7 +125,7 @@ class JobDeleteView(DeleteView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only delete their own job postings
     def get_queryset(self):
@@ -137,7 +137,7 @@ class JobListView(ListView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
@@ -149,7 +149,7 @@ class JobDetailView(DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
@@ -161,7 +161,7 @@ class CompanyProfileView(DetailView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only view their own profile
     def get_queryset(self):
@@ -175,7 +175,7 @@ class CompanyProfileUpdateView(UpdateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only update their own profile
     def get_queryset(self):
@@ -187,7 +187,7 @@ class AccountDeleteView(DeleteView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     #to ensure that the employer can only delete their own profile
     def get_queryset(self):
@@ -200,4 +200,4 @@ class SettingsView(TemplateView):
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_employer
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'

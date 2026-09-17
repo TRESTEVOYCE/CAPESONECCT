@@ -31,7 +31,7 @@ urlpatterns = [
 
     path('profile/delete/', ApplicantProfileDeleteView.as_view(), name='profile_delete'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('applicant_dashboard/', DashBoardView.as_view(), name='applicant_dashboard'),
+    path('applicant-dashboard/', DashBoardView.as_view(), name='applicant-dashboard'),
 
     path('jobs/', JobListView.as_view(), name='job_list'),
     path('jobs/sort/', SortJobView.as_view(), name='sort_jobs'),
