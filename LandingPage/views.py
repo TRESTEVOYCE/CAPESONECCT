@@ -83,8 +83,5 @@ class SignInView(FormView):
         return super().form_invalid(form)
 
 class LandingPageView(TemplateView):
-<<<<<<< HEAD
     template_name = 'LandingPage/index.html'
-=======
-    template_name = 'LandingPage/index.html'
->>>>>>> cb104f6bd5a06ddb81c81f1080f45d3df557f69f
+
