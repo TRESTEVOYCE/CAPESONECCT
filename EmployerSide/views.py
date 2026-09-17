@@ -159,13 +159,11 @@ class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = EmployerProfile
     template_name = 'company_profile.html'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
-    #to ensure that the employer can only view their own profile
-    def get_queryset(self):
-        return EmployerProfile.objects.filter(user=self.request.user)
+    def get_object(self, queryset=None):
+        return EmployerProfile.objects.get(user=self.request.user)
 
 class CompanyProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = EmployerProfile
