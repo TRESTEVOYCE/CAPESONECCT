@@ -22,7 +22,7 @@ urlpatterns = [
     path('jobs/', JobListView.as_view(), name='job_list'),
     path('jobs/sort/', SortJobView.as_view(), name='sort_jobs'),
     path('search_jobs/', SearchJobView.as_view(), name='search_jobs'),
-    path('jobs/<int:pk>/', JobDetailsView.as_view(), name='job_details'),
+    path('jobs/<uuid:uuid>/', JobDetailsView.as_view(), name='job_details'), # Updated from <int:pk>
 
     path('applied_jobs/', AppliedJobsListView.as_view(), name='applied_jobs'),
     path('saved_jobs/', SavedJobsListView.as_view(), name='saved_jobs'),

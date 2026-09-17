@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Job Details - PESO Connect{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ job.nature_of_work|title }}</span>
+                <h1 class="text-2xl font-bold text-slate-900 mt-3">{{ job.job_title }}</h1>
+                <p class="text-sm text-slate-500 mt-1">{{ job.employer.business_name }} • {{ job.place_of_work }}</p>
+            </div>
+            <span class="text-xs font-mono text-slate-400">{{ job.formatted_job_id }}</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
+            <div>
+                <p class="text-xs text-slate-400">Monthly Salary</p>
+                <p class="text-sm font-bold text-slate-900">₱{{ job.salary }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Vacancy</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.vacancy }} slot(s)</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Experience Required</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.work_experience_months }} mos.</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Posting Expiry</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.job_posting_expiry }}</p>
+            </div>
+        </div>
+
+        <div class="mt-8 space-y-4">
+            <div>
+                <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Job Description</h3>
+                <p class="text-sm text-slate-700 mt-2 whitespace-pre-line">{{ job.job_description }}</p>
+            </div>
+            {% if job.other_qualifications %}
+            <div>
+                <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Qualifications</h3>
+                <p class="text-sm text-slate-700 mt-2 whitespace-pre-line">{{ job.other_qualifications }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

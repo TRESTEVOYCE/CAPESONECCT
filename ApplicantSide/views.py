@@ -224,15 +224,21 @@ class JobListView(ListView):
 class JobDetailsView(DetailView):
     model = Jobs
     template_name = 'job_details.html'
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_applicant
 
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        uuid = self.kwargs.get('uuid')
+        return queryset.filter(uuid=uuid).first()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        job_uuid = self.kwargs.get('uuid')
-        job = Jobs.objects.filter(uuid=job_uuid).first()
-        context['job'] = job
+        context['job'] = self.object
         return context
 
 class SortJobView(ListView):
@@ -268,12 +274,6 @@ class SavedJobsListView(ListView):
     model = SavedJobs
     template_name = 'saved_jobs.html'
     context_object_name = 'saved_jobs'
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_applicant
-
-    def get_queryset(self):
-        return SavedJobs.objects.filter(applicant=self.request.user)
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_applicant

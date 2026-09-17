@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Saved Jobs - PESO Connect{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold text-slate-900">Saved Opportunities</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for job in saved_jobs %}
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between">
+            <div>
+                <h3 class="text-base font-bold text-slate-900">{{ job.job_title }}</h3>
+                <p class="text-xs text-slate-500 mt-1">{{ job.employer.business_name }}</p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-sm font-bold text-slate-900">₱{{ job.salary }}</span>
+                <a href="{% url 'job_details' pk=job.pk %}" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">View</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center text-sm text-slate-500">
+            No saved jobs found.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

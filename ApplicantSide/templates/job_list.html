@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Job Directory - PESO Connect{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Job Directory</h1>
+            <p class="text-sm text-slate-500 mt-1">Search or sort open enterprise and local agency positions.</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3">
+            <form action="{% url 'search_jobs' %}" method="get" class="flex gap-2">
+                <input type="text" name="q" placeholder="Search title, company..." value="{{ request.GET.q }}" class="px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600">
+                <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold">Search</button>
+            </form>
+            <a href="{% url 'sort_jobs' %}?sort_by=salary" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50">Sort Salary</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
+        {% for job in jobs %}
+        <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-xs font-medium text-indigo-600">{{ job.nature_of_work|title }}</span>
+                <h3 class="text-base font-bold text-slate-900 mt-1">{{ job.job_title }}</h3>
+                <p class="text-xs text-slate-500">{{ job.employer.business_name }} • {{ job.place_of_work }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm font-bold text-slate-900">₱{{ job.salary }}</span>
+                <a href="{% url 'job_details' pk=job.pk %}" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 text-xs font-semibold hover:bg-indigo-100">Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-12 text-center text-sm text-slate-500">No jobs found matching your criteria.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
