@@ -11,7 +11,6 @@ from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
 from django.contrib.auth.forms import PasswordChangeForm
 from django.views.generic import FormView
-from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from .service import generate_complete_peso_matrix
 from .models import (
@@ -949,6 +948,7 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, {
+            'name_form': EditProfileNameForm(instance=request.user),
             'password_form': PasswordChangeForm(user=request.user)
         })
 
@@ -958,15 +958,17 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         # --- ACTION: UPDATE NAME / PROFILE ---
         if action == 'update_profile':
-            first_name = request.POST.get('first_name', '').strip()
-            last_name = request.POST.get('last_name', '').strip()
+            name_form = EditProfileNameForm(request.POST, instance=user)
+            if name_form.is_valid():
+                name_form.save()
+                messages.success(request, "Profile information updated successfully.")
+                return redirect('AdminSide:account_settings')
 
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-
-            messages.success(request, "Profile information updated successfully.")
-            return redirect('AdminSide:account_settings')
+            messages.error(request, "Please check the form inputs for errors.")
+            return render(request, self.template_name, {
+                'name_form': name_form,
+                'password_form': PasswordChangeForm(user=user),
+            })
 
         # --- ACTION: UPDATE AVATAR PHOTO ---
         elif action == 'update_avatar':
@@ -1077,21 +1079,3 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('AdminSide:account_settings')
 
         return redirect('AdminSide:account_settings')
-
-@login_required
-def account_settings(request):
-    if request.method == 'POST' and 'update_name' in request.POST:
-        name_form = EditProfileNameForm(request.POST, instance=request.user)
-        if name_form.is_valid():
-            name_form.save()
-            messages.success(request, "Your name was updated successfully.")
-            return redirect('AdminSide:account_settings')
-        else:
-            messages.error(request, "Please check the form inputs for errors.")
-    else:
-        name_form = EditProfileNameForm(instance=request.user)
-
-    context = {
-        'name_form': name_form,
-    }
-    return render(request, 'AdminSide/account_settings.html', context)
