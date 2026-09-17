@@ -264,7 +264,14 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        return AppliedJobs.objects.filter(applicant=self.request.user.applicant_profile)
+        try:
+            applicant_profile = self.request.user.applicant_profile
+        except ApplicantProfile.DoesNotExist:
+            return AppliedJobs.objects.none()
+
+        return AppliedJobs.objects.filter(
+            applicant=applicant_profile
+        )
 
 
 class SavedJobsListView(ListView):
