@@ -3,6 +3,110 @@
 {% block title %}PESO Monthly Monitoring Report{% endblock %}
 
 {% block content %}
+<style>
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 8mm;
+        }
+
+        /* Print only the generated report, never the application shell. */
+        body * {
+            visibility: hidden !important;
+        }
+
+        #report-print-area,
+        #report-print-area * {
+            visibility: visible !important;
+        }
+
+        #sidebar {
+            display: none !important;
+        }
+
+        body > div > header,
+        body > div > footer {
+            display: none !important;
+        }
+
+        /* Hide non-printable form blocks completely from print flow. */
+        .max-w-7xl > form > div:not(#report-print-area),
+        .flex.justify-start.gap-2,
+        .flex.justify-end.gap-3 {
+            display: none !important;
+        }
+
+        /* Reset the application shell and report containers for normal pagination. */
+        html,
+        body,
+        body > div,
+        main,
+        .max-w-7xl,
+        form {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        /* Remove screen spacing while preserving every report section. */
+        .space-y-6 > * + * {
+            margin-top: 0 !important;
+        }
+
+        /* Render the complete report in normal flow so it spans all pages. */
+        #report-print-area {
+            position: static !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        #report-print-area * {
+            visibility: visible !important;
+        }
+
+        #report-print-area .overflow-x-auto {
+            overflow: visible !important;
+        }
+
+        #report-print-area table {
+            width: 100% !important;
+            table-layout: auto !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto;
+        }
+
+        #report-print-area thead {
+            display: table-header-group;
+        }
+
+        #report-print-area tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        #report-print-area input,
+        #report-print-area textarea {
+            border: none !important;
+            background: transparent !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
 <div class="max-w-7xl mx-auto p-4 md:p-1 space-y-6">
     <!-- MASTER OPERATION CONTROL FORM -->
     <form method="POST" action="" class="space-y-6">
@@ -61,7 +165,7 @@
         {% if matrix_visible %}
         <!-- DYNAMIC UTILITY ACTIONS BAR -->
         <div class="flex justify-start gap-2">
-            <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded text-xs border border-slate-300 shadow-sm transition flex items-center gap-1.5">
+            <button type="button" onclick="printGeneratedReport()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded text-xs border border-slate-300 shadow-sm transition flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm5-14V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 Print
             </button>
@@ -72,7 +176,7 @@
         </div>
 
         <!-- MATRIX RENDERING FIELD -->
-        <div class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+        <div id="report-print-area" class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
             
             <!-- OFFICIAL DOLE FORM SPECIFICATION HEADER -->
             <div class="p-6 bg-slate-50 border-b border-slate-300 flex flex-col md:flex-row justify-between items-start gap-4">
@@ -482,13 +586,13 @@
                         </tr>
                         <tr>
                             <td class="py-1 px-10 border-r border-slate-300">3.1.1.1 Youth (30 years old and below)</td>
-                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth" value="{{ metrics.lmi_youth|default:72 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
-                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth_female" value="{{ metrics.lmi_youth_female|default:44 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth" value="{{ metrics.lmi_youth|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_youth_female" value="{{ metrics.lmi_youth_female|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-10 border-r border-slate-300">3.1.1.2 Non-youth (31 years old and above)</td>
-                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth" value="{{ metrics.lmi_non_youth|default:57 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
-                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth_female" value="{{ metrics.lmi_non_youth_female|default:12 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth" value="{{ metrics.lmi_non_youth|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="number" name="lmi_non_youth_female" value="{{ metrics.lmi_non_youth_female|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none focus:bg-blue-50 font-bold"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-8 border-r border-slate-300">3.1.2 Institutions/ Schools reached</td>
@@ -710,57 +814,57 @@
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Projected City/Municipal Population</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_projected" value="{{ metrics.pop_projected|default:'56,746' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_projected" value="{{ metrics.pop_projected|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Estimated City/Municipal Poor Population</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_poor" value="{{ metrics.pop_poor|default:'16,627' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_poor" value="{{ metrics.pop_poor|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">2026 Projected City/Municipal Working Population</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_working" value="{{ metrics.pop_working|default:'18,158' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="pop_working" value="{{ metrics.pop_working|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr class="bg-slate-100/50 font-semibold text-slate-900">
                             <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Labor Force Participation Rate</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="lfpr" value="{{ metrics.lfpr|default:'60.3%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-blue-900" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="lfpr" value="{{ metrics.lfpr|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-blue-900" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">Labor Force in the City/Municipality</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="labor_force_count" value="{{ metrics.labor_force_count|default:'10,949' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="labor_force_count" value="{{ metrics.labor_force_count|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr class="bg-slate-100/50 font-semibold text-slate-900">
                             <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Employment Rate (%)</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="employment_rate" value="{{ metrics.employment_rate|default:'92.3%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-emerald-900" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="employment_rate" value="{{ metrics.employment_rate|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-emerald-900" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">Employed Persons in the City/Municipality</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="employed_count" value="{{ metrics.employed_count|default:'10,106' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="employed_count" value="{{ metrics.employed_count|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr class="bg-slate-100/50 font-semibold text-slate-900">
                             <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Unemployment Rate (%)</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployment_rate" value="{{ metrics.unemployment_rate|default:'7.7%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-red-900" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployment_rate" value="{{ metrics.unemployment_rate|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-red-900" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">Unemployed Persons in the City/Municipality</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployed_count" value="{{ metrics.unemployed_count|default:'843' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="unemployed_count" value="{{ metrics.unemployed_count|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr class="bg-slate-100/50 font-semibold text-slate-900">
                             <td class="py-1.5 px-4 border-r border-slate-300 uppercase tracking-tight">Underemployment Rate (%)</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployment_rate" value="{{ metrics.underemployment_rate|default:'18.7%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-amber-900" readonly></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployment_rate" value="{{ metrics.underemployment_rate|default:'0.0%' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-black text-amber-900" readonly></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
                             <td class="py-1 px-6 border-r border-slate-300 font-medium">Underemployed Persons in the City/Municipality</td>
-                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployed_count" value="{{ metrics.underemployed_count|default:'1,890' }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold"></td>
+                            <td class="p-0 border-r border-slate-300"><input type="text" name="underemployed_count" value="{{ metrics.underemployed_count|default:0 }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold"></td>
                             <td class="p-1 bg-slate-50/30"></td>
                         </tr>
                         <tr>
@@ -785,9 +889,6 @@
 
             <!-- OFFICIAL SIGNED FOOTER ALERT BLOCK -->
             <div class="p-4 bg-slate-50 border-t border-slate-300 space-y-3">
-                <p class="text-[11px] text-slate-500 italic">
-                    Note: The signed copy of this report must be submitted to DOLE on or before the last working day of the reference month via email [roll_northleyte@dole.gov.ph]
-                </p>
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800 flex items-start gap-2 text-xs">
                     <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
@@ -806,4 +907,13 @@
         {% endif %}
     </form>
 </div>
+<script>
+    function printGeneratedReport() {
+        const report = document.getElementById('report-print-area');
+
+        if (report) {
+            window.print();
+        }
+    }
+</script>
 {% endblock %}

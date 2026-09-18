@@ -24,7 +24,8 @@ from .models import (
     GovernmentInternshipProgram, 
     TupadBeneficiary, 
     DisplacedInformalLaborProgram, 
-    CareerGuidanceBeneficiary
+    CareerGuidanceBeneficiary,
+    PESOActivities
 )
 from .forms import (
     SpecialProgramForEmploymentOfStudentsForm,
@@ -841,7 +842,6 @@ class EnrollBeneficiaryView(LoginRequiredMixin, View):
 class PesoMonthlyReportView(LoginRequiredMixin, View):
     template_name = 'report.html'
 
-    # 1. PLACE THE DICTIONARY HERE AS A CLASS CONSTANT
     MONTH_NAMES = {
         "1": "January", "2": "February", "3": "March", "4": "April",
         "5": "May", "6": "June", "7": "July", "8": "August",
@@ -855,47 +855,265 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
             'employers_registered': 0,
             'applicants_registered': 0,
             'applicants_registered_female': 0,
+            'returned_training': 0,
+            'referred_placement': 0,
+            'referred_placement_female': 0,
+            'applicants_placed': 0,
+            'applicants_placed_female': 0,
             'placed_private': 0,
             'placed_private_female': 0,
-            'hired_private_total': 0,
-            'hired_private_female': 0,
-            'fairs_conducted': 0,
+            'placed_gov': 0,
+            'placed_gov_female': 0,
+            'placed_overseas': 0,
+            'placed_overseas_female': 0,
+            'placement_rate': '0.0%',
+            'lra_qualified': 0,
+            'lra_near_hire': 0,
+            'sra_qualified': 0,
+            'sra_near_hire': 0,
             'jobs_fairs_conducted': 0,
-            'hots_total': 0,
-            'spes_elem': 0,
+            'fair_conducted_local': 0,
+            'fair_conducted_overseas': 0,
+            'participating_establishments': 0,
+            'establishments_local': 0,
+            'establishments_overseas': 0,
+            'vacancies_solicited': 0,
+            'vacancies_solicited_local': 0,
+            'vacancies_solicited_overseas': 0,
+            'fair_placement_rate': '0.0%',
+            'fair_applicants_total': 0,
+            'fair_hots': 0,
+            'fair_referred': 0,
+            'fair_qualified': 0,
+            'fair_near_hire': 0,
+            'fair_interviews': 0,
+            'fair_ref_skills': 0,
+            'fair_ref_agency': 0,
             'spes_elementary': 0,
+            'spes_jhs': 0,
+            'spes_shs': 0,
             'spes_college': 0,
+            'spes_tech_voc': 0,
+            'spes_osy': 0,
+            'spes_graduates': 0,
+            'spes_nc': 0,
+            'spes_absorbed': 0,
             'gip_total': 0,
             'gip_female': 0,
-            'lmi_youth_total': 0,
+            'gip_als': 0,
+            'gip_jhs': 0,
+            'gip_shs': 0,
+            'gip_tech_voc': 0,
+            'gip_college': 0,
+            'gip_graduates_nc': 0,
+            'gip_absorbed': 0,
+            'jobstart_assisted': 0,
+            'jobstart_trainings': 0,
+            'jobstart_life_skills': 0,
+            'jobstart_tech_training': 0,
+            'jobstart_internship': 0,
+            'jobstart_placed': 0,
+            'jobstart_finishers': 0,
+            'lmi_youth': 0,
             'lmi_youth_female': 0,
-            'child_labor_total': 0,
-            'child_labor_referred': 0,
+            'lmi_non_youth': 0,
+            'lmi_non_youth_female': 0,
+            'lmi_institutions': 0,
+            'cdsp_school': 0,
+            'cdsp_peso': 0,
+            'cdsp_workplace': 0,
+            'applicants_coached': 0,
+            'dilp_total_workers': 0,
+            'individual_assistance_total': 0,
+            'ind_formation': 0,
+            'ind_enhancement': 0,
+            'ind_restoration': 0,
+            'group_assistance_total': 0,
+            'grp_formation': 0,
+            'grp_enhancement': 0,
+            'grp_restoration': 0,
+            'tupad_total': 0,
+            'tupad_short': 0,
+            'tupad_long': 0,
+            'child_angel_tree': 0,
+            'child_parent_livelihood': 0,
+            'child_rescue': 0,
+            'child_lgu_assist1': 0,
+            'child_lgu_assist2': 0,
             'pop_projected': 0,
+            'pop_poor': 0,
+            'pop_working': 0,
             'lfpr': '0.0%',
+            'labor_force_count': 0,
             'employment_rate': '0.0%',
+            'employed_count': 0,
+            'unemployment_rate': '0.0%',
+            'unemployed_count': 0,
+            'underemployment_rate': '0.0%',
+            'underemployed_count': 0,
+        }
+
+    def _generate_peso_matrix(self, year, month, municipality=''):
+        matrix = self._get_zero_matrix()
+
+        # Calculate dynamic database counts for the given month and year
+        start_date = timezone.make_aware(datetime(year, month, 1))
+        if month == 12:
+            end_date = timezone.make_aware(datetime(year + 1, 1, 1))
+        else:
+            end_date = timezone.make_aware(datetime(year, month + 1, 1))
+
+        # 1. Job search, employers & applicants
+        vacancies = Jobs.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        ).count()
+        employers = EmployerProfile.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        ).count()
+        applicants_qs = ApplicantProfile.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        
+        applied_qs = AppliedJobs.objects.filter(
+            application_date__gte=start_date, application_date__lt=end_date
+        )
+        offered_qs = OfferedJobs.objects.filter(
+            date_offered__gte=start_date, date_offered__lt=end_date
+        )
+
+        referred_count = applied_qs.count() + offered_qs.count()
+        referred_female_count = (
+            applied_qs.filter(applicant__sex='F').count() +
+            offered_qs.filter(applicant__sex='F').count()
+        )
+
+        hired_applied = applied_qs.filter(status='hired')
+        hired_offered = offered_qs.filter(status='hired')
+        placed_count = hired_applied.count() + hired_offered.count()
+        placed_female_count = (
+            hired_applied.filter(applicant__sex='F').count() +
+            hired_offered.filter(applicant__sex='F').count()
+        )
+
+        matrix.update({
+            'vacancies_posted': vacancies,
+            'employers_registered': employers,
+            'applicants_registered': applicants_qs.count(),
+            'applicants_registered_female': applicants_qs.filter(sex='F').count(),
+            'referred_placement': referred_count,
+            'referred_placement_female': referred_female_count,
+            'applicants_placed': placed_count,
+            'applicants_placed_female': placed_female_count,
+            'placed_private': placed_count,
+            'placed_private_female': placed_female_count,
+            'placement_rate': f"{round((placed_count / referred_count * 100), 1)}%" if referred_count > 0 else '0.0%',
+        })
+
+        # 2. SPES Program Counts
+        spes_qs = SpecialProgramForEmploymentOfStudents.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        matrix.update({
+            'spes_elementary': spes_qs.filter(education_level='elementary').count(),
+            'spes_jhs': spes_qs.filter(education_level='juniors_hs').count(),
+            'spes_shs': spes_qs.filter(education_level='senior_hs').count(),
+            'spes_college': spes_qs.filter(education_level='college').count(),
+            'spes_tech_voc': spes_qs.filter(education_level='tech_voc').count(),
+            'spes_osy': spes_qs.filter(is_out_of_school_youth=True).count(),
+            'spes_graduates': spes_qs.filter(has_graduated=True).count(),
+            'spes_nc': spes_qs.filter(has_nc_certification=True).count(),
+            'spes_absorbed': spes_qs.filter(is_absorbed_by_employer=True).count(),
+        })
+
+        # 3. GIP Program Counts
+        gip_qs = GovernmentInternshipProgram.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        matrix.update({
+            'gip_total': gip_qs.count(),
+            'gip_female': gip_qs.filter(sex='F').count(),
+            'gip_als': gip_qs.filter(education_level='als').count(),
+            'gip_jhs': gip_qs.filter(education_level='juniors_hs').count(),
+            'gip_shs': gip_qs.filter(education_level='senior_hs').count(),
+            'gip_tech_voc': gip_qs.filter(education_level='tech_voc').count(),
+            'gip_college': gip_qs.filter(education_level='college').count(),
+            'gip_graduates_nc': gip_qs.filter(has_nc_certification=True).count(),
+            'gip_absorbed': gip_qs.filter(is_absorbed_by_agency=True).count(),
+        })
+
+        # 4. TUPAD Emergency Employment Counts
+        tupad_qs = TupadBeneficiary.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        matrix.update({
+            'tupad_total': tupad_qs.count(),
+            'tupad_short': tupad_qs.filter(project_type='short').count(),
+            'tupad_long': tupad_qs.filter(project_type='long').count(),
+        })
+
+        # 5. DILP Livelihood Program Counts
+        dilp_qs = DisplacedInformalLaborProgram.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        matrix.update({
+            'dilp_total_workers': dilp_qs.count(),
+            'individual_assistance_total': dilp_qs.filter(project_category='individual').count(),
+            'group_assistance_total': dilp_qs.filter(project_category='group').count(),
+        })
+
+        # 6. Career Guidance / LMI Activities
+        cg_qs = CareerGuidanceBeneficiary.objects.filter(
+            created_at__gte=start_date, created_at__lt=end_date
+        )
+        youth_list = [b for b in cg_qs if b.date_of_birth and (year - b.date_of_birth.year) <= 30]
+        non_youth_list = [b for b in cg_qs if b.date_of_birth and (year - b.date_of_birth.year) > 30]
+
+        matrix.update({
+            'lmi_youth': len(youth_list),
+            'lmi_youth_female': len([b for b in youth_list if b.sex == 'F']),
+            'lmi_non_youth': len(non_youth_list),
+            'lmi_non_youth_female': len([b for b in non_youth_list if b.sex == 'F']),
+            'applicants_coached': cg_qs.filter(activity_type='coaching').count(),
+            'jobs_fairs_conducted': PESOActivities.objects.filter(
+                created_at__gte=start_date, created_at__lt=end_date,
+                **({'activity_location__icontains': municipality} if municipality else {})
+            ).count(),
+        })
+
+        return matrix
+
+    def _get_month_name(self, month_str):
+        if not month_str:
+            return ''
+        try:
+            clean_key = str(int(month_str))
+            return self.MONTH_NAMES.get(clean_key, '')
+        except (ValueError, TypeError):
+            return ''
+
+    def _build_context(self, request, **kwargs):
+        month = kwargs.get('month', '')
+        return {
+            'matrix_visible': kwargs.get('matrix_visible', False),
+            'selected_province': 'Leyte',
+            'selected_municipality': kwargs.get('municipality', ''),
+            'selected_month': month,
+            'selected_month_name': self._get_month_name(month),
+            'selected_year': kwargs.get('year', ''),
+            'metrics': kwargs.get('metrics', self._get_zero_matrix()),
+            'issues_concerns': kwargs.get('issues_concerns', '')
         }
 
     def get(self, request, *args, **kwargs):
         month = request.GET.get('month', '')
-        
-        context = {
-            'matrix_visible': False,
-            'selected_province': 'Leyte',
-            'selected_municipality': '',
-            'selected_month': month,
-            # 2. REFER TO IT USING self.MONTH_NAMES HERE
-            'selected_month_name': self.MONTH_NAMES.get(month, ''),
-            'selected_year': '',
-            'metrics': self._get_zero_matrix(),
-            'issues_concerns': ''
-        }
+        context = self._build_context(request, month=month)
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         municipality = request.POST.get('municipality', '').strip()
         month = request.POST.get('month', '').strip()
         year = request.POST.get('year', '').strip()
+        issues_concerns = request.POST.get('issues_concerns', '').strip()
 
         matrix_visible = False
         metrics = self._get_zero_matrix()
@@ -905,21 +1123,26 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
                 messages.error(request, "Please fill out the Municipality, Month, and Year.")
             else:
                 try:
-                    system_data = generate_complete_peso_matrix(int(year), int(month))
-                    metrics.update(system_data)
-                except Exception:
-                    pass
-                matrix_visible = True
-                messages.success(request, f"Generated parameters for {municipality}.")
+                    metrics = self._generate_peso_matrix(int(year), int(month), municipality)
+                    matrix_visible = True
+                    messages.success(request, f"Generated report matrix for {municipality}.")
+                except Exception as e:
+                    messages.error(request, "An error occurred while generating the report matrix.")
 
         elif 'action_save' in request.POST:
             matrix_visible = True
+            if month and year:
+                try:
+                    metrics = self._generate_peso_matrix(int(year), int(month), municipality)
+                except Exception:
+                    pass
+
             try:
                 metrics['vacancies_posted_total'] = int(request.POST.get('vacancies_posted_total', 0))
                 metrics['hired_private_total'] = int(request.POST.get('hired_private_total', 0))
                 metrics['hired_private_female'] = int(request.POST.get('hired_private_female', 0))
                 metrics['child_labor_total'] = int(request.POST.get('child_labor_total', 0))
-                
+
                 if metrics['hired_private_female'] > metrics['hired_private_total']:
                     messages.error(request, "Female placements cannot exceed total volumes.")
                 else:
@@ -927,17 +1150,15 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
             except ValueError:
                 messages.error(request, "Please ensure all manual inputs contain valid integers.")
 
-        context = {
-            'matrix_visible': matrix_visible,
-            'selected_province': 'Leyte',
-            'selected_municipality': municipality,
-            'selected_month': month,
-            # 3. REFER TO IT USING self.MONTH_NAMES HERE AS WELL
-            'selected_month_name': self.MONTH_NAMES.get(month, ''),
-            'selected_year': year,
-            'metrics': metrics,
-            'issues_concerns': request.POST.get('issues_concerns', '').strip()
-        }
+        context = self._build_context(
+            request,
+            matrix_visible=matrix_visible,
+            municipality=municipality,
+            month=month,
+            year=year,
+            metrics=metrics,
+            issues_concerns=issues_concerns
+        )
         return render(request, self.template_name, context)
 
 class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
