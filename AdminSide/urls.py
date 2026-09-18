@@ -20,6 +20,7 @@ urlpatterns = [
     path('special-programs/enroll/', EnrollBeneficiaryView.as_view(), name='enroll_beneficiary'),
     path('special-programs/<str:program_type>/', SpecialProgramsListView.as_view(), name='special_programs_filtered'),
     path('reports/', PesoMonthlyReportView.as_view(), name='peso_monthly_report'),
+    path('reports/excel/', PesoMonthlyReportView.as_view(), {'excel': True}, name='peso_monthly_report_excel'),
     path('account/settings/', AccountSettingsView.as_view(), name='account_settings'),
     path('account/help/', HelpView.as_view(), name='account_help'),
 ]

@@ -1,116 +1,26 @@
 {% extends 'base.html' %}
 
 {% block title %}PESO Monthly Monitoring Report{% endblock %}
-
 {% block content %}
 <style>
-    @media print {
-        @page {
-            size: A4 portrait;
-            margin: 8mm;
-        }
+    #report-area input,
+    #report-area textarea {
+        pointer-events: none;
+        cursor: default;
+    }
 
-        /* Print only the generated report, never the application shell. */
-        body * {
-            visibility: hidden !important;
-        }
-
-        #report-print-area,
-        #report-print-area * {
-            visibility: visible !important;
-        }
-
-        #sidebar {
-            display: none !important;
-        }
-
-        body > div > header,
-        body > div > footer {
-            display: none !important;
-        }
-
-        /* Hide non-printable form blocks completely from print flow. */
-        .max-w-7xl > form > div:not(#report-print-area),
-        .flex.justify-start.gap-2,
-        .flex.justify-end.gap-3 {
-            display: none !important;
-        }
-
-        /* Reset the application shell and report containers for normal pagination. */
-        html,
-        body,
-        body > div,
-        main,
-        .max-w-7xl,
-        form {
-            width: 100% !important;
-            height: auto !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            display: block !important;
-            overflow: visible !important;
-        }
-
-        /* Remove screen spacing while preserving every report section. */
-        .space-y-6 > * + * {
-            margin-top: 0 !important;
-        }
-
-        /* Render the complete report in normal flow so it spans all pages. */
-        #report-print-area {
-            position: static !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-            display: block !important;
-            visibility: visible !important;
-        }
-
-        #report-print-area * {
-            visibility: visible !important;
-        }
-
-        #report-print-area .overflow-x-auto {
-            overflow: visible !important;
-        }
-
-        #report-print-area table {
-            width: 100% !important;
-            table-layout: auto !important;
-            border-collapse: collapse !important;
-            page-break-inside: auto;
-        }
-
-        #report-print-area thead {
-            display: table-header-group;
-        }
-
-        #report-print-area tr {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-        #report-print-area input,
-        #report-print-area textarea {
-            border: none !important;
-            background: transparent !important;
-            color: #000000 !important;
-            box-shadow: none !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
+    #report-area input:hover,
+    #report-area input:focus,
+    #report-area textarea:hover,
+    #report-area textarea:focus {
+        background-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 </style>
 <div class="max-w-7xl mx-auto p-4 md:p-1 space-y-6">
     <!-- MASTER OPERATION CONTROL FORM -->
-    <form method="POST" action="" class="space-y-6">
-        {% csrf_token %}
+    <form method="GET" action="" class="space-y-6">
 
         <!-- STEP 1: REPORT PARAMETERS TARGET SELECTOR -->
        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
@@ -165,18 +75,14 @@
         {% if matrix_visible %}
         <!-- DYNAMIC UTILITY ACTIONS BAR -->
         <div class="flex justify-start gap-2">
-            <button type="button" onclick="printGeneratedReport()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded text-xs border border-slate-300 shadow-sm transition flex items-center gap-1.5">
+            {% comment %}
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm5-14V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                Print
-            </button>
-            <a href="#" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded text-xs border border-emerald-300 shadow-sm transition flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Export PDF
-            </a>
+            {% endcomment %}
         </div>
 
         <!-- MATRIX RENDERING FIELD -->
-        <div id="report-print-area" class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+        <div id="report-area" class="bg-white border border-slate-300 rounded shadow-sm overflow-hidden">
+            <fieldset disabled class="contents">
             
             <!-- OFFICIAL DOLE FORM SPECIFICATION HEADER -->
             <div class="p-6 bg-slate-50 border-b border-slate-300 flex flex-col md:flex-row justify-between items-start gap-4">
@@ -892,28 +798,18 @@
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800 flex items-start gap-2 text-xs">
                     <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
-                        <span class="font-bold">All fields are editable.</span> Review all figures before printing the official signed copy.
+                        <span class="font-bold">Read-only report.</span> Values are generated from the system database.
                     </div>
                 </div>
             </div>
+            </fieldset>
         </div>
-
-        <!-- TRANSACTION PROCESS VERIFICATION PIPELINE CONTROLS -->
         <div class="flex justify-end gap-3">
-            <button type="submit" name="action_save" class="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded shadow transition">
-                Validate and Save Parameters
-            </button>
+            <a href="{% url 'AdminSide:peso_monthly_report_excel' %}?month={{ selected_month }}&year={{ selected_year }}&municipality={{ selected_municipality|urlencode }}" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow transition">
+                Download Excel Report
+            </a>
         </div>
         {% endif %}
     </form>
 </div>
-<script>
-    function printGeneratedReport() {
-        const report = document.getElementById('report-print-area');
-
-        if (report) {
-            window.print();
-        }
-    }
-</script>
 {% endblock %}

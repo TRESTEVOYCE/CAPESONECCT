@@ -6,6 +6,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
@@ -39,6 +40,7 @@ from .forms import (
 )
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from openpyxl import Workbook
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
@@ -1075,8 +1077,7 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
             'lmi_non_youth_female': len([b for b in non_youth_list if b.sex == 'F']),
             'applicants_coached': cg_qs.filter(activity_type='coaching').count(),
             'jobs_fairs_conducted': PESOActivities.objects.filter(
-                created_at__gte=start_date, created_at__lt=end_date,
-                **({'activity_location__icontains': municipality} if municipality else {})
+                created_at__gte=start_date, created_at__lt=end_date
             ).count(),
         })
 
@@ -1105,50 +1106,21 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
         }
 
     def get(self, request, *args, **kwargs):
-        month = request.GET.get('month', '')
-        context = self._build_context(request, month=month)
-        return render(request, self.template_name, context)
+        if kwargs.get('excel'):
+            return self.excel(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        municipality = request.POST.get('municipality', '').strip()
-        month = request.POST.get('month', '').strip()
-        year = request.POST.get('year', '').strip()
-        issues_concerns = request.POST.get('issues_concerns', '').strip()
-
-        matrix_visible = False
+        municipality = request.GET.get('municipality', '').strip()
+        month = request.GET.get('month', '').strip()
+        year = request.GET.get('year', '').strip()
         metrics = self._get_zero_matrix()
+        matrix_visible = False
 
-        if 'action_generate' in request.POST:
-            if not municipality or not month or not year:
-                messages.error(request, "Please fill out the Municipality, Month, and Year.")
-            else:
-                try:
-                    metrics = self._generate_peso_matrix(int(year), int(month), municipality)
-                    matrix_visible = True
-                    messages.success(request, f"Generated report matrix for {municipality}.")
-                except Exception as e:
-                    messages.error(request, "An error occurred while generating the report matrix.")
-
-        elif 'action_save' in request.POST:
-            matrix_visible = True
-            if month and year:
-                try:
-                    metrics = self._generate_peso_matrix(int(year), int(month), municipality)
-                except Exception:
-                    pass
-
+        if month and year:
             try:
-                metrics['vacancies_posted_total'] = int(request.POST.get('vacancies_posted_total', 0))
-                metrics['hired_private_total'] = int(request.POST.get('hired_private_total', 0))
-                metrics['hired_private_female'] = int(request.POST.get('hired_private_female', 0))
-                metrics['child_labor_total'] = int(request.POST.get('child_labor_total', 0))
-
-                if metrics['hired_private_female'] > metrics['hired_private_total']:
-                    messages.error(request, "Female placements cannot exceed total volumes.")
-                else:
-                    messages.success(request, "Report matrix data successfully verified.")
-            except ValueError:
-                messages.error(request, "Please ensure all manual inputs contain valid integers.")
+                metrics = self._generate_peso_matrix(int(year), int(month), municipality)
+                matrix_visible = True
+            except (TypeError, ValueError):
+                pass
 
         context = self._build_context(
             request,
@@ -1157,9 +1129,209 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
             month=month,
             year=year,
             metrics=metrics,
-            issues_concerns=issues_concerns
         )
         return render(request, self.template_name, context)
+
+    def excel(self, request, *args, **kwargs):
+        month = request.GET.get('month', '').strip()
+        year = request.GET.get('year', '').strip()
+        municipality = request.GET.get('municipality', '').strip()
+        other_accomplishments = request.GET.get('other_accomplishments', '').strip()
+        issues_concerns = request.GET.get('issues_concerns', '').strip()
+
+        if not month or not year:
+            return HttpResponse('Month and year are required.', status=400)
+
+        try:
+            metrics = self._generate_peso_matrix(int(year), int(month), municipality)
+        except (TypeError, ValueError):
+            return HttpResponse('Invalid month or year.', status=400)
+
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = 'PESO Report'
+
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+        from openpyxl.worksheet.page import PageMargins
+
+        thin_gray = Side(style='thin', color='CBD5E1')
+        border = Border(left=thin_gray, right=thin_gray, top=thin_gray, bottom=thin_gray)
+        title_fill = PatternFill('solid', fgColor='0F172A')
+        section_fill = PatternFill('solid', fgColor='E2E8F0')
+        subsection_fill = PatternFill('solid', fgColor='F1F5F9')
+        header_fill = PatternFill('solid', fgColor='CBD5E1')
+
+        worksheet.merge_cells('A1:C1')
+        worksheet['A1'] = 'PESO MONITORING REPORT'
+        worksheet['A1'].font = Font(bold=True, size=16, color='FFFFFF')
+        worksheet['A1'].fill = title_fill
+        worksheet['A1'].alignment = Alignment(horizontal='center')
+        worksheet.append(['Province of Leyte', 'Leyte', ''])
+        worksheet.append(['Municipality / City', municipality, ''])
+        worksheet.append(['For the month of', f'{self._get_month_name(month)} {year}', ''])
+        worksheet.append([])
+        worksheet.append(['INDICATORS', 'TOTAL', 'FEMALE'])
+
+        for cell in worksheet[5]:
+            cell.font = Font(bold=True)
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center')
+
+        def add_section(label, subsection=False):
+            worksheet.append([label, '', ''])
+            row = worksheet.max_row
+            worksheet.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
+            cell = worksheet.cell(row=row, column=1)
+            cell.font = Font(bold=True)
+            cell.fill = subsection_fill if subsection else section_fill
+            cell.border = border
+
+        def add_metric(label, total_key, female_key=None):
+            worksheet.append([
+                label,
+                metrics.get(total_key, 0),
+                metrics.get(female_key, 0) if female_key else 'N/A',
+            ])
+            row = worksheet.max_row
+            for cell in worksheet[row]:
+                cell.border = border
+                cell.alignment = Alignment(vertical='top', wrap_text=True)
+            worksheet.cell(row=row, column=2).alignment = Alignment(horizontal='center')
+            worksheet.cell(row=row, column=3).alignment = Alignment(horizontal='center')
+
+        add_section('1. EMPLOYMENT FACILITATION')
+        add_section('1.1 JOB SEARCH ASSISTANCE', True)
+        add_metric('Vacancies posted in PEIS', 'vacancies_posted')
+        add_metric('Employers / Businesses Registered in PEIS', 'employers_registered')
+        add_metric('Job Applicants Registered in PEIS', 'applicants_registered', 'applicants_registered_female')
+        add_metric('Referred for Job Placement', 'referred_placement', 'referred_placement_female')
+        add_metric('Job Applicants Placed', 'applicants_placed', 'applicants_placed_female')
+        add_metric('Private sector (hired employees)', 'placed_private', 'placed_private_female')
+        add_metric('Government sector', 'placed_gov', 'placed_gov_female')
+        add_metric('Overseas', 'placed_overseas', 'placed_overseas_female')
+        add_metric('Placement Rate of Referred Applicants', 'placement_rate')
+        add_section('1.2 LOCAL RECRUITMENT ASSISTANCE (LRA)', True)
+        add_metric('Qualified Applicants', 'lra_qualified')
+        add_metric('Near Hire Applicants', 'lra_near_hire')
+        add_section('1.3 SPECIAL RECRUITMENT ASSISTANCE (SRA)', True)
+        add_metric('Qualified Applicants', 'sra_qualified')
+        add_metric('Near Hire Applicants', 'sra_near_hire')
+        add_section('1.4 JOBS FAIR', True)
+        add_metric('Jobs Fairs Conducted', 'jobs_fairs_conducted')
+        add_metric('Applicants / HOTS', 'fair_applicants_total')
+        add_metric('Applicants Hired on the Spot', 'fair_hots')
+        add_metric('Job Applicants Referred', 'fair_referred')
+
+        add_section('2. YOUTH-BRIDGING EMPLOYMENT ASSISTANCE')
+        add_section('2.1 SPECIAL PROGRAM FOR THE EMPLOYMENT OF STUDENTS (SPES)', True)
+        for label, key in [
+            ('Elementary', 'spes_elementary'), ('Junior High School', 'spes_jhs'),
+            ('Senior High School', 'spes_shs'), ('College', 'spes_college'),
+            ('Tech-Voc', 'spes_tech_voc'), ('Out-of-School Youth', 'spes_osy'),
+            ('SPES Beneficiaries Graduated', 'spes_graduates'),
+            ('SPES Beneficiaries with NCs', 'spes_nc'),
+            ('Absorbed SPES Beneficiaries', 'spes_absorbed'),
+        ]:
+            add_metric(label, key)
+        add_section('2.2 GOVERNMENT INTERNSHIP PROGRAM (GIP)', True)
+        add_metric('Youth Placed', 'gip_total', 'gip_female')
+        for label, key in [
+            ('Alternative Learning System', 'gip_als'), ('Junior High School', 'gip_jhs'),
+            ('Senior High School', 'gip_shs'), ('Tech-Voc', 'gip_tech_voc'),
+            ('College', 'gip_college'), ('GIP Graduates with NCs', 'gip_graduates_nc'),
+            ('Absorbed GIP Interns', 'gip_absorbed'),
+        ]:
+            add_metric(label, key)
+
+        add_section('3. PESO-LED ADVOCACY AND TRAININGS')
+        add_section('3.1 LABOR MARKET INFORMATION ACTIVITIES', True)
+        add_metric('Youth (30 years old and below)', 'lmi_youth', 'lmi_youth_female')
+        add_metric('Non-youth (31 years old and above)', 'lmi_non_youth', 'lmi_non_youth_female')
+        add_metric('Job Applicants Coached', 'applicants_coached')
+
+        add_section('4. DOLE INTEGRATED LIVELIHOOD AND EMERGENCY EMPLOYMENT PROGRAM (DILEEP)')
+        add_metric('Total workers provided livelihood assistance', 'dilp_total_workers')
+        add_metric('Individual Projects', 'individual_assistance_total')
+        add_metric('Group Projects', 'group_assistance_total')
+        add_section('4.2 TUPAD PROJECTS', True)
+        add_metric('Workers provided emergency employment assistance', 'tupad_total')
+        add_metric('Short-term (10-30 days)', 'tupad_short')
+        add_metric('Long-term (31-90 days)', 'tupad_long')
+
+        add_section('5. CHILD LABOR PREVENTION AND ELIMINATION PROGRAM')
+        for label, key in [
+            ('Project Angel Tree', 'child_angel_tree'),
+            ('Livelihood assistance to parents / guardians', 'child_parent_livelihood'),
+            ('Rescue operations conducted through SBM', 'child_rescue'),
+            ('LGU / PESO-led Assistance 1', 'child_lgu_assist1'),
+            ('LGU / PESO-led Assistance 2', 'child_lgu_assist2'),
+        ]:
+            add_metric(label, key)
+
+        add_section('6. OTHER PESO ACCOMPLISHMENTS')
+        worksheet.append([other_accomplishments or 'None recorded', '', ''])
+        other_row = worksheet.max_row
+        worksheet.merge_cells(start_row=other_row, start_column=1, end_row=other_row, end_column=3)
+        worksheet.cell(row=other_row, column=1).border = border
+        worksheet.cell(row=other_row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
+        worksheet.row_dimensions[other_row].height = 42
+
+        add_section('7. MONTHLY LABOR MARKET ANALYSIS')
+        for label, key in [
+            ('Projected City / Municipal Population', 'pop_projected'),
+            ('Estimated City / Municipal Poor Population', 'pop_poor'),
+            ('Projected City / Municipal Working Population', 'pop_working'),
+            ('Labor Force Participation Rate', 'lfpr'),
+            ('Labor Force in the City / Municipality', 'labor_force_count'),
+            ('Employment Rate', 'employment_rate'),
+            ('Employed Persons', 'employed_count'),
+            ('Unemployment Rate', 'unemployment_rate'),
+            ('Unemployed Persons', 'unemployed_count'),
+            ('Underemployment Rate', 'underemployment_rate'),
+            ('Underemployed Persons', 'underemployed_count'),
+        ]:
+            add_metric(label, key)
+
+        add_section('8. ISSUES AND CONCERNS')
+        worksheet.append([issues_concerns or 'None recorded', '', ''])
+        issues_row = worksheet.max_row
+        worksheet.merge_cells(start_row=issues_row, start_column=1, end_row=issues_row, end_column=3)
+        worksheet.cell(row=issues_row, column=1).border = border
+        worksheet.cell(row=issues_row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
+        worksheet.row_dimensions[issues_row].height = 60
+
+        worksheet.column_dimensions['A'].width = 56
+        worksheet.column_dimensions['B'].width = 16
+        worksheet.column_dimensions['C'].width = 16
+        worksheet.page_setup.paperSize = worksheet.PAPERSIZE_LEGAL
+        worksheet.page_setup.orientation = worksheet.ORIENTATION_PORTRAIT
+        worksheet.page_setup.fitToWidth = 1
+        worksheet.page_setup.fitToHeight = 0
+        worksheet.sheet_properties.pageSetUpPr.fitToPage = True
+        worksheet.page_margins = PageMargins(
+            left=0.75,
+            right=0.75,
+            top=0.75,
+            bottom=0.75,
+            header=0.15,
+            footer=0.15,
+        )
+        worksheet.sheet_view.showGridLines = False
+        for row in worksheet.iter_rows(min_row=2, max_row=4, max_col=3):
+            for cell in row:
+                cell.border = border
+        for row in worksheet.iter_rows():
+            worksheet.row_dimensions[row[0].row].height = 22
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = (
+            f'attachment; filename="peso_report_{year}_{int(month):02d}.xlsx"'
+        )
+        workbook.save(response)
+        return response
 
 class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'account_settings.html'
