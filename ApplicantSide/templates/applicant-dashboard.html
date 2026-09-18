@@ -3,15 +3,6 @@
 {% block title %}Dashboard - CAPESCONNECT PESO Carigara{% endblock %}
 
 {% block content %}
-<<<<<<< HEAD
-<div class="space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
-    
-    <!-- Greeting Section -->
-    <div>
-        <p class="text-xs text-stone-500 font-medium tracking-wide uppercase">Good morning,</p>
-        <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 mt-1 tracking-tight">{{ request.user.get_full_name|default:"Job Seeker" }}</h1>
-        <p class="text-sm text-stone-500 mt-1">We found <span class="text-stone-900 font-semibold underline decoration-amber-500/50 decoration-2">{{ matching_jobs|length|default:"6" }} strong matches</span> based on your profile.</p>
-=======
 
 <div class="space-y-6">
 
@@ -25,7 +16,6 @@
             <span class="text-amber-400 font-semibold">{{ matching_jobs|length }} strong matches</span>
             based on your skills, education, experience and certification.
         </p>
->>>>>>> honeypot-branch
     </div>
 
     <!-- Dashboard Statistics -->
