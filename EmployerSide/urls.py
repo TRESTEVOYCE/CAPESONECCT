@@ -1,6 +1,6 @@
 from django import urls
 from django.urls import path
-from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView
+from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView
 
 urlpatterns = [
     path('employer-profile/create/', EmployerProfileCreateView.as_view(), name='employer-profile-create'),
@@ -14,4 +14,6 @@ urlpatterns = [
     path('account/delete/', AccountDeleteView.as_view(), name='account-delete'),
     path('applicants/<int:pk>/job-status/', ApplicantJobStatusView.as_view(), name='applicant-job-status'),
     path('applicants/<int:pk>/job-status/update/', ApplicantJobStatusView.as_view(), name='applicant-job-status-update'),
+    path('logout/',LogoutView.as_view(), name='employer-logout'),
+
 ]

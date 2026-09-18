@@ -4,6 +4,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView, D
 from .forms import EmployerProfileForm,JobsForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.contrib.auth.views import LogoutView
 
 #home or the dashboard view for the employer
 class HomeView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -177,3 +178,6 @@ class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     #to ensure that only authenticated employers can access this view
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
+
+class LogoutView(LoginRequiredMixin,LogoutView): 
+     next_page = reverse_lazy('landing_page')

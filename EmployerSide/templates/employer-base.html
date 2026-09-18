@@ -28,7 +28,7 @@
                 <span class="text-sm font-medium pr-1">{{ request.user.employer_profile.business_name|default:"ABC Corp" }}</span>
                 <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
             </div>
-            <form method="post" action="{% url 'logout' %}" class="inline">
+            <form method="post" action="{% url 'employer-logout' %}" class="inline">
                 {% csrf_token %}
                 <button type="submit" class="text-slate-400 hover:text-white transition" title="Logout">
                     <i class="fa-solid fa-right-from-bracket text-lg"></i>
