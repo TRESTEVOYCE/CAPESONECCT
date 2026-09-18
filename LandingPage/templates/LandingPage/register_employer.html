@@ -132,6 +132,8 @@
         >
 
             {% csrf_token %}
+            {% load honeypot %}
+            {% render_honeypot_field %}
 
 
             <!-- FORM CARD -->
