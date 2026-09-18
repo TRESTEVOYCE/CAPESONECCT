@@ -19,11 +19,6 @@ class EmployerProfileForm(forms.ModelForm):
 class JobsForm(forms.ModelForm):
     class Meta:
         model = Jobs
-<<<<<<< HEAD
-        fields = '__all__'
-        
-        
-=======
         fields = [
             'job_title', 'job_description', 'nature_of_work', 'place_of_work',
             'salary', 'vacancy', 'work_experience_months', 'other_qualifications',
@@ -32,4 +27,3 @@ class JobsForm(forms.ModelForm):
             'required_eligibility', 'required_certification', 'languages_spoken',
             'application_quota', 'job_posting_expiry',
         ]
->>>>>>> honeypot-branch

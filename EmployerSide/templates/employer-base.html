@@ -65,7 +65,7 @@
                             <i class="fa-solid fa-user-group w-5 text-center"></i>
                             <span>Applicants</span>
                         </a>
-                        <a href="{% url 'company-profile' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <a href="{% url 'employer-profile-create' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-building w-5 text-center"></i>
                             <span>Company Profile</span>
                         </a>

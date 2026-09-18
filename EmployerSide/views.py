@@ -33,17 +33,19 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateV
     model = EmployerProfile
     form_class = EmployerProfileForm
     template_name = 'employer_profile_form.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
-    #to ensure that the employer can only create their own profile
     def get_queryset(self):
-        return EmployerProfile.objects.filter(user=self.request.user)
+        return EmployerProfile.objects.filter(
+            user=self.request.user
+        )
 
-    #to ensure that the form is valid and the user is set to the current user
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
@@ -154,30 +156,6 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     #to ensure that the employer can only view their own job postings
     def get_queryset(self):
         return Jobs.objects.filter(employer=self.request.user.employerprofile)
-
-class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    model = EmployerProfile
-    template_name = 'company_profile.html'
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
-
-    def get_object(self, queryset=None):
-        return EmployerProfile.objects.get(user=self.request.user)
-
-class CompanyProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = EmployerProfile
-    form_class = EmployerProfileForm
-    template_name = 'employer_profile_form.html'
-    success_url = reverse_lazy('home')
-
-    #to ensure that only authenticated employers can access this view
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
-
-    #to ensure that the employer can only update their own profile
-    def get_queryset(self):
-        return EmployerProfile.objects.filter(user=self.request.user)
 
 class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = EmployerProfile

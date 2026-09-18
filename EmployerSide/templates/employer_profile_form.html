@@ -1,0 +1,1022 @@
+{% extends 'employer-base.html' %}
+
+{% block title %}Create Employer Profile{% endblock %}
+
+{% block content %}
+
+<div class="min-h-screen bg-[#080c14] px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl">
+
+```
+    <!-- HEADER -->
+    <div class="mb-10">
+        <div class="flex items-center gap-4">
+
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl
+                        bg-blue-600/10 border border-blue-500/20">
+
+                <svg class="h-6 w-6 text-blue-400"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16M9 7h1m-1 4h1m4-4h1m-1 4h1M9 15h1m4 0h1"/>
+                </svg>
+
+            </div>
+
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-white">
+                    Employer Profile
+                </h1>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Register your business and provide the required information.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- FORM -->
+    <form method="POST"
+          enctype="multipart/form-data"
+          class="space-y-6">
+
+        {% csrf_token %}
+
+
+        <!-- FORM ERRORS -->
+        {% if form.non_field_errors %}
+            <div class="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                {% for error in form.non_field_errors %}
+                    <p class="text-sm text-red-400">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <!-- ================================================= -->
+        <!-- BUSINESS INFORMATION -->
+        <!-- ================================================= -->
+
+        <section class="overflow-hidden rounded-2xl border border-white/[0.06]
+                        bg-[#0e1420] shadow-xl">
+
+            <div class="border-b border-white/[0.06] px-6 py-6">
+
+                <h2 class="text-lg font-semibold text-white">
+                    Business Information
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Provide the basic information about your organization.
+                </p>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+
+                <!-- BUSINESS NAME -->
+                <div>
+                    <label for="{{ form.business_name.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Business Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.business_name.html_name }}"
+                        id="{{ form.business_name.id_for_label }}"
+                        value="{{ form.business_name.value|default:'' }}"
+                        placeholder="Enter registered business name"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.business_name.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- TRADE NAME -->
+                <div>
+                    <label for="{{ form.trade_name.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Trade Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.trade_name.html_name }}"
+                        id="{{ form.trade_name.id_for_label }}"
+                        value="{{ form.trade_name.value|default:'' }}"
+                        placeholder="Enter trade name"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.trade_name.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- ACRONYM -->
+                <div>
+                    <label for="{{ form.acronym.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Acronym
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.acronym.html_name }}"
+                        id="{{ form.acronym.id_for_label }}"
+                        value="{{ form.acronym.value|default:'' }}"
+                        placeholder="e.g. ABC"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.acronym.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- OFFICE TYPE -->
+                <div>
+                    <label for="{{ form.office_type.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Office Type
+                    </label>
+
+                    <select
+                        name="{{ form.office_type.html_name }}"
+                        id="{{ form.office_type.id_for_label }}"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white outline-none
+                               transition hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                        {% for value, label in form.office_type.field.choices %}
+                            <option value="{{ value }}"
+                                {% if form.office_type.value|stringformat:"s" == value|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                    {% for error in form.office_type.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- TIN -->
+                <div>
+                    <label for="{{ form.tin_number.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        TIN Number
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.tin_number.html_name }}"
+                        id="{{ form.tin_number.id_for_label }}"
+                        value="{{ form.tin_number.value|default:'' }}"
+                        placeholder="000-000-000-000"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.tin_number.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- EMPLOYER TYPE -->
+                <div>
+                    <label for="{{ form.employer_type.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Employer Type
+                    </label>
+
+                    <select
+                        name="{{ form.employer_type.html_name }}"
+                        id="{{ form.employer_type.id_for_label }}"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white outline-none
+                               transition hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                        {% for value, label in form.employer_type.field.choices %}
+                            <option value="{{ value }}"
+                                {% if form.employer_type.value|stringformat:"s" == value|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                    {% for error in form.employer_type.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- TOTAL WORKFORCE -->
+                <div>
+                    <label for="{{ form.total_workforce.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Total Workforce
+                    </label>
+
+                    <input
+                        type="number"
+                        name="{{ form.total_workforce.html_name }}"
+                        id="{{ form.total_workforce.id_for_label }}"
+                        value="{{ form.total_workforce.value|default:'' }}"
+                        placeholder="e.g. 50"
+                        min="0"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.total_workforce.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+
+                <!-- LINE OF BUSINESS -->
+                <div>
+                    <label for="{{ form.line_of_business.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Line of Business
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.line_of_business.html_name }}"
+                        id="{{ form.line_of_business.id_for_label }}"
+                        value="{{ form.line_of_business.value|default:'' }}"
+                        placeholder="e.g. Information Technology"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.line_of_business.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- BUSINESS ADDRESS -->
+        <!-- ================================================= -->
+
+        <section class="overflow-hidden rounded-2xl border border-white/[0.06]
+                        bg-[#0e1420] shadow-xl">
+
+            <div class="border-b border-white/[0.06] px-6 py-6">
+
+                <h2 class="text-lg font-semibold text-white">
+                    Business Address
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Provide the location of your business.
+                </p>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+
+                <!-- STREET -->
+                <div class="md:col-span-2">
+
+                    <label for="{{ form.street_address.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Street Address
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.street_address.html_name }}"
+                        id="{{ form.street_address.id_for_label }}"
+                        value="{{ form.street_address.value|default:'' }}"
+                        placeholder="House / Building / Street"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.street_address.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- BARANGAY -->
+                <div>
+
+                    <label for="{{ form.barangay.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Barangay
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.barangay.html_name }}"
+                        id="{{ form.barangay.id_for_label }}"
+                        value="{{ form.barangay.value|default:'' }}"
+                        placeholder="Enter barangay"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.barangay.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- MUNICIPALITY -->
+                <div>
+
+                    <label for="{{ form.municipality.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Municipality / City
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.municipality.html_name }}"
+                        id="{{ form.municipality.id_for_label }}"
+                        value="{{ form.municipality.value|default:'' }}"
+                        placeholder="Enter municipality or city"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.municipality.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- PROVINCE -->
+                <div>
+
+                    <label for="{{ form.province.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Province
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.province.html_name }}"
+                        id="{{ form.province.id_for_label }}"
+                        value="{{ form.province.value|default:'' }}"
+                        placeholder="Enter province"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.province.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- CONTACT INFORMATION -->
+        <!-- ================================================= -->
+
+        <section class="overflow-hidden rounded-2xl border border-white/[0.06]
+                        bg-[#0e1420] shadow-xl">
+
+            <div class="border-b border-white/[0.06] px-6 py-6">
+
+                <h2 class="text-lg font-semibold text-white">
+                    Contact Information
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Provide the contact details for your organization.
+                </p>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+
+                <!-- OWNER -->
+                <div>
+
+                    <label for="{{ form.owner_name.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Owner Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.owner_name.html_name }}"
+                        id="{{ form.owner_name.id_for_label }}"
+                        value="{{ form.owner_name.value|default:'' }}"
+                        placeholder="Full name"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.owner_name.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- DESIGNATION -->
+                <div>
+
+                    <label for="{{ form.designation.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Designation
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.designation.html_name }}"
+                        id="{{ form.designation.id_for_label }}"
+                        value="{{ form.designation.value|default:'' }}"
+                        placeholder="e.g. Owner, CEO, Manager"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.designation.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- CONTACT PERSON -->
+                <div>
+
+                    <label for="{{ form.contact_person.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Contact Person
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.contact_person.html_name }}"
+                        id="{{ form.contact_person.id_for_label }}"
+                        value="{{ form.contact_person.value|default:'' }}"
+                        placeholder="Primary contact person"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.contact_person.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- CONTACT POSITION -->
+                <div>
+
+                    <label for="{{ form.contact_position.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Contact Position
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.contact_position.html_name }}"
+                        id="{{ form.contact_position.id_for_label }}"
+                        value="{{ form.contact_position.value|default:'' }}"
+                        placeholder="e.g. HR Manager"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.contact_position.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- TELEPHONE -->
+                <div>
+
+                    <label for="{{ form.telephone_number.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Telephone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="{{ form.telephone_number.html_name }}"
+                        id="{{ form.telephone_number.id_for_label }}"
+                        value="{{ form.telephone_number.value|default:'' }}"
+                        placeholder="Telephone number"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.telephone_number.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- MOBILE -->
+                <div>
+
+                    <label for="{{ form.mobile_number.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Mobile Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="{{ form.mobile_number.html_name }}"
+                        id="{{ form.mobile_number.id_for_label }}"
+                        value="{{ form.mobile_number.value|default:'' }}"
+                        placeholder="09XX XXX XXXX"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.mobile_number.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- EMAIL -->
+                <div class="md:col-span-2">
+
+                    <label for="{{ form.email.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Business Email
+                    </label>
+
+                    <input
+                        type="email"
+                        name="{{ form.email.html_name }}"
+                        id="{{ form.email.id_for_label }}"
+                        value="{{ form.email.value|default:'' }}"
+                        placeholder="business@example.com"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white
+                               placeholder-gray-600 outline-none transition
+                               hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                    {% for error in form.email.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- DOCUMENT VERIFICATION -->
+        <!-- ================================================= -->
+
+        <section class="overflow-hidden rounded-2xl border border-white/[0.06]
+                        bg-[#0e1420] shadow-xl">
+
+            <div class="border-b border-white/[0.06] px-6 py-6">
+
+                <h2 class="text-lg font-semibold text-white">
+                    Business Documents
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Upload the documents required for employer verification.
+                </p>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 gap-5 p-6 lg:grid-cols-3">
+
+
+                <!-- CERTIFICATE -->
+                <div>
+
+                    <label class="mb-2 block text-sm font-medium text-gray-300">
+                        Certificate of Registration
+                    </label>
+
+                    <label for="{{ form.certificate_of_registration.id_for_label }}"
+                           class="group flex min-h-[160px] cursor-pointer flex-col
+                                  items-center justify-center rounded-xl border
+                                  border-dashed border-gray-700 bg-[#090e17]
+                                  px-5 text-center transition
+                                  hover:border-blue-500/60
+                                  hover:bg-blue-500/[0.03]">
+
+                        <div class="mb-3 flex h-11 w-11 items-center justify-center
+                                    rounded-xl bg-blue-500/10">
+
+                            <svg class="h-5 w-5 text-blue-400"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v9"/>
+                            </svg>
+
+                        </div>
+
+                        <span class="text-sm font-medium text-gray-300
+                                     group-hover:text-white">
+                            Click to upload
+                        </span>
+
+                        <span class="mt-1 text-xs text-gray-600">
+                            PDF, JPG or PNG
+                        </span>
+
+                        <input
+                            type="file"
+                            name="{{ form.certificate_of_registration.html_name }}"
+                            id="{{ form.certificate_of_registration.id_for_label }}"
+                            class="hidden">
+
+                    </label>
+
+                    {% for error in form.certificate_of_registration.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- DTI SEC -->
+                <div>
+
+                    <label class="mb-2 block text-sm font-medium text-gray-300">
+                        DTI / SEC Registration
+                    </label>
+
+                    <label for="{{ form.dti_sec_registration.id_for_label }}"
+                           class="group flex min-h-[160px] cursor-pointer flex-col
+                                  items-center justify-center rounded-xl border
+                                  border-dashed border-gray-700 bg-[#090e17]
+                                  px-5 text-center transition
+                                  hover:border-blue-500/60
+                                  hover:bg-blue-500/[0.03]">
+
+                        <div class="mb-3 flex h-11 w-11 items-center justify-center
+                                    rounded-xl bg-blue-500/10">
+
+                            <svg class="h-5 w-5 text-blue-400"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v9"/>
+                            </svg>
+
+                        </div>
+
+                        <span class="text-sm font-medium text-gray-300
+                                     group-hover:text-white">
+                            Click to upload
+                        </span>
+
+                        <span class="mt-1 text-xs text-gray-600">
+                            PDF, JPG or PNG
+                        </span>
+
+                        <input
+                            type="file"
+                            name="{{ form.dti_sec_registration.html_name }}"
+                            id="{{ form.dti_sec_registration.id_for_label }}"
+                            class="hidden">
+
+                    </label>
+
+                    {% for error in form.dti_sec_registration.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- BUSINESS PERMIT -->
+                <div>
+
+                    <label class="mb-2 block text-sm font-medium text-gray-300">
+                        Business Permit
+                    </label>
+
+                    <label for="{{ form.business_permit.id_for_label }}"
+                           class="group flex min-h-[160px] cursor-pointer flex-col
+                                  items-center justify-center rounded-xl border
+                                  border-dashed border-gray-700 bg-[#090e17]
+                                  px-5 text-center transition
+                                  hover:border-blue-500/60
+                                  hover:bg-blue-500/[0.03]">
+
+                        <div class="mb-3 flex h-11 w-11 items-center justify-center
+                                    rounded-xl bg-blue-500/10">
+
+                            <svg class="h-5 w-5 text-blue-400"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v9"/>
+                            </svg>
+
+                        </div>
+
+                        <span class="text-sm font-medium text-gray-300
+                                     group-hover:text-white">
+                            Click to upload
+                        </span>
+
+                        <span class="mt-1 text-xs text-gray-600">
+                            PDF, JPG or PNG
+                        </span>
+
+                        <input
+                            type="file"
+                            name="{{ form.business_permit.html_name }}"
+                            id="{{ form.business_permit.id_for_label }}"
+                            class="hidden">
+
+                    </label>
+
+                    {% for error in form.business_permit.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- PUBLIC EMPLOYER -->
+        <!-- ================================================= -->
+
+        <section class="overflow-hidden rounded-2xl border border-white/[0.06]
+                        bg-[#0e1420] shadow-xl">
+
+            <div class="border-b border-white/[0.06] px-6 py-6">
+
+                <h2 class="text-lg font-semibold text-white">
+                    Public Employer Verification
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Complete this section if you are a public-sector employer.
+                </p>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+
+                <!-- PUBLIC DOCUMENT TYPE -->
+                <div>
+
+                    <label for="{{ form.public_doc_type.id_for_label }}"
+                           class="mb-2 block text-sm font-medium text-gray-300">
+                        Public Document Type
+                    </label>
+
+                    <select
+                        name="{{ form.public_doc_type.html_name }}"
+                        id="{{ form.public_doc_type.id_for_label }}"
+                        class="h-12 w-full rounded-xl border border-gray-700/70
+                               bg-[#090e17] px-4 text-sm text-white outline-none
+                               transition hover:border-gray-600
+                               focus:border-blue-500
+                               focus:ring-4 focus:ring-blue-500/10">
+
+                        {% for value, label in form.public_doc_type.field.choices %}
+                            <option value="{{ value }}"
+                                {% if form.public_doc_type.value|stringformat:"s" == value|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                    {% for error in form.public_doc_type.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- PUBLIC VERIFICATION DOCUMENT -->
+                <div>
+
+                    <label class="mb-2 block text-sm font-medium text-gray-300">
+                        Public Verification Document
+                    </label>
+
+                    <label for="{{ form.public_verification_document.id_for_label }}"
+                           class="group flex h-12 cursor-pointer items-center gap-3
+                                  rounded-xl border border-gray-700/70
+                                  bg-[#090e17] px-4 transition
+                                  hover:border-blue-500/60">
+
+                        <svg class="h-5 w-5 text-gray-500
+                                    group-hover:text-blue-400"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M12 4v16m8-8H4"/>
+
+                        </svg>
+
+                        <span class="text-sm text-gray-500">
+                            Choose verification document
+                        </span>
+
+                        <input
+                            type="file"
+                            name="{{ form.public_verification_document.html_name }}"
+                            id="{{ form.public_verification_document.id_for_label }}"
+                            class="hidden">
+
+                    </label>
+
+                    {% for error in form.public_verification_document.errors %}
+                        <p class="mt-2 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- ACTIONS -->
+        <!-- ================================================= -->
+
+        <div class="flex flex-col-reverse gap-3 border-t border-white/[0.06]
+                    pt-6 sm:flex-row sm:justify-end">
+
+            <a href="{% url 'employer-home' %}"
+               class="inline-flex h-12 items-center justify-center rounded-xl
+                      border border-gray-700 px-7 text-sm font-medium
+                      text-gray-300 transition
+                      hover:border-gray-600
+                      hover:bg-gray-800/60
+                      hover:text-white">
+
+                Cancel
+
+            </a>
+
+
+            <button
+                type="submit"
+                class="inline-flex h-12 items-center justify-center gap-2
+                       rounded-xl bg-blue-600 px-8 text-sm font-semibold
+                       text-white shadow-lg shadow-blue-600/10 transition
+                       hover:bg-blue-500
+                       focus:outline-none
+                       focus:ring-4 focus:ring-blue-500/20
+                       active:scale-[0.98]">
+
+                <svg class="h-4 w-4"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"/>
+
+                </svg>
+
+                Submit Employer Profile
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+```
+
+</div>
+
+{% endblock %}
