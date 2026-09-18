@@ -1,13 +1,13 @@
 {% extends 'applicant-base.html' %}
 
 {% block content %}
-<div class="max-w-[1300px] w-full mx-auto py-2 space-y-6">
+<div class="max-w-[1300px] w-full mx-auto py-2 space-y-6 text-stone-900 font-sans" x-data="{ currentStep: '1' }">
     
     <!-- TOP PROFILE BANNER (CAPESCONNECT HEADER) -->
-    <div class="bg-[#161e31] p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="bg-white p-6 rounded-xl border border-stone-200/90 shadow-3xs flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="flex items-center gap-5">
             <div class="relative group">
-                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-md overflow-hidden border-2 border-slate-700">
+                <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
                     {% if user.profile_picture %}
                         <img src="{{ user.profile_picture.url }}" alt="Avatar" class="w-full h-full object-cover">
                     {% else %}
@@ -15,279 +15,215 @@
                     {% endif %}
                 </div>
                 {% if form.profile_picture %}
-                <label title="Change Profile Picture" class="absolute -bottom-1 -right-1 w-7 h-7 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-full flex items-center justify-center cursor-pointer shadow-md text-xs">
-                    📷 {{ form.profile_picture }}
+                <label title="Change Profile Picture" class="absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full flex items-center justify-center cursor-pointer shadow-3xs text-xs overflow-hidden">
+                    <span class="sr-only">Upload profile picture</span>📷 {{ form.profile_picture }}
                 </label>
                 {% endif %}
             </div>
             <div>
                 <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-xl font-bold text-white">{{ request.user.get_full_name|default:"Taylor Alison Swift" }}</h1>
-                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium">Account Pending</span>
+                    <h1 class="text-xl font-bold text-stone-900">{{ request.user.get_full_name|default:"Taylor Alison Swift" }}</h1>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium">Account Pending</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-1">Information Technology Sector</p>
+                <p class="text-xs text-stone-500 mt-1">Information Technology Sector</p>
             </div>
         </div>
         
         <div class="flex items-center gap-3">
-            <a href="#" class="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-xl transition-colors">
-                View Profile
-            </a>
-            <a href="#peso-profile-form" class="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-colors shadow-sm">
+            <button type="button" @click="currentStep = 'all'" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200 rounded-lg transition-colors">
+                Show All Sections
+            </button>
+            <a href="#peso-profile-form" class="px-4 py-2 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors shadow-3xs">
                 Edit Profile
             </a>
         </div>
     </div>
 
+    <!-- 8-PART NSRP STEPPER TABS -->
+    <div class="bg-white p-3 rounded-xl border border-stone-200 shadow-3xs flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold sticky top-2 z-10">
+        <template x-for="(label, step) in {
+            '1': '1. Personal Info',
+            '2': '2. Address & Contact',
+            '3': '3. Education',
+            '4': '4. Training & Eligibility',
+            '5': '5. Job Preference',
+            '6': '6. Work Experience',
+            '7': '7. Skills',
+            '8': '8. Certification/Docs'
+        }">
+            <button type="button" 
+                    @click="currentStep = step" 
+                    :class="currentStep === 'all' || currentStep === step ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'" 
+                    class="px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors" 
+                    x-text="label">
+            </button>
+        </template>
+    </div>
+
     <!-- MAIN FORM CONTAINER -->
-    <form method="POST" enctype="multipart/form-data" class="bg-[#161e31] p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-8 text-slate-100" id="peso-profile-form">
+    <form method="POST" enctype="multipart/form-data" class="bg-white p-6 sm:p-8 rounded-xl border border-stone-200/90 shadow-3xs space-y-8 text-stone-900" id="peso-profile-form">
         {% csrf_token %}
         
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-5">
             <div>
-                <h2 class="text-lg font-bold text-white">Edit Personal Profile & Credentials</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Please provide your complete personal, residential, credentials, and employment details for PESO verification.</p>
+                <h2 class="text-lg font-bold text-stone-900">National Skills Registration Program (NSRP Form 1 Rev 3) [cite: 10, 11]</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Please fill out the form legibly. Do not leave items unanswered. Indicate "NA" if not applicable.</p>
             </div>
             <div>
-                <span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">PESO Unified Profile</span>
+                <span class="text-[11px] px-2.5 py-1 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-semibold">PESO Unified Profile</span>
             </div>
         </div>
 
         {% if form.non_field_errors %}
-            <div class="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs text-rose-300">
+            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
 
-        <!-- SECTION I: PERSONAL INFORMATION -->
-        <div class="space-y-4">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">I. Personal Information [cite: 8]</h2>
+
+        <!-- PART 1: SECTION I: PERSONAL INFORMATION -->
+        <div x-show="currentStep === 'all' || currentStep === '1'" class="space-y-4">
+            <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">I. Personal Information</h2>
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.last_name.label|default:"Last Name*" }}</label>
-                    <div class="field-wrap">{{ form.last_name }}</div>
-                    {% if form.last_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.first_name.label|default:"First Name*" }}</label>
-                    <div class="field-wrap">{{ form.first_name }}</div>
-                    {% if form.first_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.middle_name.label|default:"Middle Name" }}</label>
-                    <div class="field-wrap">{{ form.middle_name }}</div>
-                    {% if form.middle_name.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.middle_name.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.suffix.label|default:"Suffix (Write N/A if none)" }}</label>
-                    <div class="field-wrap">{{ form.suffix }}</div>
-                </div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.last_name.label|default:"LAST NAME*" }}</label><div class="field-wrap">{{ form.last_name }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.first_name.label|default:"FIRST NAME*" }}</label><div class="field-wrap">{{ form.first_name }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.middle_name.label|default:"MIDDLE NAME" }}</label><div class="field-wrap">{{ form.middle_name }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.suffix.label|default:"SUFFIX (Sr., Jr.)" }}</label><div class="field-wrap">{{ form.suffix }}</div></div>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.date_of_birth.label|default:"Date of Birth*" }}</label>
-                    <div class="field-wrap">{{ form.date_of_birth }}</div>
-                    {% if form.date_of_birth.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.sex.label|default:"Gender*" }}</label>
-                    <div class="field-wrap">{{ form.sex }}</div>
-                    {% if form.sex.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.sex.errors.0 }}</p>{% endif %}
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div class="sm:col-span-1">
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.place_of_birth.label|default:"Place of Birth*" }}</label>
-                    <div class="field-wrap">{{ form.place_of_birth }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.civil_status.label|default:"Civil Status*" }}</label>
-                    <div class="field-wrap">{{ form.civil_status }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.nationality.label|default:"Nationality*" }}</label>
-                    <div class="field-wrap">{{ form.nationality }}</div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">DATE OF BIRTH (mm/dd/yyyy)*</label><div class="field-wrap">{{ form.date_of_birth }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">SEX*</label><div class="flex items-center gap-6 pt-2 text-xs"><label class="inline-flex items-center gap-2">{{ form.sex_male }} Male</label><label class="inline-flex items-center gap-2">{{ form.sex_female }} Female</label></div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">CITIZENSHIP*</label><div class="field-wrap">{{ form.nationality }}</div></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="sm:col-span-1"><label class="block text-xs font-medium text-stone-700 mb-1.5">PLACE OF BIRTH*</label><div class="field-wrap">{{ form.place_of_birth }}</div></div>
+                <div class="sm:col-span-2"><label class="block text-xs font-medium text-stone-700 mb-1.5">CIVIL STATUS*</label><div class="flex flex-wrap gap-4 pt-2 text-xs"><label class="inline-flex items-center gap-1.5">{{ form.civil_single }} Single</label><label class="inline-flex items-center gap-1.5">{{ form.civil_married }} Married</label><label class="inline-flex items-center gap-1.5">{{ form.civil_widowed }} Widowed</label><label class="inline-flex items-center gap-1.5">{{ form.civil_separated }} Separated</label><label class="inline-flex items-center gap-1.5">{{ form.civil_others }} Others, specify:</label></div><div class="mt-2">{{ form.civil_status_specify }}</div></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">HEIGHT (cm)</label><div class="field-wrap">{{ form.height }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">WEIGHT (kg)</label><div class="field-wrap">{{ form.weight }}</div></div>
+            </div>
+            <div class="p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
+                <label class="block text-xs font-semibold text-stone-700">DISABILITY [cite: 11]</label>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                    <label class="inline-flex items-center gap-1.5">{{ form.disability_visual }} Visual</label>
+                    <label class="inline-flex items-center gap-1.5">{{ form.disability_hearing }} Hearing</label>
+                    <label class="inline-flex items-center gap-1.5">{{ form.disability_speech }} Speech</label>
+                    <label class="inline-flex items-center gap-1.5">{{ form.disability_physical }} Physical</label>
+                    <label class="inline-flex items-center gap-1.5 sm:col-span-1">{{ form.disability_others }} Others, specify</label>
                 </div>
             </div>
+            <div class="space-y-3 pt-2">
+                <label class="block text-xs font-semibold text-stone-700">EMPLOYMENT STATUS* [cite: 11]</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-stone-50 p-3 rounded-xl border border-stone-200">
+                    <label class="inline-flex items-center gap-2">{{ form.emp_employed }} Employed</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_unemployed }} Unemployed</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_retired }} Retired</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_wage_employed }} Wage Employed</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_new_entrant }} New Entrant/Fresh Graduate</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_terminated_local }} Terminated/Laid off (local)</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_self_employed }} Self Employed</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_finished_contract }} Finished Contract</label>
+                    <label class="inline-flex items-center gap-2">{{ form.emp_terminated_abroad }} Terminated/Laid off (abroad)</label>
+                    <label class="inline-flex items-center gap-2 sm:col-span-3">{{ form.emp_resigned }} Resigned</label>
+                </div>
+            </div>
+            <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-4">
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Employment Screening & Status</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-stone-200/80"><span class="text-stone-700 font-medium">Are you actively looking for work? [cite: 11]</span><div class="field-wrap w-auto">{{ form.actively_looking }}</div></div>
+                    <div class="bg-white p-3 rounded-lg border border-stone-200/80"><label class="block text-[11px] font-medium text-stone-500 mb-1">If Yes, How long have you been looking for work? [cite: 11]</label><div class="field-wrap">{{ form.looking_duration }}</div></div>
+                    <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-stone-200/80"><span class="text-stone-700 font-medium">Willing to work immediately? [cite: 11]</span><div class="field-wrap w-auto">{{ form.willing_to_work_immediately }}</div></div>
+                    <div class="bg-white p-3 rounded-lg border border-stone-200/80"><label class="block text-[11px] font-medium text-stone-500 mb-1">If No, when? [cite: 11]</label><div class="field-wrap">{{ form.when_willing_to_work }}</div></div>
+                    <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-stone-200/80"><span class="text-stone-700 font-medium">Are you a 4Ps beneficiary? [cite: 11]</span><div class="field-wrap w-auto">{{ form.is_4ps_beneficiary }}</div></div>
+                    <div class="bg-white p-3 rounded-lg border border-stone-200/80"><label class="block text-[11px] font-medium text-stone-500 mb-1">If Yes, Household ID No. [cite: 11]</label><div class="field-wrap">{{ form.household_id_no }}</div></div>
+                    <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-stone-200/80 md:col-span-2">
+                        <div class="flex items-center gap-6"><label class="font-medium text-stone-700">Are you an OFW?</label><div class="field-wrap inline-block w-auto">{{ form.is_ofw }}</div></div>
+                        <div class="flex items-center gap-3"><label class="font-medium text-stone-700 text-right">Are you considering coming back to the Philippines to work?</label><div class="field-wrap w-48">{{ form.returning_to_ph_to_work }}</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end pt-4"><button type="button" @click="currentStep = '2'" class="px-4 py-2 text-xs font-semibold bg-stone-900 text-white rounded-lg">Next: Address & Contact ➔</button></div>
         </div>
 
-        <hr class="border-slate-800">
 
-        <!-- ADDITIONAL INFORMATION -->
-        <div class="space-y-4">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Additional Information [cite: 8]</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.weight.label|default:"Weight (kg)*" }}</label>
-                    <div class="field-wrap">{{ form.weight }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.height.label|default:"Height (cm)*" }}</label>
-                    <div class="field-wrap">{{ form.height }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.employment_status.label|default:"Employment Status*" }}</label>
-                    <div class="field-wrap">{{ form.employment_status }}</div>
-                </div>
-            </div>
-
-            <!-- Complete Radio/Checkbox Matrix Cleaned Up -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-                <div class="flex items-center gap-6">
-                    <label for="{{ form.actively_looking.id_for_label }}" class="text-xs font-medium text-slate-300 cursor-pointer">Are you actively looking for work?</label>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs">{{ form.actively_looking }} Yes</label>
-                </div>
-                <div class="flex items-center gap-6">
-                    <span class="text-xs font-medium text-slate-300">Willing to work immediately?</span>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs">{{ form.willing_work_immediately }}</label>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">If Yes, how long have you been looking for work?</label>
-                    <div class="field-wrap">{{ form.looking_duration }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">If No, when?</label>
-                    <div class="field-wrap">{{ form.unemployment_reason_when }}</div>
-                </div>
-            </div>
-
-            <!-- 4Ps & OFW full breakdown -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-6">
-                        <span class="text-xs font-medium text-slate-300">Are you a 4Ps beneficiary?</span>
-                        <div class="flex gap-4 text-xs">
-                            <label class="flex items-center gap-1.5">{{ form.is_4ps_yes }} Yes</label>
-                            <label class="flex items-center gap-1.5">{{ form.is_4ps_no }} No</label>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">If Yes, household ID No.</label>
-                        <div class="field-wrap">{{ form.household_id_no }}</div>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <div class="flex items-center gap-6">
-                        <span class="text-xs font-medium text-slate-300">Are you an OFW?</span>
-                        <div class="flex gap-4 text-xs">
-                            <label class="flex items-center gap-1.5">{{ form.is_ofw_yes }} Yes</label>
-                            <label class="flex items-center gap-1.5">{{ form.is_ofw_no }} No</label>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-xs pt-1">
-                        <span class="text-slate-300">Are you considering coming back to the Philippines to work?</span>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-1">{{ form.coming_back_yes }} Yes</label>
-                            <label class="flex items-center gap-1">{{ form.coming_back_no }} No</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <hr class="border-slate-800">
-
-        <!-- SECTION II: ADDRESS & CONTACT INFORMATION -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Address [cite: 8]</h2>
+        <!-- PART 2: SECTION II: ADDRESS & CONTACT INFORMATION -->
+        <div x-show="currentStep === 'all' || currentStep === '2'" class="space-y-4">
+            <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">II. Address & Contact Information [cite: 11]</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.house_street.label|default:"House No. / Street / Purok*" }}</label>
-                        <div class="field-wrap">{{ form.house_street }}</div>
-                    </div>
+                    <h3 class="text-xs font-bold text-stone-700">Address [cite: 11]</h3>
+                    <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.house_street.label|default:"House No. / Street / Purok*" }}</label><div class="field-wrap">{{ form.house_street }}</div></div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.barangay.label|default:"Barangay*" }}</label>
-                            <div class="field-wrap">{{ form.barangay }}</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.municipality.label|default:"Municipality*" }}</label>
-                            <div class="field-wrap">{{ form.municipality }}</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.province.label|default:"Province*" }}</label>
-                            <div class="field-wrap">{{ form.province }}</div>
-                        </div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.barangay.label|default:"Barangay*" }}</label><div class="field-wrap">{{ form.barangay }}</div></div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.municipality.label|default:"Municipality*" }}</label><div class="field-wrap">{{ form.municipality }}</div></div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.province.label|default:"Province*" }}</label><div class="field-wrap">{{ form.province }}</div></div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.zip_code.label|default:"Zipcode*" }}</label>
-                        <div class="field-wrap">{{ form.zip_code }}</div>
-                    </div>
+                    <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.zip_code.label|default:"Zipcode*" }}</label><div class="field-wrap">{{ form.zip_code }}</div></div>
                 </div>
-            </div>
-
-            <div class="space-y-4">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">II. Contact Information [cite: 8]</h2>
                 <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-stone-700">Contact Information</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Mobile Number (Primary)*</label>
-                            <div class="field-wrap">{{ form.phone_number }}</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Mobile Number (Secondary)</label>
-                            <div class="field-wrap">{{ form.mobile_secondary }}</div>
-                        </div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Mobile Number (Primary)*</label><div class="field-wrap">{{ form.phone_number }}</div></div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Mobile Number (Secondary)</label><div class="field-wrap">{{ form.mobile_number_secondary }}</div></div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Landline Number (Optional)</label>
-                            <div class="field-wrap">{{ form.landline_number }}</div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Email address</label>
-                            <div class="field-wrap">{{ form.email_address }}</div>
-                        </div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Landline Number (Optional)</label><div class="field-wrap">{{ form.landline_number }}</div></div>
+                        <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Email address</label><div class="field-wrap">{{ form.email_address }}</div></div>
                     </div>
-                    <div class="pt-2">
-                        <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
-                            {{ form.same_as_present_address }} <span>Same as Present Address*</span>
-                        </label>
-                    </div>
+                    <div class="pt-2"><label class="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-stone-700 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200 w-full">{{ form.same_as_present_address }} <span>Same as Present Address*</span></label></div>
                 </div>
             </div>
+            <div class="flex justify-between pt-4"><button type="button" @click="currentStep = '1'" class="px-4 py-2 text-xs font-semibold bg-stone-100 rounded-lg">← Back</button><button type="button" @click="currentStep = '3'" class="px-4 py-2 text-xs font-semibold bg-stone-900 text-white rounded-lg">Next: Education ➔</button></div>
         </div>
 
-        <hr class="border-slate-800">
 
-        <!-- SECTION III: EDUCATIONAL BACKGROUND -->
-        <div class="space-y-4">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">III. Educational Background [cite: 8]</h2>
-            <div class="flex items-center gap-6">
-                <span class="text-xs font-medium text-slate-300">Currently in School?*</span>
-                <label class="flex items-center gap-2 cursor-pointer text-xs">{{ form.school_status_yes }} Yes</label>
-                <label class="flex items-center gap-2 cursor-pointer text-xs">{{ form.school_status_no }} No</label>
+       <!-- PART 3: SECTION III: EDUCATIONAL BACKGROUND -->
+        <div x-show="currentStep === 'all' || currentStep === '3'" class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
+                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">III. Educational Background</h2>
+                <div class="flex items-center gap-5 text-xs">
+                    <span class="font-medium text-stone-700">Currently in School?*</span>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer">{{ form.school_status_yes }} Yes</label>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer">{{ form.school_status_no }} No</label>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                <div class="space-y-3">
-                    <label class="block text-xs font-semibold text-slate-300">HIGHEST EDUCATIONAL ATTAINMENT [cite: 8]</label>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <label class="flex items-center gap-2">{{ form.edu_no_formal }} No Formal Education</label>
-                        <label class="flex items-center gap-2">{{ form.edu_college_grad }} College Graduate</label>
-                        <label class="flex items-center gap-2">{{ form.edu_elem_level }} Elementary Level</label>
-                        <label class="flex items-center gap-2">{{ form.edu_elem_grad }} Elementary Graduate</label>
-                        <label class="flex items-center gap-2">{{ form.edu_hs_level }} High School Level</label>
-                        <label class="flex items-center gap-2">{{ form.edu_hs_grad }} High School Graduate</label>
-                        <label class="flex items-center gap-2">{{ form.edu_post_grad }} Post Graduate</label>
-                        <label class="flex items-center gap-2">{{ form.edu_college_level }} College Level</label>
-                        <label class="flex items-center gap-2 sm:col-span-2">{{ form.edu_tech_voc }} Technical Vocational Graduate</label>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Highest Educational Attainment Grid -->
+                <div class="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                    <label class="block text-xs font-bold text-stone-800 uppercase tracking-wide">Highest Educational Attainment*</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-stone-700">
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_no_formal }} No Formal Education</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_college_grad }} College Graduate</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_elem_level }} Elementary Level</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_elem_grad }} Elementary Graduate</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_hs_level }} High School Level</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_hs_grad }} High School Graduate</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_post_grad }} Post Graduate</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_college_level }} College Level</label>
+                        <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80 sm:col-span-2">{{ form.edu_tech_voc }} Technical Vocational Graduate</label>
                     </div>
                 </div>
 
+                <!-- School / Course / Year / Awards Details -->
                 <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-stone-700 mb-1.5">School / University*</label>
+                            <div class="field-wrap">{{ form.school_university }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-stone-700 mb-1.5">Course / Program*</label>
+                            <div class="field-wrap">{{ form.course_program }}</div>
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Year Graduated / Last Attended [cite: 8]</label>
+                        <label class="block text-xs font-medium text-stone-700 mb-1.5">Year Graduated / Last Attended (mm/yyyy)</label>
                         <div class="field-wrap">{{ form.year_graduated_attended }}</div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Awards / Honors Received (Optional) [cite: 8]</label>
+                        <label class="block text-xs font-medium text-stone-700 mb-1.5">Awards / Honors Received (Optional)</label>
                         <div class="space-y-2">
                             <div class="field-wrap">{{ form.award_1 }}</div>
                             <div class="field-wrap">{{ form.award_2 }}</div>
@@ -297,177 +233,132 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+            <div class="flex justify-between pt-4">
+                <button type="button" @click="currentStep = '2'" class="px-4 py-2 text-xs font-semibold bg-stone-100 hover:bg-stone-200 rounded-lg">← Back</button>
+                <button type="button" @click="currentStep = '4'" class="px-4 py-2 text-xs font-semibold bg-stone-900 text-white hover:bg-stone-800 rounded-lg">Next: Training & Eligibility ➔</button>
+            </div>
+        </div>
+
+       <!-- PART 4: SECTION IV: TRAINING & VOCATIONAL ELIGIBILITY -->
+<div x-show="currentStep === 'all' || currentStep === '4'" class="space-y-5">
+    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">IV. Training, Vocational, and Other Eligibility</h2>
+    </div>
+
+    <div class="space-y-4">
+        <!-- Entry 1 -->
+        <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
+            <span class="text-xs font-bold text-stone-700 uppercase">Training / Eligibility 1</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Course / Training Title / Eligibility (CES, Civil Service, NC II, etc.)*</label>
+                    <input type="text" name="training_title_1" value="{{ form.training_title_1.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">School / University* [cite: 8]</label>
-                    <div class="field-wrap">{{ form.school_university }}</div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Number of Hours</label>
+                    <input type="number" name="training_hours_1" value="{{ form.training_hours_1.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Conducted / Issued By (Institution / Agency)</label>
+                    <input type="text" name="training_institution_1" value="{{ form.training_institution_1.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Course / Program* [cite: 8]</label>
-                    <div class="field-wrap">{{ form.course_program }}</div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Date Completed / Issued</label>
+                    <input type="date" name="training_date_1" value="{{ form.training_date_1.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
             </div>
         </div>
 
-        <hr class="border-slate-800">
-
-        <!-- SECTION IV & V: TRAININGS & ELIGIBILITY -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">IV. Trainings [cite: 9]</h2>
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="text-slate-300">Currently in Training?*</span>
-                        <label class="flex items-center gap-1">{{ form.training_status_yes }} Yes</label>
-                        <label class="flex items-center gap-1">{{ form.training_status_no }} No</label>
-                    </div>
+        <!-- Entry 2 -->
+        <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
+            <span class="text-xs font-bold text-stone-700 uppercase">Training / Eligibility 2 (Optional)</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Course / Training Title / Eligibility</label>
+                    <input type="text" name="training_title_2" value="{{ form.training_title_2.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
-                
-                <div class="overflow-x-auto bg-slate-900/60 border border-slate-800 rounded-xl p-3">
-                    <table class="w-full text-left text-[11px] border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-amber-300/80">
-                                <th class="p-1.5">Training [cite: 9]</th>
-                                <th class="p-1.5">Duration of Course [cite: 9]</th>
-                                <th class="p-1.5">Training Institution [cite: 9]</th>
-                                <th class="p-1.5">Certificates Received [cite: 9]</th>
-                                <th class="p-1.5">Completed [cite: 9]</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                            {% for i in '123'|make_list %}
-                            <tr>
-                                <td class="p-1.5"><div class="field-wrap">{% if i == '1' %}{{ form.training_title_1 }}{% elif i == '2' %}{{ form.training_title_2 }}{% else %}{{ form.training_title_3 }}{% endif %}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{% if i == '1' %}{{ form.training_duration_1 }}{% elif i == '2' %}{{ form.training_duration_2 }}{% else %}{{ form.training_duration_3 }}{% endif %}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{% if i == '1' %}{{ form.training_institution_1 }}{% elif i == '2' %}{{ form.training_institution_2 }}{% else %}{{ form.training_institution_3 }}{% endif %}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{% if i == '1' %}{{ form.training_cert_1 }}{% elif i == '2' %}{{ form.training_cert_2 }}{% else %}{{ form.training_cert_3 }}{% endif %}</div></td>
-                                <td class="p-1.5 text-center">{% if i == '1' %}{{ form.training_completed_1 }}{% elif i == '2' %}{{ form.training_completed_2 }}{% else %}{{ form.training_completed_3 }}{% endif %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Number of Hours</label>
+                    <input type="number" name="training_hours_2" value="{{ form.training_hours_2.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
             </div>
-
-            <div class="space-y-4">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">V. Eligibility [cite: 9]</h2>
-                <div class="overflow-x-auto bg-slate-900/60 border border-slate-800 rounded-xl p-3">
-                    <table class="w-full text-left text-[11px] border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-amber-300/80">
-                                <th class="p-1.5">Career/Service/Board/BAR [cite: 9]</th>
-                                <th class="p-1.5">License Number [cite: 9]</th>
-                                <th class="p-1.5">Expiry Date [cite: 9]</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                            <tr>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_career_1 }}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_license_1 }}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_expiry_1 }}</div></td>
-                            </tr>
-                            <tr>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_career_2 }}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_license_2 }}</div></td>
-                                <td class="p-1.5"><div class="field-wrap">{{ form.eligibility_expiry_2 }}</div></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Conducted / Issued By</label>
+                    <input type="text" name="training_institution_2" value="{{ form.training_institution_2.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55ron] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
-
-                <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
-                    <label class="block text-xs font-semibold text-slate-300">LANGUAGE PROFICIENCY CERTIFICATION [cite: 9]</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <label class="flex items-center gap-2">{{ form.lang_ielts }} <span>International English Language Testing System (IELTS) [cite: 9]</span></label>
-                        <label class="flex items-center gap-2">{{ form.lang_jlpt }} <span>Japanese Language Proficiency Test (JLPT) [cite: 9]</span></label>
-                        <label class="flex items-center gap-2">{{ form.lang_toefl }} <span>Test of English as a Foreign Language (TOEFL) [cite: 9]</span></label>
-                        <label class="flex items-center gap-2">{{ form.lang_topik }} <span>Test of Proficiency in Korean (TOPIK) [cite: 9]</span></label>
-                        <label class="flex items-center gap-2 sm:col-span-2">{{ form.lang_toecfl }} <span>Test of Chinese as a Foreign Language (TOCFL) [cite: 9]</span></label>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Others: Please specify / Validity Date [cite: 9]</label>
-                        <div class="field-wrap">{{ form.language_other_specify }}</div>
-                    </div>
-                    <div class="pt-2 border-t border-slate-800">
-                        <label class="block text-[11px] font-semibold text-slate-300 mb-2">DIALECTS SPOKEN [cite: 9]</label>
-                        <div class="flex flex-wrap gap-4 text-xs">
-                            <label class="flex items-center gap-1.5">{{ form.dialect_tagalog }} Tagalog [cite: 9]</label>
-                            <label class="flex items-center gap-1.5">{{ form.dialect_ilocano }} Ilocano [cite: 9]</label>
-                            <label class="flex items-center gap-1.5">{{ form.dialect_hiligaynon }} Hiligaynon [cite: 9]</label>
-                            <label class="flex items-center gap-1.5">{{ form.dialect_bikol }} Bikol [cite: 9]</label>
-                            <label class="flex items-center gap-1.5">{{ form.dialect_others }} Others [cite: 9]</label>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">Date Completed / Issued</label>
+                    <input type="date" name="training_date_2" value="{{ form.training_date_2.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
                 </div>
             </div>
         </div>
+    </div>
 
-        <hr class="border-slate-800">
+    <div class="flex justify-between pt-4">
+        <button type="button" @click="currentStep = '3'" class="px-4 py-2 text-xs font-semibold bg-stone-100 hover:bg-stone-200 rounded-lg">← Back</button>
+        <button type="button" @click="currentStep = '5'" class="px-4 py-2 text-xs font-semibold bg-stone-900 text-white hover:bg-stone-800 rounded-lg">Next: Work Experience / Skills ➔</button>
+    </div>
+</div>
 
-        <!-- SECTION VI: JOB PREFERENCE -->
-        <div class="space-y-4">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">VI. Job Preference [cite: 9]</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
-                    <div class="text-[11px] font-semibold text-amber-300/80 uppercase">PREFERRED OCCUPATION AND INDUSTRY (clerk, call center agent, saleslady) | (IT-BPM, Construction, Manufacturing) [cite: 9]</div>
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="field-wrap">{{ form.pref_occupation_1 }}</div>
-                            <div class="field-wrap">{{ form.pref_industry_1 }}</div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="field-wrap">{{ form.pref_occupation_2 }}</div>
-                            <div class="field-wrap">{{ form.pref_industry_2 }}</div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="field-wrap">{{ form.pref_occupation_3 }}</div>
-                            <div class="field-wrap">{{ form.pref_industry_3 }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
-                    <div class="text-[11px] font-semibold text-amber-300/80 uppercase">PREFERRED WORK LOCATION [cite: 9]</div>
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-4 text-xs pt-1">
-                            <label class="flex items-center gap-2">{{ form.pref_loc_local }} <span>Local, specify cities/municipalities: [cite: 9]</span></label>
-                            <label class="flex items-center gap-2">{{ form.pref_loc_overseas }} <span>Overseas, specify countries: [cite: 9]</span></label>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="field-wrap">{{ form.pref_location_1 }}</div>
-                            <div class="field-wrap">{{ form.pref_location_2 }}</div>
-                            <div class="field-wrap">{{ form.pref_location_3 }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="max-w-xs">
-                <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.expected_salary.label|default:"Expected Salary:" }} [cite: 9]</label>
-                <div class="field-wrap">{{ form.expected_salary }}</div>
-            </div>
+        <!-- PART 5: SECTION V: JOB PREFERENCE -->
+<div x-show="currentStep === 'all' || currentStep === '5'" class="space-y-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
+        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">V. Job Preference</h2>
+        <div class="flex items-center gap-5 text-xs">
+            <span class="font-medium text-stone-700">Employment Preference*:</span>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">{{ form.pref_local }} Local</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">{{ form.pref_overseas }} Overseas</label>
         </div>
+    </div>
 
-        <hr class="border-slate-800">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Preferred Occupation 1*</label>
+            <input type="text" name="pref_occupation_1" value="{{ form.pref_occupation_1.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Preferred Occupation 2</label>
+            <input type="text" name="pref_occupation_2" value="{{ form.pref_occupation_2.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Preferred Occupation 3</label>
+            <input type="text" name="pref_occupation_3" value="{{ form.pref_occupation_3.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+    </div>
 
-        <!-- SECTION VII: WORK EXPERIENCE -->
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">VII. Work Experience [cite: 9]</h2>
-                <span class="text-[10px] text-slate-400">(Limit the occupation for the last 10 years. Start with the most recent employment) [cite: 9]</span>
-            </div>
-            
-            <div class="overflow-x-auto bg-slate-900/60 border border-slate-800 rounded-xl p-3">
-                <table class="w-full text-left text-[11px] border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-amber-300/80">
-                            <th class="p-1.5">Name of Company [cite: 9]</th>
-                            <th class="p-1.5">Address [cite: 9]</th>
-                            <th class="p-1.5">Position Held [cite: 9]</th>
-                            <th class="p-1.5">Inclusive Dates [cite: 9]</th>
-                            <th class="p-1.5">Status of Appointment [cite: 9]</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Preferred Local Location / Region</label>
+            <input type="text" name="pref_location_local" value="{{ form.pref_location_local.value|default:'' }}" placeholder="e.g., Region VIII / Leyte" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Preferred Overseas Country</label>
+            <input type="text" name="pref_location_overseas" value="{{ form.pref_location_overseas.value|default:'' }}" placeholder="e.g., Japan, Canada" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+        <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-stone-700">Expected Min. Monthly Salary (₱)</label>
+            <input type="number" name="pref_salary" value="{{ form.pref_salary.value|default:'' }}" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+    </div>
+
+    <div class="flex justify-between pt-4">
+        <button type="button" @click="currentStep = '4'" class="px-4 py-2 text-xs font-semibold bg-stone-100 hover:bg-stone-200 rounded-lg">← Back</button>
+        <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-3xs">
+            Save & Complete Profile
+        </button>
+    </div>
+</div>
+
+        <!-- PART 6: WORK EXPERIENCE -->
+        <div x-show="currentStep === 'all' || currentStep === '6'" class="space-y-4">
+            <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">VII. WORK EXPERIENCE [cite: 10]</h2>
+            <div class="overflow-x-auto bg-stone-50 border border-stone-200 rounded-xl p-3">
+                <table class="w-full text-left text-[11px] border-collapse min-w-[650px]">
+                    <thead><tr class="border-b border-stone-200 text-stone-700 font-semibold"><th class="p-1.5">COMPANY [cite: 10]</th><th class="p-1.5">ADDRESS [cite: 10]</th><th class="p-1.5">POSITION [cite: 10]</th><th class="p-1.5">DATES [cite: 10]</th><th class="p-1.5">STATUS [cite: 10]</th></tr></thead>
+                    <tbody class="divide-y divide-stone-200/60">
                         {% for i in '123'|make_list %}
                         <tr>
                             <td class="p-1.5"><div class="field-wrap">{% if i == '1' %}{{ form.work_company_1 }}{% elif i == '2' %}{{ form.work_company_2 }}{% else %}{{ form.work_company_3 }}{% endif %}</div></td>
@@ -480,164 +371,130 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-[11px] text-slate-400 italic">(Status of Appointment can be either of the ff: Permanent, Contractual, Part-time, or Probationary.) [cite: 9]</p>
+            <div class="flex justify-between pt-4"><button type="button" @click="currentStep = '5'" class="px-4 py-2 text-xs font-semibold bg-stone-100 rounded-lg">← Back</button><button type="button" @click="currentStep = '7'" class="px-4 py-2 text-xs font-semibold bg-stone-900 text-white rounded-lg">Next: Skills ➔</button></div>
         </div>
 
-        <hr class="border-slate-800">
+       <!-- PART 7: SECTION VII: OTHER SKILLS / COMPETENCIES -->
+<div x-show="currentStep === 'all' || currentStep === '7'" class="space-y-5">
+    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">VII. Other Skills / Competencies</h2>
+    </div>
 
-        <!-- SECTION VIII & IX: SKILLS -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">VIII. 21st Century Skills [cite: 9]</h2>
-                    <span class="text-[10px] text-slate-400">Check five (5) skills you possess (self-assessment) [cite: 9]</span>
-                </div>
-                <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-xl grid grid-cols-2 sm:grid-cols-2 gap-2.5 text-xs">
-                    <label class="flex items-center gap-2">{{ form.skill_innovation }} Innovation [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_creative_ps }} Creative Problem Solving [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_planning }} Planning and Organizing [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_teamwork }} Teamwork [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_problem_solving }} Problem Solving [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_social_percep }} Social Perceptiveness [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_multitasking }} Multitasking [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_critical_thinking }} Critical Thinking [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_english_func }} English Functional Skills [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_work_ethics }} Work Ethics [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_decision_making }} Decision Making [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_english_comp }} English Comprehension [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_self_motivate }} Self-Motivation [cite: 9]</label>
-                    <label class="flex items-center gap-2">{{ form.skill_stress_tol }} Stress Tolerance [cite: 9]</label>
-                    <label class="flex items-center gap-2 sm:col-span-2">{{ form.skill_math_func }} Math Functional Skill [cite: 9]</label>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">IX. Technical Skills Acquired Without Formal Training [cite: 9]</h2>
-                <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                        <label class="flex items-center gap-2">{{ form.tech_carpentry }} Carpentry [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_plumbing }} Plumbing [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_photography }} Photography [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_masonry }} Masonry [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_driving }} Driving [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_hairdressing }} Hairdressing [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_welding }} Welding [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_gardening }} Gardening [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_cooking }} Cooking [cite: 9]</label>
-                        <label class="flex items-center gap-2 sm:col-span-2">{{ form.tech_auto_mech }} Auto Mechanic [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_tailoring }} Tailoring [cite: 9]</label>
-                        <label class="flex items-center gap-2">{{ form.tech_baking }} Baking [cite: 9]</label>
-                    </div>
-                    <div class="pt-2 border-t border-slate-800">
-                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Others: Please specify [cite: 9]</label>
-                        <div class="field-wrap">{{ form.tech_skills_others }}</div>
-                    </div>
-                </div>
-            </div>
+    <div class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_computer }} Computer Literacy / IT
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_driving }} Driving (Valid License)
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_customer_service }} Customer Service
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_bookkeeping }} Accounting / Bookkeeping
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_carpentry }} Carpentry / Construction
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_welding }} Welding
+            </label>
         </div>
 
-        <hr class="border-slate-800">
+        <div class="space-y-1.5 pt-2">
+            <label class="block text-xs font-medium text-stone-700">Other / Specific Technical Skills (e.g., Programming, Editing, Machinery)</label>
+            <input type="text" name="other_skills" value="{{ form.other_skills.value|default:'' }}" placeholder="e.g., Python, Django, Graphic Design, Video Editing" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+    </div>
 
-        <!-- SECTION X: UPLOAD DOCUMENTS -->
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider">X. Upload Documents [cite: 10]</h2>
-            </div>
-            <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300">
-                Your account will be reviewed by a PESO administrator before you can apply to jobs. Please upload valid ID and supporting documents. [cite: 10]
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {% if form.valid_id %}
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.valid_id.label|default:"Government-issued ID (SSS, PhilHealth, PhilSys, Driver's License) [cite: 10]" }}</label>
-                    <div class="field-wrap border-dashed p-2">{{ form.valid_id }}</div>
-                    {% if form.valid_id.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.valid_id.errors.0 }}</p>{% endif %}
-                </div>
-                {% endif %}
-                {% if form.resume %}
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.resume.label|default:"Resume / CV (PDF or DOCX format preferred)* [cite: 10]" }}</label>
-                    <div class="field-wrap border-dashed p-2">{{ form.resume }}</div>
-                    {% if form.resume.errors %}<p class="text-xs text-rose-400 mt-1">{{ form.resume.errors.0 }}</p>{% endif %}
-                </div>
-                {% endif %}
-                {% if form.tor_diploma %}
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">{{ form.tor_diploma.label|default:"TOR / Diploma (optional) Transcript of Records or Diploma copy [cite: 10]" }}</label>
-                    <div class="field-wrap border-dashed p-2">{{ form.tor_diploma }}</div>
-                </div>
-                {% endif %}
-            </div>
+    <div class="flex justify-between pt-4">
+        <button type="button" @click="currentStep = '6'" class="px-4 py-2 text-xs font-semibold bg-stone-100 hover:bg-stone-200 rounded-lg">← Back</button>
+        <button type="button" @click="currentStep = '8'" class="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-3xs">
+            Next: Certification & Docs ➔
+        </button>
+    </div>
+</div>
+
+        <!-- PART 8: SECTION VIII: CERTIFICATION & DOCUMENTS / WAIVER -->
+<div x-show="currentStep === 'all' || currentStep === '8'" class="space-y-5">
+    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">VIII. Certification & Data Privacy Consent</h2>
+    </div>
+
+    <div class="space-y-4">
+        <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-700 leading-relaxed space-y-2">
+            <p>I certify that all information given in this NSRP form is true, correct, and complete to the best of my knowledge. Any misrepresentation made in this form may be ground for disqualification.</p>
+            <p class="font-medium text-stone-900">By submitting this profile, I grant PESO Carigara / PESO Unified consent to process my personal data in accordance with the Data Privacy Act of 2012 for employment facilitation and referral purposes.</p>
         </div>
 
-        <!-- High-Contrast Input Styling Engine -->
+        <div class="space-y-3 pt-2">
+            <label class="inline-flex items-center gap-2.5 cursor-pointer text-xs font-medium text-stone-800">
+                {{ form.certification_agree }} <span>I agree to the certification and data privacy terms above*</span>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
+            <div>
+                <label class="block text-xs font-medium text-stone-700 mb-1.5">Upload Resume / CV (PDF/DOCX)*</label>
+                <div class="field-wrap">{{ form.resume_file }}</div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-stone-700 mb-1.5">Supporting Certificate / ID (Optional)</label>
+                <div class="field-wrap">{{ form.supporting_doc }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-between pt-6 border-t border-stone-200">
+        <button type="button" @click="currentStep = '7'" class="px-4 py-2 text-xs font-semibold bg-stone-100 hover:bg-stone-200 rounded-lg">← Back</button>
+        <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-3xs">
+            Save & Complete Profile
+        </button>
+    </div>
+</div>
+
+        <!-- Existing styling engine preserved -->
         <style>
             #peso-profile-form .field-wrap input[type="text"],
             #peso-profile-form .field-wrap input[type="number"],
             #peso-profile-form .field-wrap input[type="date"],
             #peso-profile-form .field-wrap input[type="email"],
+            #peso-profile-form .field-wrap input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
             #peso-profile-form .field-wrap select,
             #peso-profile-form .field-wrap textarea {
-                display: block !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-                background-color: #020617 !important;
-                border: 1px solid #334155 !important;
-                border-radius: 0.65rem !important;
-                padding: 0.55rem 0.75rem !important;
-                font-size: 0.75rem !important;
-                color: #f8fafc !important;
-                outline: none !important;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                display: block !important; width: 100% !important; box-sizing: border-box !important; background-color: #ffffff !important;
+                border: 1px solid #d6d3d1 !important; border-radius: 0.65rem !important; padding: 0.55rem 0.75rem !important; font-size: 0.75rem !important; color: #1c1917 !important; outline: none !important;
             }
-            #peso-profile-form .field-wrap input[type="text"]:focus,
-            #peso-profile-form .field-wrap input[type="number"]:focus,
-            #peso-profile-form .field-wrap input[type="date"]:focus,
-            #peso-profile-form .field-wrap select:focus,
-            #peso-profile-form .field-wrap textarea:focus {
-                border-color: #fbbf24 !important;
-                box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2) !important;
-            }
-            #peso-profile-form input[type="checkbox"],
-            #peso-profile-form input[type="radio"] {
-                accent-color: #fbbf24 !important;
-                width: 1rem !important;
-                height: 1rem !important;
-                cursor: pointer;
-            }
-            #peso-profile-form .field-wrap.border-dashed {
-                border: 1px dashed #334155 !important;
-                background-color: transparent !important;
-            }
-            #peso-profile-form .field-wrap input[type="file"] {
-                font-size: 0.75rem !important;
-                color: #cbd5e1 !important;
-                background-color: transparent !important;
-                border: none !important;
-                padding: 0.25rem !important;
-                width: 100% !important;
-            }
-            #peso-profile-form .field-wrap input[type="file"]::file-selector-button {
-                background-color: #fbbf24 !important;
-                color: #090d16 !important;
-                border: none !important;
-                border-radius: 0.4rem !important;
-                padding: 0.4rem 0.75rem !important;
-                font-weight: 600 !important;
-                cursor: pointer !important;
-                margin-right: 0.75rem !important;
-            }
+            #peso-profile-form input[type="checkbox"], #peso-profile-form input[type="radio"] { accent-color: #1c1917 !important; width: 1rem !important; height: 1rem !important; cursor: pointer; flex-shrink: 0; }
+            #peso-profile-form .field-wrap.border-dashed { border: 1px dashed #d6d3d1 !important; background-color: #fafaf9 !important; }
         </style>
 
         <!-- Actions -->
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-800">
-            <a href="#" class="px-4 py-2.5 text-xs font-semibold text-slate-300 bg-slate-800/80 rounded-xl hover:bg-slate-700 transition-colors">
-                Cancel
+        <div class="flex justify-end gap-3 pt-6 border-t border-stone-200">
+            <a href="{% url 'applicant-dashboard' %}" class="px-4 py-2.5 text-xs font-semibold text-stone-700 bg-stone-100 rounded-lg hover:bg-stone-200/80 transition-colors">
+                Cancel / Dashboard
             </a>
-            <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-amber-400 rounded-xl hover:bg-amber-300 transition-colors shadow-sm">
+            <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-3xs">
                 Save Changes [cite: 10]
             </button>
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkbox = document.querySelector('[name="same_as_present_address"]');
+        if (checkbox) {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Update selectors below if you have corresponding permanent address fields (e.g., perm_house_street)
+                    const sourceStreet = document.querySelector('[name="house_street"]');
+                    const targetStreet = document.querySelector('[name="perm_house_street"]');
+                    if (sourceStreet && targetStreet) targetStreet.value = sourceStreet.value;
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

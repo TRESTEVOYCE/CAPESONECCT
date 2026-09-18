@@ -18,6 +18,7 @@ class ApplicantPersonalInfoCreateView(LoginRequiredMixin,UserPassesTestMixin,Cre
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        # If storing UI boolean helpers into model json/char fields, process cleaned_data here
         return super().form_valid(form)
 
 class ApplicantEducationCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
@@ -137,7 +138,7 @@ class ApplicantDocumentsUpdateView(LoginRequiredMixin,UserPassesTestMixin,Update
 
 class ApplicantProfileDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
     model = ApplicantProfile
-    success_url = reverse_lazy('login')  # Redirect to the login page after successful deletion
+    success_url = reverse_lazy('login')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -168,7 +169,6 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         ).first()
 
         if applicant_profile:
-            # AI Job Matching
             applicant_profile_text = build_applicant_profile_text(applicant_profile)
             collection = get_job_collection()
 
@@ -184,7 +184,6 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             context['matching_jobs'] = Jobs.objects.filter(uuid__in=job_uuids)
 
-            # Application Counts
             applications = AppliedJobs.objects.filter(
                 applicant=applicant_profile
             )
@@ -195,7 +194,6 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 applicant=applicant_profile
             ).count()
 
-            # Application Status
             context['under_review_count'] = applications.filter(
                 status__in=['pending', 'reviewed']
             ).count()
@@ -210,7 +208,6 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             context['withdrawn_count'] = 0
 
-            # Profile Strength
             completed = 0
             total = 6
 
@@ -326,13 +323,13 @@ class SortJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        sort_by = self.request.GET.get('sort_by', 'date_posted')  # Default sorting by date_posted
+        sort_by = self.request.GET.get('sort_by', 'date_posted')
         if sort_by == 'date_posted':
             return Jobs.objects.all().order_by('-date_posted')
         elif sort_by == 'salary':
             return Jobs.objects.all().order_by('-salary')
         else:
-            return Jobs.objects.all()  # Default case if no valid sort option is provided
+            return Jobs.objects.all()
 
 
 class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -377,14 +374,10 @@ class SavedJobsListView(LoginRequiredMixin,UserPassesTestMixin,ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        return SavedJobs.objects.filter(applicant=self.request.user)
-
-
-    def get_queryset(self):
         applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         if applicant_profile:
             return applicant_profile.saved_jobs.all()
-        return Jobs.objects.none()
+        return SavedJobs.objects.none()
 
 class SearchJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
     model = Jobs
