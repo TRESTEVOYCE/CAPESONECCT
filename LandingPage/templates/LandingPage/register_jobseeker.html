@@ -107,6 +107,8 @@
                   class="w-full max-w-2xl">
 
                 {% csrf_token %}
+                {% load honeypot %}
+                {% render_honeypot_field %}
 
                 <div class="relative group">
 
