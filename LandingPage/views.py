@@ -2,7 +2,8 @@ from django.views.generic import CreateView, FormView, TemplateView
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-
+from honeypot.decorators import check_honeypot
+from django.utils.decorators import method_decorator
 from AdminSide.models import EmployerProfile, User
 from .forms import UserRegisterForm, SignInForm
 
@@ -10,6 +11,7 @@ from .forms import UserRegisterForm, SignInForm
 class Register_SelectionView(TemplateView):
     template_name = 'LandingPage/register_selection.html'
 
+@method_decorator(check_honeypot, name='dispatch')
 class UserRegisterView(CreateView):
     model = User
     form_class = UserRegisterForm
@@ -21,7 +23,6 @@ class UserRegisterView(CreateView):
         self.object.save()
 
         return redirect(self.success_url)
-
 
 class UserApplicantRegisterView(UserRegisterView):
     template_name = 'LandingPage/register_jobseeker.html'
@@ -40,7 +41,7 @@ class UserEmployerRegisterView(UserRegisterView):
         EmployerProfile.objects.get_or_create(user=self.object)
         return redirect(self.success_url)
 
-
+@method_decorator(check_honeypot, name='dispatch')
 class SignInView(FormView):
     form_class = SignInForm
     template_name = 'LandingPage/signin.html'
