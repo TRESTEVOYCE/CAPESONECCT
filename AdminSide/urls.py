@@ -1,6 +1,6 @@
 # capes_admin/urls.py
 from django.urls import path
-from .views import AdminLoginView, AdminLogoutView, DashboardView, JobPostingDetailView, JobPostingsListView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralCreateView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView, AccountSettingsView
+from .views import AdminLoginView, AdminLogoutView, DashboardView, HelpView, JobPostingDetailView, JobPostingsListView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralCreateView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView, AccountSettingsView
 
 app_name = 'AdminSide'
 
@@ -21,4 +21,5 @@ urlpatterns = [
     path('special-programs/<str:program_type>/', SpecialProgramsListView.as_view(), name='special_programs_filtered'),
     path('reports/', PesoMonthlyReportView.as_view(), name='peso_monthly_report'),
     path('account/settings/', AccountSettingsView.as_view(), name='account_settings'),
+    path('account/help/', HelpView.as_view(), name='account_help'),
 ]

@@ -234,7 +234,7 @@
                 </a>
 
                 <!-- Help -->
-                <a href="#" 
+                <a href="{% url 'AdminSide:account_help' %}" 
                 class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
                 {% if 'help' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'help' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>

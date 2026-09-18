@@ -1079,3 +1079,6 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('AdminSide:account_settings')
 
         return redirect('AdminSide:account_settings')
+
+class HelpView(LoginRequiredMixin, TemplateView):
+    template_name = 'help.html'
