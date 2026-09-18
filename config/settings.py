@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'ApplicantSide',
     'LandingPage',
     'axes',
+    'honeypot',
 ]
 
 MIDDLEWARE = [
@@ -184,3 +185,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+HONEYPOT_FIELD_NAME = "phone_number"
+HONEYPOT_VALUE = ""
