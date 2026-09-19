@@ -7,7 +7,9 @@
                 {% elif user.profile_picture %}
                     <img src="{{ user.profile_picture.url }}" alt="Avatar" class="w-full h-full object-cover">
                 {% else %}
-                    {{ request.user.first_name.0|default:"T" }}{{ request.user.last_name.0|default:"S" }}
+                    {% with fname=profile.first_name|default:request.user.first_name lname=profile.last_name|default:request.user.last_name %}
+                        {{ fname|slice:":1"|default:request.user.username|slice:":1" }}{{ lname|slice:":1" }}
+                    {% endwith %}
                 {% endif %}
             </div>
             
@@ -23,7 +25,11 @@
         <div>
             <div class="flex items-center gap-2.5 flex-wrap">
                 <h1 class="text-xl font-bold text-stone-900">
-                    {% if profile %}{{ profile.first_name|default:request.user.first_name }} {{ profile.last_name|default:request.user.last_name }}{% else %}{{ request.user.get_full_name|default:"Taylor Alison Swift" }}{% endif %}
+                    {% if profile %}
+                        {{ profile.first_name|default:request.user.first_name }} {{ profile.last_name|default:request.user.last_name }}
+                    {% else %}
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    {% endif %}
                 </h1>
                 <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium">Account Pending</span>
             </div>

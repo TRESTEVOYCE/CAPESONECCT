@@ -11,16 +11,23 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <label class="block text-xs font-bold text-stone-800 uppercase tracking-wide">Highest Educational Attainment*</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-stone-700">
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_no_formal }} No Formal Education</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_college_grad }} College Graduate</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_elem_level }} Elementary Level</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_elem_grad }} Elementary Graduate</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_hs_level }} High School Level</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_hs_grad }} High School Graduate</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_post_grad }} Post Graduate</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80">{{ form.edu_college_level }} College Level</label>
-                <label class="inline-flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-stone-200/80 sm:col-span-2">{{ form.edu_tech_voc }} Technical Vocational Graduate</label>
+            <div class="field-wrap">
+                {% if form.highest_educational_attainment %}
+                    {{ form.highest_educational_attainment }}
+                {% else %}
+                    <select name="highest_educational_attainment">
+                        <option value="" disabled selected>Select highest educational attainment...</option>
+                        <option value="no_formal">No Formal Education</option>
+                        <option value="elem_level">Elementary Level</option>
+                        <option value="elem_grad">Elementary Graduate</option>
+                        <option value="hs_level">High School Level</option>
+                        <option value="hs_grad">High School Graduate</option>
+                        <option value="college_level">College Level</option>
+                        <option value="college_grad">College Graduate</option>
+                        <option value="tech_voc">Technical Vocational Graduate</option>
+                        <option value="post_grad">Post Graduate</option>
+                    </select>
+                {% endif %}
             </div>
         </div>
 
