@@ -1,0 +1,16 @@
+<div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none bg-stone-50/80 p-2.5 rounded-xl border border-stone-200/90">
+    <button type="button" 
+        @click="currentStep = 'all'" 
+        :class="currentStep === 'all' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" 
+        class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">
+        All View
+    </button>
+    <button type="button" @click="currentStep = '1'" :class="currentStep === '1' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">1. Personal Info</button>
+    <button type="button" @click="currentStep = '2'" :class="currentStep === '2' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">2. Address & Contact</button>
+    <button type="button" @click="currentStep = '3'" :class="currentStep === '3' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">3. Education</button>
+    <button type="button" @click="currentStep = '4'" :class="currentStep === '4' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">4. Training & Eligibility</button>
+    <button type="button" @click="currentStep = '5'" :class="currentStep === '5' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">5. Job Preference</button>
+    <button type="button" @click="currentStep = '6'" :class="currentStep === '6' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">6. Work Experience</button>
+    <button type="button" @click="currentStep = '7'" :class="currentStep === '7' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">7. Skills</button>
+    <button type="button" @click="currentStep = '8'" :class="currentStep === '8' ? 'bg-stone-900 text-white shadow-xs' : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/70'" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">8. Certification/Docs</button>
+</div>

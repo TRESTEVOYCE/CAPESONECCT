@@ -169,9 +169,15 @@ class ApplicantEducationForm(forms.ModelForm):
             'school_university', 'course_program', 'year_graduated_attended',
             'award_1', 'award_2', 'award_3', 
             'school_status_yes', 'school_status_no',
-            
         ]
-
+        widgets = {
+            'year_graduated_attended': forms.DateInput(
+                attrs={
+                    'type': 'month',
+                    'class': 'border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 w-full bg-white text-slate-800'
+                }
+            ),
+        }
 
 class ApplicantSkillForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
