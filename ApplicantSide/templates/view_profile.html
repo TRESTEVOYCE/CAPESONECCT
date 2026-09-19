@@ -1,0 +1,97 @@
+{% extends 'applicant-base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10 px-4 space-y-6">
+    <!-- Feedback Messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-3 rounded-lg text-xs font-medium {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-amber-50 text-amber-800 border border-amber-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Integrated Profile Banner & Picture Upload Form -->
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <div class="bg-white p-6 rounded-xl border border-stone-200/90 shadow-3xs flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="relative group">
+                    <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
+                        {% if profile.applicant_id_picture %}
+                            <img src="{{ profile.applicant_id_picture.url }}" alt="Avatar" class="w-full h-full object-cover">
+                        {% else %}
+                            {{ request.user.first_name.0|default:"T" }}{{ request.user.last_name.0|default:"S" }}
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.applicant_id_picture %}
+                    <label title="Change Profile Picture" class="absolute -bottom-1 -right-1 flex items-center justify-center w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full cursor-pointer shadow-sm overflow-hidden z-15">
+                        <svg class="w-3.5 h-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <div class="absolute inset-0 opacity-0 [&>input]:w-full [&>input]:h-full [&>input]:cursor-pointer">
+                            {{ form.applicant_id_picture }}
+                        </div>
+                    </label>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h1 class="text-xl font-bold text-stone-900">{{ profile.first_name|default:request.user.first_name }} {{ profile.last_name|default:request.user.last_name }}</h1>
+                        <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium">Applicant Account</span>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-1">Information Technology Sector</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button type="submit" class="px-3.5 py-1.5 text-xs font-semibold bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors">
+                    Save Picture
+                </button>
+            </div>
+        </div>
+        {% if form.applicant_id_picture.errors %}
+            <p class="text-[11px] text-red-600 px-1">{{ form.applicant_id_picture.errors.0 }}</p>
+        {% endif %}
+    </form>
+
+    <!-- Detailed Personal Information Section -->
+    <div class="bg-white p-6 rounded-xl border border-stone-200/90 space-y-6">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+            <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Personal Information Summary</h3>
+            <a href="{% url 'personal_info_update' %}" class="text-xs font-semibold text-stone-600 hover:text-stone-900">Edit Details</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+            <div>
+                <span class="block text-stone-400 font-medium">Full Name</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.first_name|default:"--" }} {{ profile.middle_name|default:"" }} {{ profile.last_name|default:"" }} {{ profile.suffix|default:"" }}</span>
+            </div>
+            <div>
+                <span class="block text-stone-400 font-medium">Date of Birth</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.date_of_birth|default:"Not specified" }}</span>
+            </div>
+            <div>
+                <span class="block text-stone-400 font-medium">Sex</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.sex|default:"Not specified" }}</span>
+            </div>
+            <div>
+                <span class="block text-stone-400 font-medium">Civil Status</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.civil_status|default:"Not specified" }}</span>
+            </div>
+            <div>
+                <span class="block text-stone-400 font-medium">Citizenship</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.citizenship|default:"Not specified" }}</span>
+            </div>
+            <div>
+                <span class="block text-stone-400 font-medium">Place of Birth</span>
+                <span class="text-stone-900 font-semibold mt-1 block">{{ profile.place_of_birth|default:"Not specified" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

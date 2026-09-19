@@ -227,3 +227,12 @@ class ApplicantDocumentsForm(forms.ModelForm):
             'curriculum_vitae',
             'applicant_id_picture',
         ]
+        
+class ProfilePictureForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        apply_tailwind_widgets(self)
+
+    class Meta:
+        model = ApplicantProfile
+        fields = ['applicant_id_picture']

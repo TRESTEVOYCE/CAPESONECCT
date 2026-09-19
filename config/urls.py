@@ -25,4 +25,5 @@ urlpatterns = [
     path('applicant/', include('ApplicantSide.urls')),     
     path('api/',include('MSWDAPI.urls')),
     path('api-auth/', include('rest_framework.urls')),  
+    path('applicant/', include('ApplicantSide.urls')),
 ]

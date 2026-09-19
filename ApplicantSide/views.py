@@ -1,3 +1,6 @@
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
@@ -5,13 +8,16 @@ from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, App
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
 from django.urls import reverse_lazy
+from .forms import ProfilePictureForm
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import (
     ApplicantEducationForm, 
     ApplicantPersonalInfoForm, 
     ApplicantSkillFormSet, 
     ApplicantPreferredJobForm, 
     ApplicantDocumentsForm,
-    ApplicantSkillForm
+    ApplicantSkillForm,
+    ProfilePictureForm
 )
  
 class ApplicantPersonalInfoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -384,3 +390,51 @@ class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             )
         else:
             return Jobs.objects.all()
+
+
+@login_required
+def edit_profile_picture(request):
+    if not (getattr(request.user, 'role', None) == 'applicant'):
+        return redirect('login')
+    
+    # Safe lookup: prevents 404 if profile hasn't been created via personal_info yet
+    profile = ApplicantProfile.objects.filter(user=request.user).first()
+    #if not profile:
+       # messages.warning(request, 'Please complete your personal info setup first.')
+        #return redirect('personal_info')
+    
+    if request.method == 'POST':
+        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile picture updated successfully.')
+            return redirect('personal_info')
+    else:
+        form = ProfilePictureForm(instance=profile)
+    
+    return render(request, 'edit_profile_picture.html', {'form': form})
+
+
+@login_required
+def view_profile(request):
+    if not (getattr(request.user, 'role', None) == 'applicant'):
+        return redirect('login')
+    
+    profile = ApplicantProfile.objects.filter(user=request.user).first()
+    #if not profile:
+        #messages.warning(request, 'Please complete your personal info setup first.')
+       # return redirect('personal_info')
+    
+    if request.method == 'POST':
+        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile picture updated successfully.')
+            return redirect('view_profile')
+    else:
+        form = ProfilePictureForm(instance=profile)
+    
+    return render(request, 'view_profile.html', {
+        'profile': profile,
+        'form': form
+    })
