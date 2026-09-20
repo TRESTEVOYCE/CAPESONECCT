@@ -3,6 +3,7 @@ from django import forms
 from AdminSide.models import (
     ApplicantProfile,
     ApplicantSkills,
+    AppliedJobs,
 )
 
 TAILWIND_INPUT_CLASSES = {
@@ -236,3 +237,9 @@ class ProfilePictureForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
         fields = ['applicant_id_picture']
+        
+        
+class JobApplicationForm(forms.ModelForm):
+    class Meta:
+        model = AppliedJobs
+        fields = []
