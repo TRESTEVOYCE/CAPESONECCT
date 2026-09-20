@@ -1,17 +1,30 @@
-from django.views.generic import ListView,CreateView,UpdateView,DeleteView,DetailView
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from JobMatchingEngine.database import get_job_collection,build_applicant_profile_text
-from AdminSide.models import Jobs,ApplicantProfile,AppliedJobs,SavedJobs,ApplicantSkills
-from django.contrib.auth.views import LogoutView
+from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills
+from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
-from .forms import ApplicantEducationForm, ApplicantPersonalInfoForm, ApplicantSkillFormSet, ApplicantPreferredJobForm, ApplicantDocumentsForm,ApplicantSkillForm
 from django.urls import reverse_lazy
+from .forms import ProfilePictureForm
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import (
+    ApplicantEducationForm, 
+    ApplicantPersonalInfoForm, 
+    ApplicantSkillFormSet, 
+    ApplicantPreferredJobForm, 
+    ApplicantDocumentsForm,
+    ApplicantSkillForm,
+    ProfilePictureForm
+)
  
-class ApplicantPersonalInfoCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
+class ApplicantPersonalInfoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ApplicantProfile
     form_class = ApplicantPersonalInfoForm
     template_name = 'applicant_personal_info_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -20,11 +33,12 @@ class ApplicantPersonalInfoCreateView(LoginRequiredMixin,UserPassesTestMixin,Cre
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class ApplicantEducationCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
+
+class ApplicantEducationCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ApplicantProfile
     form_class = ApplicantEducationForm
     template_name = 'applicant_education_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -33,11 +47,12 @@ class ApplicantEducationCreateView(LoginRequiredMixin,UserPassesTestMixin,Create
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class ApplicantPreferredJobCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
+
+class ApplicantPreferredJobCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
     template_name = 'applicant_preferred_job_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -46,11 +61,12 @@ class ApplicantPreferredJobCreateView(LoginRequiredMixin,UserPassesTestMixin,Cre
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class ApplicantDocumentsCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
+
+class ApplicantDocumentsCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ApplicantProfile
     form_class = ApplicantDocumentsForm
     template_name = 'applicant_documents_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
@@ -59,8 +75,8 @@ class ApplicantDocumentsCreateView(LoginRequiredMixin,UserPassesTestMixin,Create
         form.instance.user = self.request.user
         return super().form_valid(form)
 
-class ApplicantSkillCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
+class ApplicantSkillCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ApplicantSkills
     form_class = ApplicantSkillForm
     template_name = 'applicant_skill_form.html'
@@ -71,82 +87,95 @@ class ApplicantSkillCreateView(LoginRequiredMixin,UserPassesTestMixin,CreateView
 
     def form_valid(self, form):
         response = super().form_valid(form)
-
         applicant = self.request.user.applicant_profile
         applicant.skills.add(self.object)
-
         return response
     
-class ApplicantPersonalUpdateInfoView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+
+class ApplicantPersonalUpdateInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPersonalInfoForm
     template_name = 'applicant_personal_info_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        profile, _ = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        return profile
     
-class ApplicantEducationUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+
+class ApplicantEducationUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantEducationForm
     template_name = 'applicant_education_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        profile, _ = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        return profile
 
-class ApplicantSkillUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+
+class ApplicantSkillUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantSkillFormSet
     template_name = 'applicant_skill_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        profile, _ = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        return profile
 
-class ApplicantPreferredJobUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+
+class ApplicantPreferredJobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
     template_name = 'applicant_preferred_job_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-    def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
 
-class ApplicantDocumentsUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+    def get_object(self, queryset=None):
+        profile, _ = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class ApplicantDocumentsUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantDocumentsForm
     template_name = 'applicant_documents_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('applicant-dashboard')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-    def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
 
-class ApplicantProfileDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
+    def get_object(self, queryset=None):
+        profile, _ = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = ApplicantProfile
-    success_url = reverse_lazy('login')  # Redirect to the login page after successful deletion
+    success_url = reverse_lazy('login')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
 
 
-class LogoutView(LoginRequiredMixin,UserPassesTestMixin,LogoutView):
+class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
     success_url = reverse_lazy('landing_page') 
+
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
     
@@ -168,7 +197,6 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         ).first()
 
         if applicant_profile:
-            # AI Job Matching
             applicant_profile_text = build_applicant_profile_text(applicant_profile)
             collection = get_job_collection()
 
@@ -184,51 +212,30 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             context['matching_jobs'] = Jobs.objects.filter(uuid__in=job_uuids)
 
-            # Application Counts
             applications = AppliedJobs.objects.filter(
                 applicant=applicant_profile
             )
 
             context['application_count'] = applications.count()
-
-            context['saved_jobs_count'] = SavedJobs.objects.filter(
-                applicant=applicant_profile
-            ).count()
-
-            # Application Status
-            context['under_review_count'] = applications.filter(
-                status__in=['pending', 'reviewed']
-            ).count()
-
-            context['shortlisted_count'] = applications.filter(
-                status='for interview'
-            ).count()
-
-            context['rejected_count'] = applications.filter(
-                status='rejected'
-            ).count()
-
+            context['saved_jobs_count'] = SavedJobs.objects.filter(applicant=applicant_profile).count()
+            context['under_review_count'] = applications.filter(status__in=['pending', 'reviewed']).count()
+            context['shortlisted_count'] = applications.filter(status='for interview').count()
+            context['rejected_count'] = applications.filter(status='rejected').count()
             context['withdrawn_count'] = 0
 
-            # Profile Strength
             completed = 0
             total = 6
 
             if applicant_profile.first_name and applicant_profile.last_name:
                 completed += 1
-
             if applicant_profile.education_level and applicant_profile.school_name:
                 completed += 1
-
             if applicant_profile.skills.exists():
                 completed += 1
-
             if applicant_profile.preferred_job.exists():
                 completed += 1
-
             if applicant_profile.resume or applicant_profile.curriculum_vitae:
                 completed += 1
-
             if applicant_profile.applicant_id_picture:
                 completed += 1
 
@@ -244,10 +251,7 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             context['withdrawn_count'] = 0
             context['profile_strength'] = 0
 
-        context['total_jobs'] = Jobs.objects.filter(
-            status='Active'
-        ).count()
-
+        context['total_jobs'] = Jobs.objects.filter(status='Active').count()
         return context
     
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -260,7 +264,6 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def get_queryset(self):
         jobs = Jobs.objects.filter(status='Active')
-
         q = self.request.GET.get('q')
         job_types = self.request.GET.getlist('job_type')
 
@@ -278,39 +281,31 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        applicant_profile = ApplicantProfile.objects.filter(
-            user=self.request.user
-        ).first()
+        applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
 
         if applicant_profile:
             applicant_text = build_applicant_profile_text(applicant_profile)
             collection = get_job_collection()
-
-            results = collection.query(
-                query_texts=[applicant_text]
-            )
+            results = collection.query(query_texts=[applicant_text])
 
             job_uuids = [
                 result['metadata']['job_uuid']
                 for result in results['results'][0]['matches']
             ]
-
-            context['matching_jobs'] = Jobs.objects.filter(
-                uuid__in=job_uuids
-            )
+            context['matching_jobs'] = Jobs.objects.filter(uuid__in=job_uuids)
         else:
             context['matching_jobs'] = []
 
         return context
 
     
-class JobDetailsView(LoginRequiredMixin,UserPassesTestMixin,DetailView):
+class JobDetailsView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Jobs
     template_name = 'job_details.html'
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         job_uuid = self.kwargs.get('uuid')
@@ -318,7 +313,8 @@ class JobDetailsView(LoginRequiredMixin,UserPassesTestMixin,DetailView):
         context['job'] = job
         return context
 
-class SortJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+
+class SortJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     context_object_name = 'matching_jobs'
 
@@ -326,13 +322,13 @@ class SortJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        sort_by = self.request.GET.get('sort_by', 'date_posted')  # Default sorting by date_posted
+        sort_by = self.request.GET.get('sort_by', 'date_posted')
         if sort_by == 'date_posted':
             return Jobs.objects.all().order_by('-date_posted')
         elif sort_by == 'salary':
             return Jobs.objects.all().order_by('-salary')
         else:
-            return Jobs.objects.all()  # Default case if no valid sort option is provided
+            return Jobs.objects.all()
 
 
 class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -348,7 +344,6 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             applicant_profile = self.request.user.applicant_profile
         except ApplicantProfile.DoesNotExist:
             return AppliedJobs.objects.none()
-
         return AppliedJobs.objects.filter(applicant=applicant_profile)
 
     def get_context_data(self, **kwargs):
@@ -356,19 +351,13 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         applications = self.get_queryset()
 
         context['applied_count'] = applications.count()
-        context['endorsed_count'] = applications.filter(
-            status__in=['endorsed', 'approved']
-        ).count()
-        context['interviewed_count'] = applications.filter(
-            status='for interview'
-        ).count()
-        context['hired_count'] = applications.filter(
-            status='hired'
-        ).count()
-
+        context['endorsed_count'] = applications.filter(status__in=['endorsed', 'approved']).count()
+        context['interviewed_count'] = applications.filter(status='for interview').count()
+        context['hired_count'] = applications.filter(status='hired').count()
         return context
 
-class SavedJobsListView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+
+class SavedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = SavedJobs
     template_name = 'saved_jobs.html'
     context_object_name = 'saved_jobs'
@@ -377,16 +366,13 @@ class SavedJobsListView(LoginRequiredMixin,UserPassesTestMixin,ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        return SavedJobs.objects.filter(applicant=self.request.user)
-
-
-    def get_queryset(self):
         applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         if applicant_profile:
             return applicant_profile.saved_jobs.all()
-        return Jobs.objects.none()
+        return SavedJobs.objects.none()
 
-class SearchJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+
+class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'job_list.html'
     context_object_name = 'jobs'
@@ -404,3 +390,51 @@ class SearchJobView(LoginRequiredMixin,UserPassesTestMixin,ListView):
             )
         else:
             return Jobs.objects.all()
+
+
+@login_required
+def edit_profile_picture(request):
+    if not (getattr(request.user, 'role', None) == 'applicant'):
+        return redirect('login')
+    
+    # Safe lookup: prevents 404 if profile hasn't been created via personal_info yet
+    profile = ApplicantProfile.objects.filter(user=request.user).first()
+    #if not profile:
+       # messages.warning(request, 'Please complete your personal info setup first.')
+        #return redirect('personal_info')
+    
+    if request.method == 'POST':
+        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile picture updated successfully.')
+            return redirect('personal_info')
+    else:
+        form = ProfilePictureForm(instance=profile)
+    
+    return render(request, 'edit_profile_picture.html', {'form': form})
+
+
+@login_required
+def view_profile(request):
+    if not (getattr(request.user, 'role', None) == 'applicant'):
+        return redirect('login')
+    
+    profile = ApplicantProfile.objects.filter(user=request.user).first()
+    #if not profile:
+        #messages.warning(request, 'Please complete your personal info setup first.')
+       # return redirect('personal_info')
+    
+    if request.method == 'POST':
+        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile picture updated successfully.')
+            return redirect('view_profile')
+    else:
+        form = ProfilePictureForm(instance=profile)
+    
+    return render(request, 'view_profile.html', {
+        'profile': profile,
+        'form': form
+    })

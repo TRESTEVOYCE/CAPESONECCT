@@ -1,0 +1,45 @@
+<div class="bg-white p-6 rounded-xl border border-stone-200/90 shadow-3xs flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-5">
+        <div class="relative group">
+            <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
+                {% if profile and profile.applicant_id_picture %}
+                    <img src="{{ profile.applicant_id_picture.url }}" alt="Avatar" class="w-full h-full object-cover">
+                {% elif user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Avatar" class="w-full h-full object-cover">
+                {% else %}
+                    {% with fname=profile.first_name|default:request.user.first_name lname=profile.last_name|default:request.user.last_name %}
+                        {{ fname|slice:":1"|default:request.user.username|slice:":1" }}{{ lname|slice:":1" }}
+                    {% endwith %}
+                {% endif %}
+            </div>
+            
+            {% if form and form.applicant_id_picture %}
+            <label title="Change Profile Picture" class="absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full flex items-center justify-center cursor-pointer shadow-3xs text-xs overflow-hidden z-15">
+                <span class="sr-only">Upload profile picture</span>📷 
+                <div class="absolute inset-0 opacity-0 [&>input]:w-full [&>input]:h-full [&>input]:cursor-pointer">
+                    {{ form.applicant_id_picture }}
+                </div>
+            </label>
+            {% endif %}
+        </div>
+        <div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <h1 class="text-xl font-bold text-stone-900">
+                    {% if profile %}
+                        {{ profile.first_name|default:request.user.first_name }} {{ profile.last_name|default:request.user.last_name }}
+                    {% else %}
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    {% endif %}
+                </h1>
+                <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium">Account Pending</span>
+            </div>
+            <p class="text-xs text-stone-500 mt-1">Information Technology Sector</p>
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+        <a href="{% url 'view_profile' %}" class="px-3.5 py-1.5 text-xs font-semibold bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors">
+            View Profile
+        </a>
+    </div>
+</div>

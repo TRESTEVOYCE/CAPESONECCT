@@ -1,0 +1,28 @@
+<div x-show="currentStep === 'all' || currentStep === '2'" class="space-y-4">
+    <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">II. Address & Contact Information </h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-4">
+            <h3 class="text-xs font-bold text-stone-700">Address</h3>
+            <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.house_street.label|default:"House No. / Street / Purok*" }}</label><div class="field-wrap">{{ form.house_street }}</div></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.barangay.label|default:"Barangay*" }}</label><div class="field-wrap">{{ form.barangay }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.municipality.label|default:"Municipality*" }}</label><div class="field-wrap">{{ form.municipality }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.province.label|default:"Province*" }}</label><div class="field-wrap">{{ form.province }}</div></div>
+            </div>
+            <div><label class="block text-xs font-medium text-stone-700 mb-1.5">{{ form.zip_code.label|default:"Zipcode*" }}</label><div class="field-wrap">{{ form.zip_code }}</div></div>
+        </div>
+        <div class="space-y-4">
+            <h3 class="text-xs font-bold text-stone-700">Contact Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Mobile Number (Primary)*</label><div class="field-wrap">{{ form.phone_number }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Mobile Number (Secondary)</label><div class="field-wrap">{{ form.mobile_number_secondary }}</div></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Landline Number (Optional)</label><div class="field-wrap">{{ form.landline_number }}</div></div>
+                <div><label class="block text-xs font-medium text-stone-700 mb-1.5">Email address</label><div class="field-wrap">{{ form.email_address }}</div></div>
+            </div>
+            <div class="pt-2"><label class="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-stone-700 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200 w-full">{{ form.same_as_present_address }} <span>Same as Present Address*</span></label></div>
+        </div>
+    </div>
+    
+</div>

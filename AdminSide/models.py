@@ -307,6 +307,74 @@ class ApplicantProfile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    suffix = models.CharField(max_length=50, blank=True, null=True)
+    place_of_birth = models.CharField(max_length=255, blank=True, null=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Height in cm")
+    willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
+    nationality = models.CharField(max_length=100, default='Filipino')
+    willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
+    when_willing_to_work = models.CharField(max_length=100, blank=True, null=True)  
+    returning_to_ph_to_work = models.BooleanField(default=False, null=True, blank=True)  
+    
+    #contact additional
+    mobile_number_secondary = models.CharField(max_length=20, blank=True, null=True)
+    landline_number = models.CharField(max_length=20, blank=True, null=True)
+    email_address = models.EmailField(unique=True, blank=True, null=True)
+    
+    
+    school_status_yes = models.BooleanField(default=False)
+    school_status_no = models.BooleanField(default=False)
+    edu_no_formal = models.BooleanField(default=False)
+    edu_college_grad = models.BooleanField(default=False)
+    edu_elem_level = models.BooleanField(default=False)
+    edu_elem_grad = models.BooleanField(default=False)
+    edu_hs_level = models.BooleanField(default=False)
+    edu_hs_grad = models.BooleanField(default=False)
+    edu_post_grad = models.BooleanField(default=False)
+    edu_college_level = models.BooleanField(default=False)
+    edu_tech_voc = models.BooleanField(default=False)
+    school_university = models.CharField(max_length=255, blank=True, null=True)
+    course_program = models.CharField(max_length=255, blank=True, null=True)
+    year_graduated_attended = models.CharField(max_length=50, blank=True, null=True)
+    award_1 = models.CharField(max_length=255, blank=True, null=True)
+    award_2 = models.CharField(max_length=255, blank=True, null=True)
+    award_3 = models.CharField(max_length=255, blank=True, null=True)
+    
+    skill_computer = models.BooleanField(default=False)
+    skill_driving = models.BooleanField(default=False)
+    skill_customer_service = models.BooleanField(default=False)
+    skill_bookkeeping = models.BooleanField(default=False)
+    skill_carpentry = models.BooleanField(default=False)
+    skill_welding = models.BooleanField(default=False)
+    other_skills = models.CharField(max_length=500, blank=True, null=True)
+    
+    certification_agree = models.BooleanField(default=False)
+    resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)
+    supporting_doc = models.FileField(upload_to='supporting_docs/', blank=True, null=True)
+    
+
+    training_title_1 = models.CharField(max_length=255, blank=True, null=True)
+    training_hours_1 = models.IntegerField(blank=True, null=True)
+    training_institution_1 = models.CharField(max_length=255, blank=True, null=True)
+    training_date_1 = models.CharField(max_length=50, blank=True, null=True)
+
+    training_title_2 = models.CharField(max_length=255, blank=True, null=True)
+    training_hours_2 = models.IntegerField(blank=True, null=True)
+    training_institution_2 = models.CharField(max_length=255, blank=True, null=True)
+    training_date_2 = models.CharField(max_length=50, blank=True, null=True)
+
+
+    pref_local = models.BooleanField(default=False)
+    pref_overseas = models.BooleanField(default=False)
+    pref_occupation_1 = models.CharField(max_length=255, blank=True, null=True)
+    pref_occupation_2 = models.CharField(max_length=255, blank=True, null=True)
+    pref_occupation_3 = models.CharField(max_length=255, blank=True, null=True)
+    pref_location_local = models.CharField(max_length=255, blank=True, null=True)
+    pref_location_overseas = models.CharField(max_length=255, blank=True, null=True)
+    pref_salary = models.CharField(max_length=100, blank=True, null=True)
+
 
     @property
     def age(self):
