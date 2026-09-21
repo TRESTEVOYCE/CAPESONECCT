@@ -1,5 +1,5 @@
 from django import forms
-from AdminSide.models import EmployerProfile, Jobs
+from AdminSide.models import EmployerProfile, Jobs,User
 
 
 class EmployerProfileForm(forms.ModelForm):
@@ -27,3 +27,8 @@ class JobsForm(forms.ModelForm):
             'required_eligibility', 'required_certification', 'languages_spoken',
             'application_quota', 'job_posting_expiry',
         ]
+
+class ProfilePictureForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['profile_picture']
