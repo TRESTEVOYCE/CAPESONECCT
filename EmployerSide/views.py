@@ -1,17 +1,23 @@
 
-from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile
+from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile,User
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView,TemplateView
-from .forms import EmployerProfileForm,JobsForm
+from .forms import EmployerProfileForm,JobsForm,ProfilePictureForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LogoutView
+from JobMatchingEngine.database import upsert_job_vector
 
 #home or the dashboard view for the employer
-class HomeView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Jobs
     template_name = 'home.html'
-
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
+
+    def get_queryset(self):
+            return Jobs.objects.filter(
+                employer__user=self.request.user
+            ).order_by('-created_at')[:10]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -28,9 +34,37 @@ class HomeView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
+class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'company_profile.html'
+
+    def test_func(self):
+            return (
+                self.request.user.is_authenticated
+                and self.request.user.role == 'employer'
+            )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = self.request.user.employer_profile
+        return context
+    
+class EmployerProfilePictureView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = User
+    form_class = ProfilePictureForm
+    template_name = 'company_profile.html'
+    success_url = reverse_lazy('company_profile_view')
+
+    def test_func(self):
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
+
+    def get_object(self):
+        return self.request.user
     
 #view to create an employer profile usually in the profile or settings page
-class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = EmployerProfile
     form_class = EmployerProfileForm
     template_name = 'employer_profile_form.html'
@@ -39,17 +73,11 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateV
     def test_func(self):
         return (
             self.request.user.is_authenticated
-            and self.request.user.role == 'employer'
+            and self.request.user.role == 'employer' 
         )
 
-    def get_queryset(self):
-        return EmployerProfile.objects.filter(
-            user=self.request.user
-        )
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+    def get_object(self):
+        return EmployerProfile.objects.get(user=self.request.user)
     
 #view to list all applicants who have applied to the employer's job postings
 class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -89,42 +117,43 @@ class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView)
         return AppliedJobs.objects.filter(employer=self.request.user.employerprofile)
 
 #to ensure that only authenticated employers can access this view
-class JobCreationView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
+class JobCreationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Jobs
     form_class = JobsForm
     template_name = 'job_form.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
-    #to ensure that the employer can only create their own job postings
-    def get_queryset(self):
-        return Jobs.objects.filter(employer=self.request.user.employerprofile)
-
-    #to ensure that the form is valid and the user is set to the current user
     def form_valid(self, form):
-        form.instance.employer = self.request.user.employerprofile
-        return super().form_valid(form)
+        form.instance.employer = self.request.user.employer_profile
+        response = super().form_valid(form)
+        upsert_job_vector(self.object)
 
+        return response
+    
 class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Jobs
     form_class = JobsForm
     template_name = 'job_form.html'
     success_url = reverse_lazy('home')
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
-    #to ensure that the employer can only update their own job postings
     def get_queryset(self):
-        return Jobs.objects.filter(employer=self.request.user.employerprofile)
+        return Jobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
 
 class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Jobs
-    success_url = reverse_lazy('home')
+    template_name = 'job_confirm_delete.html'
+    success_url = reverse_lazy('employer-home')
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
@@ -132,31 +161,39 @@ class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     #to ensure that the employer can only delete their own job postings
     def get_queryset(self):
-        return Jobs.objects.filter(employer=self.request.user.employerprofile)
+        return Jobs.objects.filter(employer=self.request.user.employer_profile)
 
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
-    template_name = 'job_list.html'
+    template_name = 'employer-job_list.html'
+    context_object_name = 'jobs'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
-    #to ensure that the employer can only view their own job postings
     def get_queryset(self):
-        return Jobs.objects.filter(employer=self.request.user.employerprofile)
-
+        return Jobs.objects.filter(
+            employer__user=self.request.user
+        ).order_by('-created_at')
+    
 class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Jobs
     template_name = 'job_detail.html'
+    context_object_name = 'job'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
-    #to ensure that the employer can only view their own job postings
     def get_queryset(self):
-        return Jobs.objects.filter(employer=self.request.user.employerprofile)
+        return Jobs.objects.filter(
+            employer=self.request.user.employer_profile
+        )
 
 class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = EmployerProfile
