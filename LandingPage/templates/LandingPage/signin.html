@@ -73,7 +73,7 @@
                 <form method="POST" action="{% url 'signin' %}" class="space-y-6">
                     {% csrf_token %}
                     {% load honeypot %}
-                    {% render_honeypot_field %}
+                    {% render_honeypot_field "bisan_ano" %}
 
                     <!-- ROLE SELECTION TABS -->
                     <input type="hidden" name="user_role" id="user_role" value="jobseeker">

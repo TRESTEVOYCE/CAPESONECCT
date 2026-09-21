@@ -1,462 +1,534 @@
 {% load static %}
+{% load honeypot %}
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" class="h-full bg-[#0b0f19]">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employer Registration - PESO Job Matching System</title>
 
 ```
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Employer Registration</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-<style>
-    @keyframes float {
-        0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-        }
-
-        50% {
-            transform: translateY(-12px) rotate(2deg);
-        }
-    }
-
-    .animate-float {
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .gradient-text {
-        background: linear-gradient(
-            135deg,
-            #ffffff 0%,
-            #cbd5e1 50%,
-            #f59e0b 100%
-        );
-
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-</style>
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+>
 ```
 
 </head>
 
-<body class="bg-slate-950 min-h-screen text-slate-800 flex flex-col justify-between font-sans antialiased relative selection:bg-amber-400 selection:text-slate-900 overflow-x-hidden">
+<body class="min-h-screen bg-[#0b0f19] text-white">
 
 ```
-<!-- AMBIENT BACKDROP -->
-<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+<!-- Background -->
 
-    <div class="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-600/25 rounded-full blur-[130px] animate-pulse"></div>
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
 
-    <div class="absolute top-1/2 -right-40 w-[35rem] h-[35rem] bg-amber-500/20 rounded-full blur-[150px]"></div>
+    <div class="absolute -top-40 -right-40 w-96 h-96
+                bg-amber-400/10 rounded-full blur-3xl">
+    </div>
 
-    <div class="absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] bg-indigo-600/25 rounded-full blur-[130px]"></div>
-
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96
+                bg-blue-500/10 rounded-full blur-3xl">
+    </div>
 
 </div>
 
 
-<!-- TOP NAVIGATION -->
-<header class="relative z-10 w-full p-4 sm:p-6 lg:px-12 flex items-center justify-between">
+<div class="relative min-h-screen flex items-center justify-center px-4 py-10">
 
-    <a href="{% url 'landing_page' %}"
-       class="inline-flex items-center gap-3 text-slate-300 hover:text-amber-400 font-extrabold transition duration-300 group focus:outline-none">
-
-        <div class="w-11 h-11 rounded-2xl border border-slate-700/80 group-hover:border-amber-400 group-hover:shadow-[0_0_15px_rgba(251,191,36,0.3)] flex items-center justify-center transition duration-300 bg-slate-900/60 backdrop-blur-md">
-
-            <i class="fa-solid fa-house text-lg group-hover:scale-110 transition-transform"></i>
-
-        </div>
-
-        <span class="text-base sm:text-lg tracking-wide">
-            Back To Home
-        </span>
-
-    </a>
-
-</header>
+    <div class="w-full max-w-3xl">
 
 
-<!-- MAIN -->
-<main class="relative z-10 flex-grow flex items-center justify-center px-4 py-6">
+        <!-- Logo -->
 
-    <div class="w-full max-w-5xl flex flex-col items-center">
+        <div class="text-center mb-8">
 
-
-        <!-- LOGO -->
-        <div class="relative group mb-4 animate-float">
-
-            <div class="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-400 via-blue-600 to-amber-500 opacity-75 blur transition duration-500 group-hover:opacity-100"></div>
-
-            <div class="relative w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-full flex items-center justify-center p-2 shadow-2xl border-2 border-white/50 overflow-hidden">
+            <div class="flex justify-center mb-4">
 
                 <img
                     src="{% static 'LandingPage/images/PESO_LOGO.png' %}"
                     alt="PESO Logo"
-                    class="w-full h-full object-cover rounded-full"
+                    class="w-20 h-20 object-contain"
                 >
 
             </div>
 
-        </div>
-
-
-        <!-- HEADER -->
-        <div class="text-center mb-8 flex flex-col items-center max-w-xl">
-
-            <h1 class="text-3xl sm:text-4xl font-black tracking-tight gradient-text drop-shadow-sm mb-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">
                 Employer Registration
             </h1>
 
-            <p
-                id="stepIndicatorText"
-                aria-live="polite"
-                class="text-sm sm:text-base text-slate-300 font-semibold mt-1"
-            >
-                Create your employer account
+            <p class="text-gray-400 mt-2">
+                Create your employer profile
             </p>
 
         </div>
 
 
-        <!-- FORM -->
-        <form
-            id="employerForm"
-            method="POST"
-            action="{% url 'register_employer' %}"
-            class="w-full max-w-2xl"
-        >
+        <!-- Progress -->
 
-            {% csrf_token %}
-            {% load honeypot %}
-            {% render_honeypot_field %}
+        <div class="flex items-center justify-center mb-8">
+
+            <div class="flex items-center">
 
 
-            <!-- FORM CARD -->
-            <div class="relative group">
+                <!-- Step 1 -->
 
-                <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-500/20 to-blue-600/20 rounded-3xl blur-md opacity-75"></div>
+                <div class="flex flex-col items-center">
 
-                <div class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100">
+                    <div class="w-10 h-10 rounded-full
+                                bg-gradient-to-r from-amber-400 to-yellow-500
+                                text-black
+                                flex items-center justify-center
+                                font-bold
+                                shadow-lg">
 
-                    <!-- HEADER -->
-                    <div class="flex items-center gap-3 mb-6">
-
-                        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-xl font-black shadow-sm">
-
-                            <i class="fa-solid fa-user-plus"></i>
-
-                        </div>
-
-                        <div>
-
-                            <h2 class="text-2xl font-black text-slate-900">
-                                Create Account
-                            </h2>
-
-                            <p class="text-sm text-slate-500 font-medium">
-                                Enter your account credentials below.
-                            </p>
-
-                        </div>
+                        1
 
                     </div>
 
+                    <span class="text-sm text-amber-400 mt-2">
+                        Business Info
+                    </span>
 
-                    <!-- FORM ERRORS -->
-                    {% if form.non_field_errors %}
-
-                        <div class="mb-5 p-4 rounded-xl bg-red-50 border border-red-200">
-
-                            {% for error in form.non_field_errors %}
-
-                                <p class="text-sm text-red-600 font-bold">
-                                    {{ error }}
-                                </p>
-
-                            {% endfor %}
-
-                        </div>
-
-                    {% endif %}
+                </div>
 
 
-                    <!-- USERNAME -->
-                    <div class="mb-5">
+                <!-- Line -->
 
-                        <label
-                            for="{{ form.username.id_for_label }}"
-                            class="block text-sm font-bold text-slate-800 mb-1"
-                        >
-                            Username
-                            <span class="text-red-500">*</span>
-                        </label>
+                <div class="w-24 h-1 bg-gray-700 mx-3"></div>
 
-                        <input
-                            type="text"
-                            name="{{ form.username.html_name }}"
-                            id="{{ form.username.id_for_label }}"
-                            value="{{ form.username.value|default:'' }}"
-                            autocomplete="username"
-                            required
-                            class="w-full bg-slate-100 rounded-xl px-4 py-3 text-base outline-none border border-slate-200 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 text-slate-900 transition-all"
-                        >
 
-                        {% if form.username.errors %}
+                <!-- Step 2 -->
 
-                            {% for error in form.username.errors %}
+                <div class="flex flex-col items-center">
 
-                                <p class="text-sm text-red-600 font-bold mt-1">
-                                    {{ error }}
-                                </p>
+                    <div class="w-10 h-10 rounded-full
+                                bg-gray-700
+                                text-gray-400
+                                flex items-center justify-center
+                                font-bold">
 
-                            {% endfor %}
-
-                        {% endif %}
+                        2
 
                     </div>
 
-
-                    <!-- EMAIL -->
-                    <div class="mb-5">
-
-                        <label
-                            for="{{ form.email.id_for_label }}"
-                            class="block text-sm font-bold text-slate-800 mb-1"
-                        >
-                            Email Address
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <input
-                            type="email"
-                            name="{{ form.email.html_name }}"
-                            id="{{ form.email.id_for_label }}"
-                            value="{{ form.email.value|default:'' }}"
-                            autocomplete="email"
-                            required
-                            class="w-full bg-slate-100 rounded-xl px-4 py-3 text-base outline-none border border-slate-200 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 text-slate-900 transition-all"
-                        >
-
-                        {% if form.email.errors %}
-
-                            {% for error in form.email.errors %}
-
-                                <p class="text-sm text-red-600 font-bold mt-1">
-                                    {{ error }}
-                                </p>
-
-                            {% endfor %}
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- PASSWORD -->
-                    <div class="mb-5">
-
-                        <label
-                            for="{{ form.password1.id_for_label }}"
-                            class="block text-sm font-bold text-slate-800 mb-1"
-                        >
-                            Password
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <div class="relative">
-
-                            <input
-                                type="password"
-                                name="{{ form.password1.html_name }}"
-                                id="{{ form.password1.id_for_label }}"
-                                autocomplete="new-password"
-                                required
-                                class="w-full bg-slate-100 rounded-xl px-4 py-3 text-base outline-none border border-slate-200 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 text-slate-900 pr-12 transition-all"
-                            >
-
-                            <button
-                                type="button"
-                                onclick="togglePasswordVisibility('{{ form.password1.id_for_label }}', 'toggleIcon1')"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus:outline-none"
-                            >
-
-                                <i
-                                    id="toggleIcon1"
-                                    class="fa-solid fa-eye-slash text-lg"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
-                        {% if form.password1.errors %}
-
-                            {% for error in form.password1.errors %}
-
-                                <p class="text-sm text-red-600 font-bold mt-1">
-                                    {{ error }}
-                                </p>
-
-                            {% endfor %}
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- CONFIRM PASSWORD -->
-                    <div class="mb-6">
-
-                        <label
-                            for="{{ form.password2.id_for_label }}"
-                            class="block text-sm font-bold text-slate-800 mb-1"
-                        >
-                            Confirm Password
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <div class="relative">
-
-                            <input
-                                type="password"
-                                name="{{ form.password2.html_name }}"
-                                id="{{ form.password2.id_for_label }}"
-                                autocomplete="new-password"
-                                required
-                                class="w-full bg-slate-100 rounded-xl px-4 py-3 text-base outline-none border border-slate-200 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20 text-slate-900 pr-12 transition-all"
-                            >
-
-                            <button
-                                type="button"
-                                onclick="togglePasswordVisibility('{{ form.password2.id_for_label }}', 'toggleIcon2')"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus:outline-none"
-                            >
-
-                                <i
-                                    id="toggleIcon2"
-                                    class="fa-solid fa-eye-slash text-lg"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
-                        {% if form.password2.errors %}
-
-                            {% for error in form.password2.errors %}
-
-                                <p class="text-sm text-red-600 font-bold mt-1">
-                                    {{ error }}
-                                </p>
-
-                            {% endfor %}
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- TERMS -->
-                    <div class="flex items-start gap-3 mb-6">
-
-                        <input
-                            type="checkbox"
-                            id="terms_consent"
-                            required
-                            class="mt-1 w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
-                        >
-
-                        <label
-                            for="terms_consent"
-                            class="text-xs text-slate-600 leading-relaxed font-medium"
-                        >
-                            I certify that I am an authorized representative of this enterprise.
-                            I agree to abide by PESO and DOLE recruitment rules and maintain
-                            complete accuracy in all job openings published.
-                        </label>
-
-                    </div>
-
-
-                    <!-- SUBMIT -->
-                    <button
-                        type="submit"
-                        class="w-full py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black rounded-2xl text-lg shadow-xl shadow-amber-500/20 transition duration-300"
-                    >
-                        Create Employer Account
-                    </button>
+                    <span class="text-sm text-gray-500 mt-2">
+                        Account
+                    </span>
 
                 </div>
 
             </div>
 
-        </form>
+        </div>
 
 
-        <!-- SIGN IN -->
-        <div class="mt-8 bg-slate-900/80 backdrop-blur-md px-8 py-3.5 rounded-full border border-slate-800 shadow-xl">
+        <!-- Card -->
 
-            <p class="text-xs sm:text-sm text-slate-300 font-extrabold">
+        <div class="bg-white rounded-2xl shadow-2xl
+                    p-8 md:p-10 text-gray-900">
 
-                Already registered?
 
-                <a
-                    href="{% url 'signin' %}"
-                    class="text-amber-400 hover:text-amber-300 underline font-black ml-1 transition-colors"
+            <!-- Header -->
+
+            <div class="mb-8">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-11 h-11 rounded-xl
+                                bg-amber-100 text-amber-600
+                                flex items-center justify-center">
+
+                        <i class="fa-solid fa-building"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h2 class="text-2xl font-bold">
+                            Business Information
+                        </h2>
+
+                        <p class="text-gray-500 text-sm">
+                            Step 1 of 2 — Tell us about your business
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Form -->
+
+            <form
+                method="POST"
+                action="{% url 'register_employer' %}"
+                class="w-full max-w-2xl mx-auto"
+            >
+
+                {% csrf_token %}
+
+                {% render_honeypot_field %}
+
+
+                <!-- Non Field Errors -->
+
+                {% if form.non_field_errors %}
+
+                    <div class="mb-6 p-4 rounded-xl
+                                bg-red-50 border border-red-200
+                                text-red-600">
+
+                        {{ form.non_field_errors }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- Business Name -->
+
+                <div class="mb-5">
+
+                    <label
+                        for="{{ form.business_name.id_for_label }}"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+
+                        Business Name
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        <div class="absolute inset-y-0 left-0
+                                    pl-4 flex items-center
+                                    pointer-events-none">
+
+                            <i class="fa-solid fa-building text-gray-400"></i>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            name="{{ form.business_name.html_name }}"
+                            id="{{ form.business_name.id_for_label }}"
+                            value="{{ form.business_name.value|default_if_none:'' }}"
+                            placeholder="Enter your business name"
+                            autocomplete="organization"
+                            class="w-full pl-11 pr-4 py-3
+                                   border border-gray-300
+                                   rounded-xl
+                                   focus:ring-2 focus:ring-amber-400
+                                   focus:border-amber-400
+                                   outline-none
+                                   transition"
+                            required
+                        >
+
+                    </div>
+
+
+                    {% if form.business_name.errors %}
+
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ form.business_name.errors.0 }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Trade Name -->
+
+                <div class="mb-5">
+
+                    <label
+                        for="{{ form.trade_name.id_for_label }}"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+
+                        Trade Name
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        <div class="absolute inset-y-0 left-0
+                                    pl-4 flex items-center
+                                    pointer-events-none">
+
+                            <i class="fa-solid fa-store text-gray-400"></i>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            name="{{ form.trade_name.html_name }}"
+                            id="{{ form.trade_name.id_for_label }}"
+                            value="{{ form.trade_name.value|default_if_none:'' }}"
+                            placeholder="Enter your trade name"
+                            autocomplete="organization"
+                            class="w-full pl-11 pr-4 py-3
+                                   border border-gray-300
+                                   rounded-xl
+                                   focus:ring-2 focus:ring-amber-400
+                                   focus:border-amber-400
+                                   outline-none
+                                   transition"
+                        >
+
+                    </div>
+
+
+                    {% if form.trade_name.errors %}
+
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ form.trade_name.errors.0 }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Mobile Number -->
+
+                <div class="mb-5">
+
+                    <label
+                        for="{{ form.mobile_number.id_for_label }}"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+
+                        Mobile Number
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        <div class="absolute inset-y-0 left-0
+                                    pl-4 flex items-center
+                                    pointer-events-none">
+
+                            <i class="fa-solid fa-phone text-gray-400"></i>
+
+                        </div>
+
+
+                        <input
+                            type="tel"
+                            name="{{ form.mobile_number.html_name }}"
+                            id="{{ form.mobile_number.id_for_label }}"
+                            value="{{ form.mobile_number.value|default_if_none:'' }}"
+                            placeholder="09XXXXXXXXX"
+                            autocomplete="tel"
+                            class="w-full pl-11 pr-4 py-3
+                                   border border-gray-300
+                                   rounded-xl
+                                   focus:ring-2 focus:ring-amber-400
+                                   focus:border-amber-400
+                                   outline-none
+                                   transition"
+                            required
+                        >
+
+                    </div>
+
+
+                    {% if form.mobile_number.errors %}
+
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ form.mobile_number.errors.0 }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Owner Name -->
+
+                <div class="mb-5">
+
+                    <label
+                        for="{{ form.owner_name.id_for_label }}"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+
+                        Owner Name
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        <div class="absolute inset-y-0 left-0
+                                    pl-4 flex items-center
+                                    pointer-events-none">
+
+                            <i class="fa-solid fa-user text-gray-400"></i>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            name="{{ form.owner_name.html_name }}"
+                            id="{{ form.owner_name.id_for_label }}"
+                            value="{{ form.owner_name.value|default_if_none:'' }}"
+                            placeholder="Enter owner's name"
+                            autocomplete="name"
+                            class="w-full pl-11 pr-4 py-3
+                                   border border-gray-300
+                                   rounded-xl
+                                   focus:ring-2 focus:ring-amber-400
+                                   focus:border-amber-400
+                                   outline-none
+                                   transition"
+                            required
+                        >
+
+                    </div>
+
+
+                    {% if form.owner_name.errors %}
+
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ form.owner_name.errors.0 }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="mb-8">
+
+                    <label
+                        for="{{ form.email.id_for_label }}"
+                        class="block text-sm font-semibold text-gray-700 mb-2"
+                    >
+
+                        Business Email
+
+                        <span class="text-red-500">*</span>
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        <div class="absolute inset-y-0 left-0
+                                    pl-4 flex items-center
+                                    pointer-events-none">
+
+                            <i class="fa-solid fa-envelope text-gray-400"></i>
+
+                        </div>
+
+
+                        <input
+                            type="email"
+                            name="{{ form.email.html_name }}"
+                            id="{{ form.email.id_for_label }}"
+                            value="{{ form.email.value|default_if_none:'' }}"
+                            placeholder="business@example.com"
+                            autocomplete="email"
+                            class="w-full pl-11 pr-4 py-3
+                                   border border-gray-300
+                                   rounded-xl
+                                   focus:ring-2 focus:ring-amber-400
+                                   focus:border-amber-400
+                                   outline-none
+                                   transition"
+                            required
+                        >
+
+                    </div>
+
+
+                    {% if form.email.errors %}
+
+                        <p class="text-red-500 text-sm mt-1">
+                            {{ form.email.errors.0 }}
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Continue Button -->
+
+                <button
+                    type="submit"
+                    class="w-full py-3.5 rounded-xl
+                           bg-gradient-to-r from-amber-400 to-yellow-500
+                           hover:from-amber-500 hover:to-yellow-600
+                           text-black font-bold
+                           transition duration-200
+                           shadow-lg
+                           hover:shadow-xl"
                 >
-                    Sign in here
-                </a>
 
-            </p>
+                    Continue
+
+                    <i class="fa-solid fa-arrow-right ml-2"></i>
+
+                </button>
+
+            </form>
+
+
+            <!-- Sign In -->
+
+            <div class="text-center mt-6">
+
+                <p class="text-gray-500 text-sm">
+
+                    Already have an account?
+
+                    <a
+                        href="{% url 'signin' %}"
+                        class="text-blue-600 font-semibold
+                               hover:text-blue-700"
+                    >
+                        Sign in
+                    </a>
+
+                </p>
+
+            </div>
 
         </div>
 
     </div>
-
-</main>
-
-
-<!-- FOOTER -->
-<footer class="relative z-10 w-full py-6 text-center text-slate-400 text-xs sm:text-sm font-medium">
-
-    &copy; {% now "Y" %} LGU PESO Carigara, Leyte. All rights reserved.
-
-</footer>
-
-
-<!-- PASSWORD TOGGLE -->
-<script>
-
-    function togglePasswordVisibility(inputId, iconId) {
-
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-
-        if (input.type === 'password') {
-
-            input.type = 'text';
-
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-
-        } else {
-
-            input.type = 'password';
-
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-
-        }
-
-    }
-
-</script>
-```
+</div>
 
 </body>
+
 </html>
