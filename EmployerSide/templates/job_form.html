@@ -1,4 +1,4 @@
-```html
+
 {% extends 'employer-base.html' %}
 
 {% block title %}Create Job Posting{% endblock %}
@@ -6,6 +6,7 @@
 {% block content %}
 
 <div class="min-h-screen bg-[#0b0f19] px-4 py-10">
+
     <div class="max-w-6xl mx-auto">
 
         <!-- Header -->
@@ -24,6 +25,7 @@
         </div>
 
         <form method="POST" class="space-y-6">
+
             {% csrf_token %}
 
             {% if form.non_field_errors %}
@@ -41,6 +43,7 @@
                     <h2 class="text-xl font-semibold text-white">
                         Job Details
                     </h2>
+
                     <p class="text-sm text-gray-500 mt-1">
                         Basic information about the position.
                     </p>
@@ -161,6 +164,7 @@
                     <h2 class="text-xl font-semibold text-white">
                         Compensation & Vacancy
                     </h2>
+
                     <p class="text-sm text-gray-500 mt-1">
                         Information about salary, vacancies, and experience.
                     </p>
@@ -176,11 +180,13 @@
                         </label>
 
                         <input
-                            type="text"
+                            type="number"
                             name="{{ form.salary.html_name }}"
                             id="{{ form.salary.id_for_label }}"
                             value="{{ form.salary.value|default:'' }}"
-                            placeholder="e.g. ₱25,000"
+                            min="0"
+                            step="0.01"
+                            placeholder="e.g. 25000.00"
                             class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
                                    text-white placeholder-gray-600 outline-none
                                    focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
@@ -257,6 +263,7 @@
                     <h2 class="text-xl font-semibold text-white">
                         Qualifications
                     </h2>
+
                     <p class="text-sm text-gray-500 mt-1">
                         Specify the educational and professional requirements.
                     </p>
@@ -296,21 +303,17 @@
                                 Educational Level
                             </label>
 
-                            <select
+                            <input
+                                type="text"
                                 name="{{ form.educational_level.html_name }}"
                                 id="{{ form.educational_level.id_for_label }}"
+                                value="{{ form.educational_level.value|default:'' }}"
+                                placeholder="e.g. Bachelor's Degree"
                                 class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white outline-none
+                                       text-white placeholder-gray-600 outline-none
                                        focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
                                        transition"
                             >
-                                {% for value, label in form.educational_level.field.choices %}
-                                    <option value="{{ value }}"
-                                        {% if form.educational_level.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
 
                             {% for error in form.educational_level.errors %}
                                 <p class="text-xs text-red-400 mt-2">{{ error }}</p>
@@ -480,6 +483,7 @@
                                 Allow qualified PWD applicants to apply.
                             </p>
                         </div>
+
                     </label>
 
                     <!-- PWD Disabilities -->
@@ -529,6 +533,7 @@
                                 Allow qualified OFW applicants to apply.
                             </p>
                         </div>
+
                     </label>
 
                 </div>
@@ -626,8 +631,9 @@
             </div>
 
         </form>
+
     </div>
+
 </div>
 
 {% endblock %}
-

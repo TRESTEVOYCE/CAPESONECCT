@@ -257,30 +257,32 @@
                 <!-- TOTAL WORKFORCE -->
                 <div>
                     <label for="{{ form.total_workforce.id_for_label }}"
-                           class="mb-2 block text-sm font-medium text-gray-300">
+                        class="mb-2 block text-sm font-medium text-gray-300">
                         Total Workforce
                     </label>
 
-                    <input
-                        type="number"
+                    <select
                         name="{{ form.total_workforce.html_name }}"
                         id="{{ form.total_workforce.id_for_label }}"
-                        value="{{ form.total_workforce.value|default:'' }}"
-                        placeholder="e.g. 50"
-                        min="0"
                         class="h-12 w-full rounded-xl border border-gray-700/70
-                               bg-[#090e17] px-4 text-sm text-white
-                               placeholder-gray-600 outline-none transition
-                               hover:border-gray-600
-                               focus:border-blue-500
-                               focus:ring-4 focus:ring-blue-500/10">
+                            bg-[#090e17] px-4 text-sm text-white
+                            outline-none transition
+                            hover:border-gray-600
+                            focus:border-blue-500
+                            focus:ring-4 focus:ring-blue-500/10">
+
+                        {% for value, label in form.fields.total_workforce.choices %}
+                            <option value="{{ value }}"
+                                {% if form.total_workforce.value == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
 
                     {% for error in form.total_workforce.errors %}
                         <p class="mt-2 text-xs text-red-400">{{ error }}</p>
                     {% endfor %}
                 </div>
-
-
                 <!-- LINE OF BUSINESS -->
                 <div>
                     <label for="{{ form.line_of_business.id_for_label }}"

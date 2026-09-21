@@ -27,17 +27,13 @@
             <p class="text-3xl font-bold text-indigo-600">{{ applied_jobs|default:0 }}</p>
             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Total Applicants</p>
         </div>
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-            <p class="text-3xl font-bold text-purple-600">759</p>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Total Views</p>
-        </div>
     </div>
 
     <!-- Job Vacancies List Section -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <span class="text-sm font-semibold text-slate-700">Recent Vacancies</span>
-            <a href="{% url 'job_list' %}" class="text-xs font-medium text-indigo-600 hover:underline">View All</a>
+            <a href="{% url 'employer-job_list' %}" class="text-xs font-medium text-indigo-600 hover:underline">View All</a>
         </div>
 
         <div class="divide-y divide-slate-100">
@@ -45,7 +41,7 @@
             <div class="p-6 flex items-center justify-between hover:bg-slate-50/50 transition">
                 <div class="space-y-1">
                     <div class="flex items-center space-x-3">
-                        <a href="{% url 'job_detail' job.pk %}" class="font-semibold text-slate-900 text-base hover:text-indigo-600 transition">{{ job.job_title }}</a>
+                        <a href="{% url 'job-detail' job.pk %}" class="font-semibold text-slate-900 text-base hover:text-indigo-600 transition">{{ job.job_title }}</a>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {% if job.status == 'Active' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">
                             {{ job.status }}
                         </span>
@@ -60,15 +56,11 @@
                         <span class="block text-sm font-bold text-slate-800">{{ job.applied_applicants.count }}</span>
                         <span class="text-[11px] text-slate-400 uppercase">Applicants</span>
                     </div>
-                    <div class="text-right">
-                        <span class="block text-sm font-bold text-slate-800">342</span>
-                        <span class="text-[11px] text-slate-400 uppercase">Views</span>
-                    </div>
                     <div class="flex items-center space-x-3 pl-4 border-l border-slate-100">
-                        <a href="{% url 'job_update' job.pk %}" class="text-slate-400 hover:text-indigo-600 transition p-1" title="Edit">
+                        <a href="{% url 'job-update' job.pk %}" class="text-slate-400 hover:text-indigo-600 transition p-1" title="Edit">
                             <i class="fa-solid fa-pen text-sm"></i>
                         </a>
-                        <a href="{% url 'job_delete' job.pk %}" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete">
+                        <a href="{% url 'job-delete' job.pk %}" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete">
                             <i class="fa-solid fa-trash text-sm"></i>
                         </a>
                     </div>

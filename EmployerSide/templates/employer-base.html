@@ -14,18 +14,25 @@
     <header class="bg-[#1e293b] text-white h-16 px-6 flex items-center justify-between shadow-md z-20">
         <div class="flex items-center space-x-3">
             <div class="bg-amber-400 text-slate-900 font-bold px-2.5 py-1 rounded text-sm">P</div>
-            <span class="font-bold tracking-wide text-lg">CAPESONCONNECT <span class="text-xs font-normal text-slate-300">— Employer</span></span>
+            <a href="{% url 'employer-home' %}">
+                <span class="font-bold tracking-wide text-lg">CAPESONCONNECT <span class="text-xs font-normal text-slate-300">— Employer</span></span>
+            </a>
+            
         </div>
         <div class="flex items-center space-x-5">
             <div class="relative cursor-pointer">
                 <i class="fa-regular fa-bell text-xl text-slate-300 hover:text-white"></i>
-                <span class="absolute -top-1 -right-1 bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+                <span class="absolute -top-1 -right-1 bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
             </div>
             <div class="flex items-center space-x-2 bg-slate-800 py-1.5 px-3 rounded-full border border-slate-700">
                 <span class="bg-slate-600 text-xs font-bold w-7 h-7 flex items-center justify-center rounded-full text-white">
                     {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
                 </span>
-                <span class="text-sm font-medium pr-1">{{ request.user.employer_profile.business_name|default:"ABC Corp" }}</span>
+
+                <span class="text-sm font-medium pr-1">
+                    {{ request.user.employer_profile.business_name|default:request.user.username }}
+                </span>
+
                 <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
             </div>
             <form method="post" action="{% url 'employer-logout' %}" class="inline">
@@ -59,13 +66,17 @@
                     <nav class="space-y-1">
                         <a href="{% url 'employer-home' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'job_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-briefcase w-5 text-center"></i>
-                            <span>Job Postings</span>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="{% url 'employer-job_list' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'job_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-briefcase w-5 text-center"></i>
+                            <span>Jobs Posted</span>
                         </a>
                         <a href="{% url 'applicants-list' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'applicants_list' or request.resolver_match.url_name == 'applicant_detail' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-user-group w-5 text-center"></i>
                             <span>Applicants</span>
                         </a>
-                        <a href="{% url 'employer-profile-create' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <a href="{% url 'company_profile_view' %}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_update' %}bg-[#121c2d] text-white shadow-inner{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
                             <i class="fa-solid fa-building w-5 text-center"></i>
                             <span>Company Profile</span>
                         </a>
