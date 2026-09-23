@@ -1,0 +1,489 @@
+{% load static %}
+{% load honeypot %}
+
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0b0f19]">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Jobseeker Registration</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body class="min-h-screen bg-[#0b0f19] text-white">
+
+    <!-- Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+
+        <div class="absolute -top-40 -right-40 w-96 h-96
+                    bg-amber-400/10 rounded-full blur-3xl">
+        </div>
+
+        <div class="absolute -bottom-40 -left-40 w-96 h-96
+                    bg-blue-500/10 rounded-full blur-3xl">
+        </div>
+
+    </div>
+
+
+    <div class="relative min-h-screen flex items-center justify-center px-4 py-10">
+
+        <div class="w-full max-w-3xl">
+
+
+            <!-- Logo -->
+            <div class="text-center mb-8">
+
+                <div class="flex justify-center mb-4">
+
+                    <img
+                        src="{% static 'LandingPage/images/PESO_LOGO.png' %}"
+                        alt="PESO Logo"
+                        class="w-20 h-20 object-contain"
+                    >
+
+                </div>
+
+                <h1 class="text-3xl md:text-4xl font-bold text-white">
+                    Jobseeker Registration
+                </h1>
+
+                <p class="text-gray-400 mt-2">
+                    Create your jobseeker profile
+                </p>
+
+            </div>
+
+
+            <!-- Progress -->
+            <div class="flex items-center justify-center mb-8">
+
+                <div class="flex items-center">
+
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center">
+
+                        <div class="w-10 h-10 rounded-full
+                                    bg-gradient-to-r from-amber-400 to-yellow-500
+                                    text-black
+                                    flex items-center justify-center
+                                    font-bold
+                                    shadow-lg">
+
+                            1
+
+                        </div>
+
+                        <span class="text-sm text-amber-400 mt-2">
+                            Basic Info
+                        </span>
+
+                    </div>
+
+
+                    <!-- Line -->
+                    <div class="w-24 h-1 bg-gray-700 mx-3"></div>
+
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center">
+
+                        <div class="w-10 h-10 rounded-full
+                                    bg-gray-700
+                                    text-gray-400
+                                    flex items-center justify-center
+                                    font-bold">
+
+                            2
+
+                        </div>
+
+                        <span class="text-sm text-gray-500 mt-2">
+                            Account
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Card -->
+            <div class="bg-white rounded-2xl shadow-2xl
+                        p-8 md:p-10 text-gray-900">
+
+
+                <!-- Header -->
+                <div class="mb-8">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-11 h-11 rounded-xl
+                                    bg-amber-100 text-amber-600
+                                    flex items-center justify-center">
+
+                            <i class="fa-solid fa-user"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h2 class="text-2xl font-bold">
+                                Basic Information
+                            </h2>
+
+                            <p class="text-gray-500 text-sm">
+                                Step 1 of 2 — Tell us about yourself
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Form -->
+                <form
+                    method="POST"
+                    action="{% url 'register_jobseeker' %}"
+                    class="w-full max-w-2xl mx-auto"
+                >
+
+                    {% csrf_token %}
+
+                    {% render_honeypot_field %}
+
+
+                    <!-- Non Field Errors -->
+                    {% if form.non_field_errors %}
+
+                        <div class="mb-6 p-4 rounded-xl
+                                    bg-red-50 border border-red-200
+                                    text-red-600">
+
+                            {{ form.non_field_errors }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- First Name -->
+                    <div class="mb-5">
+
+                        <label
+                            for="{{ form.first_name.id_for_label }}"
+                            class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                            First Name
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="absolute inset-y-0 left-0
+                                        pl-4 flex items-center
+                                        pointer-events-none">
+
+                                <i class="fa-solid fa-user text-gray-400"></i>
+
+                            </div>
+
+                            <input
+                                type="text"
+                                name="{{ form.first_name.html_name }}"
+                                id="{{ form.first_name.id_for_label }}"
+                                value="{{ form.first_name.value|default_if_none:'' }}"
+                                placeholder="Enter your first name"
+                                class="w-full pl-11 pr-4 py-3
+                                       border border-gray-300
+                                       rounded-xl
+                                       focus:ring-2 focus:ring-amber-400
+                                       focus:border-amber-400
+                                       outline-none
+                                       transition"
+                                required
+                            >
+
+                        </div>
+
+                        {% if form.first_name.errors %}
+
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ form.first_name.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Middle Name -->
+                    <div class="mb-5">
+
+                        <label
+                            for="{{ form.middle_name.id_for_label }}"
+                            class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                            Middle Name
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="absolute inset-y-0 left-0
+                                        pl-4 flex items-center
+                                        pointer-events-none">
+
+                                <i class="fa-solid fa-user text-gray-400"></i>
+
+                            </div>
+
+                            <input
+                                type="text"
+                                name="{{ form.middle_name.html_name }}"
+                                id="{{ form.middle_name.id_for_label }}"
+                                value="{{ form.middle_name.value|default_if_none:'' }}"
+                                placeholder="Enter your middle name"
+                                class="w-full pl-11 pr-4 py-3
+                                       border border-gray-300
+                                       rounded-xl
+                                       focus:ring-2 focus:ring-amber-400
+                                       focus:border-amber-400
+                                       outline-none
+                                       transition"
+                            >
+
+                        </div>
+
+                        {% if form.middle_name.errors %}
+
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ form.middle_name.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Last Name -->
+                    <div class="mb-5">
+
+                        <label
+                            for="{{ form.last_name.id_for_label }}"
+                            class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                            Last Name
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="absolute inset-y-0 left-0
+                                        pl-4 flex items-center
+                                        pointer-events-none">
+
+                                <i class="fa-solid fa-user text-gray-400"></i>
+
+                            </div>
+
+                            <input
+                                type="text"
+                                name="{{ form.last_name.html_name }}"
+                                id="{{ form.last_name.id_for_label }}"
+                                value="{{ form.last_name.value|default_if_none:'' }}"
+                                placeholder="Enter your last name"
+                                class="w-full pl-11 pr-4 py-3
+                                       border border-gray-300
+                                       rounded-xl
+                                       focus:ring-2 focus:ring-amber-400
+                                       focus:border-amber-400
+                                       outline-none
+                                       transition"
+                                required
+                            >
+
+                        </div>
+
+                        {% if form.last_name.errors %}
+
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ form.last_name.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Sex -->
+                    <div class="mb-5">
+
+                        <label
+                            for="{{ form.sex.id_for_label }}"
+                            class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                            Sex
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="absolute inset-y-0 left-0
+                                        pl-4 flex items-center
+                                        pointer-events-none">
+
+                                <i class="fa-solid fa-venus-mars text-gray-400"></i>
+
+                            </div>
+
+                            <select
+                                name="{{ form.sex.html_name }}"
+                                id="{{ form.sex.id_for_label }}"
+                                class="w-full pl-11 pr-10 py-3
+                                       border border-gray-300
+                                       rounded-xl
+                                       bg-white
+                                       focus:ring-2 focus:ring-amber-400
+                                       focus:border-amber-400
+                                       outline-none
+                                       transition"
+                                required
+                            >
+
+                                <option value="" disabled
+                                    {% if not form.sex.value %}selected{% endif %}>
+                                    Select your sex
+                                </option>
+
+                                {% for value, label in form.sex.field.choices %}
+
+                                    <option
+                                        value="{{ value }}"
+                                        {% if form.sex.value == value %}selected{% endif %}
+                                    >
+                                        {{ label }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        {% if form.sex.errors %}
+
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ form.sex.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Phone Number -->
+                    <div class="mb-8">
+
+                        <label
+                            for="{{ form.phone_number.id_for_label }}"
+                            class="block text-sm font-semibold text-gray-700 mb-2"
+                        >
+                            Phone Number
+                        </label>
+
+                        <div class="relative">
+
+                            <div class="absolute inset-y-0 left-0
+                                        pl-4 flex items-center
+                                        pointer-events-none">
+
+                                <i class="fa-solid fa-phone text-gray-400"></i>
+
+                            </div>
+
+                            <input
+                                type="tel"
+                                name="{{ form.phone_number.html_name }}"
+                                id="{{ form.phone_number.id_for_label }}"
+                                value="{{ form.phone_number.value|default_if_none:'' }}"
+                                placeholder="09XXXXXXXXX"
+                                class="w-full pl-11 pr-4 py-3
+                                       border border-gray-300
+                                       rounded-xl
+                                       focus:ring-2 focus:ring-amber-400
+                                       focus:border-amber-400
+                                       outline-none
+                                       transition"
+                                required
+                            >
+
+                        </div>
+
+                        {% if form.phone_number.errors %}
+
+                            <p class="text-red-500 text-sm mt-1">
+                                {{ form.phone_number.errors.0 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Continue Button -->
+                    <button
+                        type="submit"
+                        class="w-full py-3.5 rounded-xl
+                               bg-gradient-to-r from-amber-400 to-yellow-500
+                               hover:from-amber-500 hover:to-yellow-600
+                               text-black font-bold
+                               transition duration-200
+                               shadow-lg
+                               hover:shadow-xl"
+                    >
+
+                        Continue
+
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+
+                    </button>
+
+                </form>
+
+
+                <!-- Sign In -->
+                <div class="text-center mt-6">
+
+                    <p class="text-gray-500 text-sm">
+
+                        Already have an account?
+
+                        <a
+                            href="{% url 'signin' %}"
+                            class="text-blue-600 font-semibold
+                                   hover:text-blue-700"
+                        >
+                            Sign in
+                        </a>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -21,9 +21,13 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(('AdminSide.urls'), namespace='admin_side')),    
+    path('', include('LandingPage.urls')),
+    path('employer/', include('EmployerSide.urls')),
+    path('admin-side/', include('AdminSide.urls')),  
+    path('applicant/', include('ApplicantSide.urls')),     
     path('api/',include('MSWDAPI.urls')),
     path('api-auth/', include('rest_framework.urls')),  
+    path('applicant/', include('ApplicantSide.urls')),
 ]
 
 if settings.DEBUG:

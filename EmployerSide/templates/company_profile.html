@@ -1,0 +1,321 @@
+
+{% extends 'employer-base.html' %}
+
+{% block title %}Company Profile{% endblock %}
+
+{% block content %}
+
+<div class="min-h-screen bg-[#0b0f19] py-10 px-4">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white">
+                    Company Profile
+                </h1>
+
+                <p class="mt-2 text-sm text-gray-400">
+                    View and manage your organization's information.
+                </p>
+            </div>
+
+            <a href="{% url 'employer-profile-create' %}"
+               class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white
+                      transition hover:bg-blue-500">
+                <i class="fa-solid fa-pen-to-square mr-2"></i>
+                Edit Profile
+            </a>
+        </div>
+
+
+        <!-- Profile Picture -->
+        <div class="mb-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
+
+            <h2 class="mb-6 text-lg font-semibold text-white">
+                Profile Picture
+            </h2>
+
+            <div class="flex items-center gap-6">
+
+                <!-- Current Profile Picture -->
+                {% if request.user.profile_picture %}
+                    <img
+                        src="{{ request.user.profile_picture.url }}"
+                        alt="Profile Picture"
+                        class="h-24 w-24 rounded-full object-cover border-2 border-gray-700"
+                    >
+                {% else %}
+                    <div class="h-24 w-24 rounded-full bg-slate-700
+                                flex items-center justify-center border-2 border-gray-700">
+
+                        <span class="text-3xl font-bold text-white">
+                            {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
+                        </span>
+
+                    </div>
+                {% endif %}
+
+
+                <!-- Upload Form -->
+                <div>
+
+                    <p class="text-sm text-gray-400 mb-3">
+                        Update your profile picture.
+                    </p>
+
+                    <form method="post"
+                          action="{% url 'employer-profile-picture' %}"
+                          enctype="multipart/form-data">
+
+                        {% csrf_token %}
+
+                        <div class="flex items-center gap-3">
+
+                            <!-- Choose Image -->
+                            <label
+                                for="profile_picture"
+                                class="cursor-pointer rounded-xl bg-slate-700 px-4 py-2.5
+                                       text-sm font-medium text-white transition
+                                       hover:bg-slate-600">
+
+                                <i class="fa-solid fa-upload mr-2"></i>
+                                Choose Image
+                            </label>
+
+                            <input
+                                type="file"
+                                name="profile_picture"
+                                id="profile_picture"
+                                accept="image/*"
+                                class="hidden"
+                            >
+
+
+                            <!-- Update Button -->
+                            <button
+                                type="submit"
+                                class="rounded-xl bg-blue-600 px-4 py-2.5
+                                       text-sm font-medium text-white transition
+                                       hover:bg-blue-500">
+
+                                <i class="fa-solid fa-check mr-2"></i>
+                                Update Picture
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Company Information -->
+        <div class="rounded-2xl border border-gray-800 bg-[#111827] p-6">
+
+            <h2 class="mb-6 text-lg font-semibold text-white">
+                Company Information
+            </h2>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Business Name
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.business_name|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Acronym
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.acronym|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Office Type
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.get_office_type_display|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Employer Type
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.get_employer_type_display|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        TIN Number
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.tin_number|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Total Workforce
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.get_total_workforce_display|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div class="md:col-span-2">
+                    <p class="text-xs text-gray-500">
+                        Line of Business
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.line_of_business|default:"Not provided" }}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Address -->
+        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
+
+            <h2 class="mb-6 text-lg font-semibold text-white">
+                Business Address
+            </h2>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Street Address
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.street_address|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Barangay
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.barangay|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Municipality
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.municipality|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Province
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.province|default:"Not provided" }}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Contact -->
+        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
+
+            <h2 class="mb-6 text-lg font-semibold text-white">
+                Contact Information
+            </h2>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Designation
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.designation|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Contact Person
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.contact_person|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Contact Position
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.contact_position|default:"Not provided" }}
+                    </p>
+                </div>
+
+
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Telephone Number
+                    </p>
+
+                    <p class="mt-1 text-sm text-white">
+                        {{ profile.telephone_number|default:"Not provided" }}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

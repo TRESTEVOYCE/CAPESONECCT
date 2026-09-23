@@ -1,0 +1,166 @@
+{% extends 'applicant-base.html' %}
+
+{% block content %}
+<div class="max-w-[1300px] w-full mx-auto py-6 space-y-6 text-stone-900 font-sans" 
+     x-data="{ 
+         currentStep: localStorage.getItem('nsrp_current_step') || '1', 
+         isEditing: false, 
+         totalSteps: 8 
+     }" 
+     x-init="
+         $watch('currentStep', val => localStorage.setItem('nsrp_current_step', val));$watch('isEditing', val => toggleFormState(val));
+     ">
+    
+    <!-- TOP PROFILE BANNER -->
+    {% include 'partials/profile_banner.html' %}
+
+    <!-- 8-PART NSRP STEPPER TABS -->
+    {% include 'partials/stepper_tabs.html' %}
+
+    <!-- MAIN FORM CONTAINER -->
+    <form method="POST" enctype="multipart/form-data" class="bg-white p-6 sm:p-10 rounded-2xl border border-stone-200/90 shadow-sm space-y-8 text-stone-900" id="peso-profile-form">
+        {% csrf_token %}
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-6">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">National Skills Registration Program (NSRP Form 1 Rev 3)</h2>
+                <p class="text-sm text-stone-600 mt-1">Please fill out the form legibly. Do not leave items unanswered.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-900 border border-stone-200 font-semibold" x-text="currentStep === 'all' ? 'View All Steps' : 'Step ' + currentStep + ' of 8'">PESO Unified Profile</span>
+                <button type="button" 
+                        @click="isEditing = !isEditing" 
+                        x-text="isEditing ? 'Cancel Edit' : 'Edit Information'"
+                        class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-colors shadow-2xs"
+                        :class="isEditing ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100' : 'bg-stone-900 text-white border-stone-900 hover:bg-stone-800'">
+                </button>
+            </div>
+        </div>
+
+        <!-- Mode Indicator Banner -->
+        <div x-show="!isEditing" class="p-4 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-700 flex items-center justify-between">
+            <span>Viewing submitted profile details (<strong>Read-Only Mode</strong>). Click <strong>Edit Information</strong> to modify fields.</span>
+        </div>
+        <div x-show="isEditing" x-cloak class="p-4 bg-amber-50/80 border border-amber-300 rounded-xl text-sm text-amber-900 flex items-center justify-between">
+            <span>You are now in <strong>Edit Mode</strong>. Make sure to save your changes below.</span>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- STEPS WITH VISIBILITY TOGGLE -->
+        <div class="space-y-8 text-base">
+            <div x-show="currentStep === 'all' || currentStep === '1'">{% include 'partials/step_1_personal.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '2'">{% include 'partials/step_2_address.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '3'">{% include 'partials/step_3_education.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '4'">{% include 'partials/step_4_training.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '5'">{% include 'partials/step_5_job_pref.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '6'">{% include 'partials/step_6_work.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '7'">{% include 'partials/step_7_skills.html' %}</div>
+            <div x-show="currentStep === 'all' || currentStep === '8'">{% include 'partials/step_8_certification.html' %}</div>
+        </div>
+
+        <!-- STYLES -->
+        {% include 'partials/form_styles.html' %}
+
+        <!-- ACTIONS & BOTTOM STEP WIZARD NAV -->
+        <div class="space-y-5 pt-6 border-t border-stone-200">
+            <div x-show="currentStep !== 'all'" class="flex items-center justify-between text-sm">
+                <button type="button" 
+                        @click="let n = parseInt(currentStep); if(n > 1) currentStep = String(n - 1); window.scrollTo({top: 0, behavior: 'smooth'});"
+                        :disabled="currentStep === '1'"
+                        class="px-5 py-2.5 rounded-xl font-semibold border border-stone-300 bg-stone-50 hover:bg-stone-100 disabled:opacity-40 transition-all shadow-2xs">
+                    Previous
+                </button>
+                <span class="text-stone-700 font-mono text-xs sm:text-sm font-medium" x-text="'Section ' + currentStep + ' / 8'"></span>
+                <button type="button" 
+                        @click="let n = parseInt(currentStep); if(n < 8) currentStep = String(n + 1); window.scrollTo({top: 0, behavior: 'smooth'});"
+                        :disabled="currentStep === '8'"
+                        class="px-5 py-2.5 rounded-xl font-semibold border border-stone-300 bg-stone-50 hover:bg-stone-100 disabled:opacity-40 transition-all shadow-2xs">
+                    Next 
+                </button>
+            </div>
+
+            <div x-show="isEditing" x-cloak>
+                {% include 'partials/form_actions.html' %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleFormState(enable) {
+        const form = document.getElementById('peso-profile-form');
+        if (!form) return;
+        const fields = form.querySelectorAll('input, select, textarea');
+        fields.forEach(el => {
+            if (el.type === 'hidden' && el.name === 'csrfmiddlewaretoken') return;
+            
+            if (el.type === 'file' || el.type === 'checkbox' || el.type === 'radio' || el.type === 'date' || el.tagName === 'SELECT') {
+                el.disabled = !enable;
+            } else {
+                el.readOnly = !enable;
+            }
+
+            if (!enable) {
+                el.classList.add('bg-stone-100', 'text-stone-600', 'opacity-75');
+            } else {
+                el.classList.remove('bg-stone-100', 'text-stone-600', 'opacity-75');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('peso-profile-form');
+        
+        // Initialize fields as locked/read-only on load
+        toggleFormState(false);
+
+        if (form) {
+            form.addEventListener('submit', function() {
+                localStorage.removeItem('nsrp_current_step');
+                toggleFormState(true);
+            });
+        }
+
+        // Comprehensive Address Sync ("Same as Present Address")
+        const addressCheckbox = document.querySelector('[name="same_as_present_address"]');
+        const addressMap = [
+            { present: 'house_street', permanent: 'perm_house_street' },
+            { present: 'barangay', permanent: 'perm_barangay' },
+            { present: 'municipality', permanent: 'perm_municipality' },
+            { present: 'province', permanent: 'perm_province' },
+            { present: 'zip_code', permanent: 'perm_zip_code' }
+        ];
+
+        function copyPresentToPermanent() {
+            if (!addressCheckbox || !addressCheckbox.checked) return;
+            addressMap.forEach(item => {
+                const src = document.querySelector(`[name="${item.present}"]`);
+                const tgt = document.querySelector(`[name="${item.permanent}"]`);
+                if (src && tgt) {
+                    tgt.value = src.value;
+                    tgt.dispatchEvent(new Event('input', { bubbles: true }));
+                    tgt.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        if (addressCheckbox) {
+            addressCheckbox.addEventListener('change', copyPresentToPermanent);
+            
+            addressMap.forEach(item => {
+                const src = document.querySelector(`[name="${item.present}"]`);
+                if (src) {
+                    src.addEventListener('input', () => {
+                        if (addressCheckbox.checked) copyPresentToPermanent();
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

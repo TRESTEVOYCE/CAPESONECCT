@@ -1,0 +1,34 @@
+<div x-show="currentStep === 'all' || currentStep === '7'" class="space-y-5">
+    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">VII. Other Skills / Competencies</h2>
+    </div>
+
+    <div class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_computer }} Computer Literacy / IT
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_driving }} Driving (Valid License)
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_customer_service }} Customer Service
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_bookkeeping }} Accounting / Bookkeeping
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_carpentry }} Carpentry / Construction
+            </label>
+            <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
+                {{ form.skill_welding }} Welding
+            </label>
+        </div>
+
+        <div class="space-y-1.5 pt-2">
+            <label class="block text-xs font-medium text-stone-700">Other / Specific Technical Skills (e.g., Programming, Editing, Machinery)</label>
+            <input type="text" name="other_skills" value="{{ form.other_skills.value|default:'' }}" placeholder="e.g., Python, Django, Graphic Design, Video Editing" class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none">
+        </div>
+    </div>
+
+</div>

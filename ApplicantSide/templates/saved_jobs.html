@@ -1,0 +1,93 @@
+{% extends 'applicant-base.html' %}
+{% block title %}Saved Jobs ({{ saved_jobs|length }}) - CAPESCONNECT PESO Carigara{% endblock %}
+
+{% block content %}
+<div class="w-full mx-auto py-2 space-y-6 text-stone-900 font-sans">
+    <!-- Page Header -->
+    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">Saved Jobs ({{ saved_jobs|length }})</h1>
+
+    <!-- Outer Container Card matching stone shell style -->
+    <div class="bg-white border border-stone-200/90 rounded-xl p-5 sm:p-6 shadow-3xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for job in saved_jobs %}
+            <div class="bg-stone-50/70 border border-stone-200/80 rounded-xl p-5 flex flex-col justify-between space-y-5 transition-all hover:border-stone-300">
+                <!-- Top Header: Avatar, Title, Bookmark/Action -->
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-11 h-11 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-700 font-bold overflow-hidden flex-shrink-0 text-sm">
+                            {% if job.employer.logo %}
+                            <img src="{{ job.employer.logo.url }}" alt="Logo" class="w-full h-full object-cover">
+                            {% else %}
+                            {{ job.employer.business_name|default:"T"|slice:":1" }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-stone-900 leading-snug">{{ job.job_title }}</h3>
+                            <p class="text-xs sm:text-sm text-stone-600 mt-0.5 font-medium">{{ job.employer.business_name|default:"Teleperformance Philippines" }}</p>
+                        </div>
+                    </div>
+                    <!-- Saved / Bookmark Toggle Button -->
+                    <a href="{% url 'applicant:unsave_job' uuid=job.pk %}" class="text-stone-900 hover:text-stone-700 p-1" title="Remove from saved">
+                        <span class="text-base font-bold">★</span>
+                    </a>
+                </div>
+
+                <!-- Location, Employment Type & Category Badges -->
+                <div class="flex flex-wrap items-center gap-2 text-xs text-stone-700">
+                    <span class="inline-flex items-center gap-1 bg-white border border-stone-200 px-2.5 py-1 rounded-md font-medium">
+                        {{ job.location|default:"Makati City" }}
+                    </span>
+                    <span class="inline-flex items-center gap-1 bg-white border border-stone-200 px-2.5 py-1 rounded-md font-medium">
+                        {{ job.employment_type|default:"Full Time" }}
+                    </span>
+                    {% if job.category %}
+                    <span class="bg-stone-100 text-stone-800 border border-stone-200 px-2.5 py-1 rounded-md font-medium text-xs">
+                        {{ job.category }}
+                    </span>
+                    {% else %}
+                    <span class="bg-stone-100 text-stone-800 border border-stone-200 px-2.5 py-1 rounded-md font-medium text-xs">
+                        BPO / Call Center
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Job Description Snippet -->
+                <p class="text-xs sm:text-sm text-stone-600 leading-relaxed line-clamp-2">
+                    {{ job.description|default:"Handle customer inquiries, provide support, and ensure customer satisfaction scores above 90%." }}
+                </p>
+
+                <!-- Skills Pills -->
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                    {% for skill in job.required_skills.all|slice:":3" %}
+                    <span class="text-xs bg-white text-stone-700 px-2.5 py-1 rounded-md border border-stone-200/80 font-medium">
+                        {{ skill.name }}
+                    </span>
+                    {% empty %}
+                    <span class="text-xs bg-white text-stone-700 px-2.5 py-1 rounded-md border border-stone-200/80 font-medium">Communication</span>
+                    <span class="text-xs bg-white text-stone-700 px-2.5 py-1 rounded-md border border-stone-200/80 font-medium">Customer Service</span>
+                    <span class="text-xs bg-white text-stone-700 px-2.5 py-1 rounded-md border border-stone-200/80 font-medium">Problem Solving</span>
+                    <span class="text-xs text-stone-400 self-center pl-1">+2 more</span>
+                    {% endfor %}
+                </div>
+
+                <!-- Footer: Salary & Apply Action -->
+                <div class="pt-4 border-t border-stone-200/70 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="text-sm sm:text-base font-bold text-stone-900 block">₱{{ job.salary_min|default:"18,000" }} - ₱{{ job.salary_max|default:"22,000" }} / mo</span>
+                        <span class="text-xs text-stone-500">Posted {{ job.posted_date|timesince|default:"2" }} ago</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'applicant:job_details' uuid=job.pk %}" class="px-3.5 py-2 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-semibold transition">View</a>
+                        <a href="{% url 'applicant:apply_job' uuid=job.pk %}" class="px-4 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold shadow-3xs transition">Apply</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-12 text-center text-sm text-stone-500">
+                No saved jobs found.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
