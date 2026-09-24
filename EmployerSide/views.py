@@ -84,28 +84,55 @@ class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = AppliedJobs
     template_name = 'applicants_list.html'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
-    #to ensure that the employer can only view their own job postings
     def get_queryset(self):
-        return AppliedJobs.objects.filter(employer=self.request.user.employer_profile)
+        employer_profile = self.request.user.employer_profile
 
+        if employer_profile.verification_status != 'verified':
+            return AppliedJobs.objects.none()
+
+        return AppliedJobs.objects.filter(
+            employer=employer_profile
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['is_verified'] = (
+            self.request.user.employer_profile.verification_status == 'verified'
+        )
+
+        return context
+    
 #view to display details of a specific applicant
 class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = ApplicantProfile
     template_name = 'applicant_detail.html'
 
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
-        return self.request.user.role == 'employer' 
-    
-    def get_queryset(self):
-         return ApplicantProfile.objects.filter(
-            employer=self.request.user.employerprofile
-            ).distinct()
+        employer_profile = getattr(
+            self.request.user,
+            'employerprofile',
+            None
+        )
 
+        return (
+            self.request.user.role == 'employer'
+            and employer_profile
+            and employer_profile.verification_status == 'verified'
+        )
+
+    def get_queryset(self):
+        return ApplicantProfile.objects.filter(
+            employer=self.request.user.employerprofile
+        ).distinct()
+
+    
 #view to update the status of an applicant's job application
 class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = AppliedJobs
@@ -129,9 +156,27 @@ class JobCreationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             and self.request.user.role == 'employer'
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        employer_profile = getattr(
+            self.request.user,
+            'employer_profile',
+            None
+        )
+
+        context['is_verified'] = (
+            employer_profile is not None
+            and employer_profile.verification_status == 'verified'
+        )
+
+        return context
+
     def form_valid(self, form):
         form.instance.employer = self.request.user.employer_profile
+
         response = super().form_valid(form)
+
         upsert_job_vector(self.object)
 
         return response
@@ -141,9 +186,14 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = JobsForm
     template_name = 'job_form.html'
     success_url = reverse_lazy('home')
+    raise_exception = True
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+            and self.request.user.employer_profile.verification_status == 'verified'
+        )
 
     def get_queryset(self):
         return Jobs.objects.filter(
@@ -154,11 +204,15 @@ class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Jobs
     template_name = 'job_confirm_delete.html'
     success_url = reverse_lazy('employer-home')
-
-    #to ensure that only authenticated employers can access this view
+    raise_exception = True
+    
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'employer'
-
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+            and self.request.user.employer_profile.verification_status == 'verified'
+            )
+    
     #to ensure that the employer can only delete their own job postings
     def get_queryset(self):
         return Jobs.objects.filter(employer=self.request.user.employer_profile)
@@ -175,9 +229,15 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         )
 
     def get_queryset(self):
+        employer_profile = self.request.user.employer_profile
+
+        if employer_profile.verification_status != 'verified':
+            return Jobs.objects.none()
+
         return Jobs.objects.filter(
             employer__user=self.request.user
         ).order_by('-created_at')
+    
     
 class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Jobs
@@ -188,6 +248,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         return (
             self.request.user.is_authenticated
             and self.request.user.role == 'employer'
+            and self.request.user.employer_profile.verification_status == 'verified'
         )
 
     def get_queryset(self):

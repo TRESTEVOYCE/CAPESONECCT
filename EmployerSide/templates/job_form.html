@@ -1,4 +1,3 @@
-
 {% extends 'employer-base.html' %}
 
 {% block title %}Create Job Posting{% endblock %}
@@ -7,632 +6,837 @@
 
 <div class="min-h-screen bg-[#0b0f19] px-4 py-10">
 
-    <div class="max-w-6xl mx-auto">
+<div class="max-w-6xl mx-auto">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider">
-                Employer Portal
-            </p>
+    <!-- Header -->
 
-            <h1 class="text-3xl font-bold text-white mt-2">
-                Create Job Posting
-            </h1>
+    <div class="mb-8">
 
-            <p class="text-gray-400 mt-2">
-                Add the details and requirements for your new job opportunity.
-            </p>
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider">
+            Employer Portal
+        </p>
+
+        <h1 class="text-3xl font-bold text-white mt-2">
+            Create Job Posting
+        </h1>
+
+        <p class="text-gray-400 mt-2">
+            Add the details and requirements for your new job opportunity.
+        </p>
+
+    </div>
+
+    {% if is_verified %}
+
+    <form method="POST" class="space-y-6">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+
+            {% for error in form.non_field_errors %}
+                <p class="text-sm text-red-400">{{ error }}</p>
+            {% endfor %}
+
         </div>
 
-        <form method="POST" class="space-y-6">
+        {% endif %}
 
-            {% csrf_token %}
 
-            {% if form.non_field_errors %}
-            <div class="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                {% for error in form.non_field_errors %}
-                    <p class="text-sm text-red-400">{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
+        <!-- JOB DETAILS -->
 
-            <!-- JOB DETAILS -->
-            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
 
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-white">
-                        Job Details
-                    </h2>
+            <div class="mb-6">
 
-                    <p class="text-sm text-gray-500 mt-1">
-                        Basic information about the position.
-                    </p>
-                </div>
+                <h2 class="text-xl font-semibold text-white">
+                    Job Details
+                </h2>
 
-                <div class="space-y-5">
+                <p class="text-sm text-gray-500 mt-1">
+                    Basic information about the position.
+                </p>
 
-                    <!-- Job Title -->
-                    <div>
-                        <label for="{{ form.job_title.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Job Title <span class="text-red-400">*</span>
-                        </label>
-
-                        <input
-                            type="text"
-                            name="{{ form.job_title.html_name }}"
-                            id="{{ form.job_title.id_for_label }}"
-                            value="{{ form.job_title.value|default:'' }}"
-                            placeholder="e.g. Software Developer"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
-
-                        {% for error in form.job_title.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label for="{{ form.job_description.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Job Description <span class="text-red-400">*</span>
-                        </label>
-
-                        <textarea
-                            name="{{ form.job_description.html_name }}"
-                            id="{{ form.job_description.id_for_label }}"
-                            rows="6"
-                            placeholder="Describe the responsibilities and duties of this position..."
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none resize-y
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >{{ form.job_description.value|default:'' }}</textarea>
-
-                        {% for error in form.job_description.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                        <!-- Nature -->
-                        <div>
-                            <label for="{{ form.nature_of_work.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Nature of Work
-                            </label>
-
-                            <select
-                                name="{{ form.nature_of_work.html_name }}"
-                                id="{{ form.nature_of_work.id_for_label }}"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-                                {% for value, label in form.nature_of_work.field.choices %}
-                                    <option value="{{ value }}"
-                                        {% if form.nature_of_work.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-
-                            {% for error in form.nature_of_work.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Place -->
-                        <div>
-                            <label for="{{ form.place_of_work.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Place of Work
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.place_of_work.html_name }}"
-                                id="{{ form.place_of_work.id_for_label }}"
-                                value="{{ form.place_of_work.value|default:'' }}"
-                                placeholder="e.g. Tacloban City, Leyte"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.place_of_work.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                    </div>
-                </div>
             </div>
 
 
-            <!-- COMPENSATION -->
-            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+            <div class="space-y-5">
 
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-white">
-                        Compensation & Vacancy
-                    </h2>
+                <!-- Job Title -->
 
-                    <p class="text-sm text-gray-500 mt-1">
-                        Information about salary, vacancies, and experience.
-                    </p>
-                </div>
+                <div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <label for="{{ form.job_title.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
 
-                    <!-- Salary -->
-                    <div>
-                        <label for="{{ form.salary.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Salary
-                        </label>
-
-                        <input
-                            type="number"
-                            name="{{ form.salary.html_name }}"
-                            id="{{ form.salary.id_for_label }}"
-                            value="{{ form.salary.value|default:'' }}"
-                            min="0"
-                            step="0.01"
-                            placeholder="e.g. 25000.00"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
-
-                        {% for error in form.salary.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Vacancy -->
-                    <div>
-                        <label for="{{ form.vacancy.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Number of Vacancies
-                        </label>
-
-                        <input
-                            type="number"
-                            name="{{ form.vacancy.html_name }}"
-                            id="{{ form.vacancy.id_for_label }}"
-                            value="{{ form.vacancy.value|default:'' }}"
-                            min="1"
-                            placeholder="e.g. 5"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
-
-                        {% for error in form.vacancy.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Experience -->
-                    <div>
-                        <label for="{{ form.work_experience_months.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Experience Required
-                        </label>
-
-                        <input
-                            type="number"
-                            name="{{ form.work_experience_months.html_name }}"
-                            id="{{ form.work_experience_months.id_for_label }}"
-                            value="{{ form.work_experience_months.value|default:'' }}"
-                            min="0"
-                            placeholder="Months"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
-
-                        <p class="text-xs text-gray-500 mt-2">
-                            Enter the required experience in months.
-                        </p>
-
-                        {% for error in form.work_experience_months.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                </div>
-            </div>
-
-
-            <!-- QUALIFICATIONS -->
-            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
-
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-white">
-                        Qualifications
-                    </h2>
-
-                    <p class="text-sm text-gray-500 mt-1">
-                        Specify the educational and professional requirements.
-                    </p>
-                </div>
-
-                <div class="space-y-5">
-
-                    <!-- Other Qualifications -->
-                    <div>
-                        <label for="{{ form.other_qualifications.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Other Qualifications
-                        </label>
-
-                        <textarea
-                            name="{{ form.other_qualifications.html_name }}"
-                            id="{{ form.other_qualifications.id_for_label }}"
-                            rows="4"
-                            placeholder="List additional qualifications..."
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none resize-y
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >{{ form.other_qualifications.value|default:'' }}</textarea>
-
-                        {% for error in form.other_qualifications.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                        <!-- Educational Level -->
-                        <div>
-                            <label for="{{ form.educational_level.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Educational Level
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.educational_level.html_name }}"
-                                id="{{ form.educational_level.id_for_label }}"
-                                value="{{ form.educational_level.value|default:'' }}"
-                                placeholder="e.g. Bachelor's Degree"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.educational_level.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Course -->
-                        <div>
-                            <label for="{{ form.course_or_strand.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Course / Strand
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.course_or_strand.html_name }}"
-                                id="{{ form.course_or_strand.id_for_label }}"
-                                value="{{ form.course_or_strand.value|default:'' }}"
-                                placeholder="e.g. BSIT, STEM, ABM"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.course_or_strand.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- License -->
-                        <div>
-                            <label for="{{ form.required_license.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Required License
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.required_license.html_name }}"
-                                id="{{ form.required_license.id_for_label }}"
-                                value="{{ form.required_license.value|default:'' }}"
-                                placeholder="e.g. PRC License"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.required_license.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Eligibility -->
-                        <div>
-                            <label for="{{ form.required_eligibility.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Required Eligibility
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.required_eligibility.html_name }}"
-                                id="{{ form.required_eligibility.id_for_label }}"
-                                value="{{ form.required_eligibility.value|default:'' }}"
-                                placeholder="e.g. Civil Service Eligibility"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.required_eligibility.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Certification -->
-                        <div>
-                            <label for="{{ form.required_certification.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Required Certification
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.required_certification.html_name }}"
-                                id="{{ form.required_certification.id_for_label }}"
-                                value="{{ form.required_certification.value|default:'' }}"
-                                placeholder="e.g. CCNA"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.required_certification.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Languages -->
-                        <div>
-                            <label for="{{ form.languages_spoken.id_for_label }}"
-                                   class="block text-sm font-medium text-gray-300 mb-2">
-                                Languages Spoken
-                            </label>
-
-                            <input
-                                type="text"
-                                name="{{ form.languages_spoken.html_name }}"
-                                id="{{ form.languages_spoken.id_for_label }}"
-                                value="{{ form.languages_spoken.value|default:'' }}"
-                                placeholder="e.g. English, Filipino, Waray"
-                                class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                       text-white placeholder-gray-600 outline-none
-                                       focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       transition"
-                            >
-
-                            {% for error in form.languages_spoken.errors %}
-                                <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- APPLICANT PREFERENCES -->
-            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
-
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-white">
-                        Applicant Preferences
-                    </h2>
-
-                    <p class="text-sm text-gray-500 mt-1">
-                        Choose which applicants can apply for this position.
-                    </p>
-                </div>
-
-                <div class="space-y-4">
-
-                    <!-- PWD -->
-                    <label class="flex items-center gap-4 p-4 rounded-xl
-                                  bg-[#0b0f19] border border-gray-800
-                                  hover:border-gray-700 cursor-pointer transition">
-
-                        <input
-                            type="checkbox"
-                            name="{{ form.accepts_pwd.html_name }}"
-                            id="{{ form.accepts_pwd.id_for_label }}"
-                            {% if form.accepts_pwd.value %}checked{% endif %}
-                            class="w-5 h-5 rounded border-gray-600 bg-[#111827]
-                                   text-blue-600 focus:ring-blue-500 focus:ring-2"
-                        >
-
-                        <div>
-                            <p class="text-white font-medium">
-                                Accept Persons with Disabilities
-                            </p>
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                Allow qualified PWD applicants to apply.
-                            </p>
-                        </div>
+                        Job Title <span class="text-red-400">*</span>
 
                     </label>
 
-                    <!-- PWD Disabilities -->
-                    <div>
-                        <label for="{{ form.pwd_disabilities.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            PWD Disabilities Accepted
-                        </label>
+                    <input
+                        type="text"
+                        name="{{ form.job_title.html_name }}"
+                        id="{{ form.job_title.id_for_label }}"
+                        value="{{ form.job_title.value|default:'' }}"
+                        placeholder="e.g. Software Developer"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
 
-                        <input
-                            type="text"
-                            name="{{ form.pwd_disabilities.html_name }}"
-                            id="{{ form.pwd_disabilities.id_for_label }}"
-                            value="{{ form.pwd_disabilities.value|default:'' }}"
-                            placeholder="e.g. Physical, Visual, Hearing"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
+                    {% for error in form.job_title.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
 
-                        {% for error in form.pwd_disabilities.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
+                </div>
 
-                    <!-- OFW -->
-                    <label class="flex items-center gap-4 p-4 rounded-xl
-                                  bg-[#0b0f19] border border-gray-800
-                                  hover:border-gray-700 cursor-pointer transition">
 
-                        <input
-                            type="checkbox"
-                            name="{{ form.accepts_ofw.html_name }}"
-                            id="{{ form.accepts_ofw.id_for_label }}"
-                            {% if form.accepts_ofw.value %}checked{% endif %}
-                            class="w-5 h-5 rounded border-gray-600 bg-[#111827]
-                                   text-blue-600 focus:ring-blue-500 focus:ring-2"
-                        >
+                <!-- Description -->
 
-                        <div>
-                            <p class="text-white font-medium">
-                                Accept OFW Applicants
-                            </p>
+                <div>
 
-                            <p class="text-sm text-gray-500 mt-1">
-                                Allow qualified OFW applicants to apply.
-                            </p>
-                        </div>
+                    <label for="{{ form.job_description.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Job Description <span class="text-red-400">*</span>
 
                     </label>
 
+                    <textarea
+                        name="{{ form.job_description.html_name }}"
+                        id="{{ form.job_description.id_for_label }}"
+                        rows="6"
+                        placeholder="Describe the responsibilities and duties of this position..."
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none resize-y
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >{{ form.job_description.value|default:'' }}</textarea>
+
+                    {% for error in form.job_description.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
                 </div>
-            </div>
 
-
-            <!-- APPLICATION SETTINGS -->
-            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
-
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-white">
-                        Application Settings
-                    </h2>
-
-                    <p class="text-sm text-gray-500 mt-1">
-                        Configure the application limit and expiration date.
-                    </p>
-                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                    <!-- Quota -->
+                    <!-- Nature -->
+
                     <div>
-                        <label for="{{ form.application_quota.id_for_label }}"
+
+                        <label for="{{ form.nature_of_work.id_for_label }}"
                                class="block text-sm font-medium text-gray-300 mb-2">
-                            Application Quota
+
+                            Nature of Work
+
                         </label>
 
-                        <input
-                            type="number"
-                            name="{{ form.application_quota.html_name }}"
-                            id="{{ form.application_quota.id_for_label }}"
-                            value="{{ form.application_quota.value|default:'' }}"
-                            min="1"
-                            placeholder="e.g. 100"
-                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
-                                   text-white placeholder-gray-600 outline-none
-                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                   transition"
-                        >
-
-                        <p class="text-xs text-gray-500 mt-2">
-                            Maximum number of applications allowed.
-                        </p>
-
-                        {% for error in form.application_quota.errors %}
-                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Expiry -->
-                    <div>
-                        <label for="{{ form.job_posting_expiry.id_for_label }}"
-                               class="block text-sm font-medium text-gray-300 mb-2">
-                            Job Posting Expiry
-                        </label>
-
-                        <input
-                            type="date"
-                            name="{{ form.job_posting_expiry.html_name }}"
-                            id="{{ form.job_posting_expiry.id_for_label }}"
-                            value="{{ form.job_posting_expiry.value|default:'' }}"
+                        <select
+                            name="{{ form.nature_of_work.html_name }}"
+                            id="{{ form.nature_of_work.id_for_label }}"
                             class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
                                    text-white outline-none
                                    focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
                                    transition"
                         >
 
-                        {% for error in form.job_posting_expiry.errors %}
+                            {% for value, label in form.nature_of_work.field.choices %}
+
+                                <option value="{{ value }}"
+                                    {% if form.nature_of_work.value|stringformat:"s" == value|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
+
+                                    {{ label }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        {% for error in form.nature_of_work.errors %}
                             <p class="text-xs text-red-400 mt-2">{{ error }}</p>
                         {% endfor %}
+
+                    </div>
+
+
+                    <!-- Place -->
+
+                    <div>
+
+                        <label for="{{ form.place_of_work.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Place of Work
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.place_of_work.html_name }}"
+                            id="{{ form.place_of_work.id_for_label }}"
+                            value="{{ form.place_of_work.value|default:'' }}"
+                            placeholder="e.g. Tacloban City, Leyte"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.place_of_work.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
                     </div>
 
                 </div>
-            </div>
-
-
-            <!-- BUTTONS -->
-            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-10">
-
-                <a href="{% url 'employer-home' %}"
-                   class="px-6 py-3 rounded-xl border border-gray-700
-                          text-gray-300 text-sm font-medium text-center
-                          hover:bg-gray-800 hover:text-white transition">
-                    Cancel
-                </a>
-
-                <button type="submit"
-                        class="px-7 py-3 rounded-xl bg-blue-600
-                               hover:bg-blue-500 text-white text-sm font-semibold
-                               shadow-lg shadow-blue-600/10 transition">
-                    Create Job Posting
-                </button>
 
             </div>
 
-        </form>
+        </div>
+
+
+        <!-- COMPENSATION -->
+
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+
+            <div class="mb-6">
+
+                <h2 class="text-xl font-semibold text-white">
+                    Compensation & Vacancy
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Information about salary, vacancies, and experience.
+                </p>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                <!-- Salary -->
+
+                <div>
+
+                    <label for="{{ form.salary.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Salary
+
+                    </label>
+
+                    <input
+                        type="number"
+                        name="{{ form.salary.html_name }}"
+                        id="{{ form.salary.id_for_label }}"
+                        value="{{ form.salary.value|default:'' }}"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g. 25000.00"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    {% for error in form.salary.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Vacancy -->
+
+                <div>
+
+                    <label for="{{ form.vacancy.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Number of Vacancies
+
+                    </label>
+
+                    <input
+                        type="number"
+                        name="{{ form.vacancy.html_name }}"
+                        id="{{ form.vacancy.id_for_label }}"
+                        value="{{ form.vacancy.value|default:'' }}"
+                        min="1"
+                        placeholder="e.g. 5"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    {% for error in form.vacancy.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Experience -->
+
+                <div>
+
+                    <label for="{{ form.work_experience_months.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Experience Required
+
+                    </label>
+
+                    <input
+                        type="number"
+                        name="{{ form.work_experience_months.html_name }}"
+                        id="{{ form.work_experience_months.id_for_label }}"
+                        value="{{ form.work_experience_months.value|default:'' }}"
+                        min="0"
+                        placeholder="Months"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    <p class="text-xs text-gray-500 mt-2">
+                        Enter the required experience in months.
+                    </p>
+
+                    {% for error in form.work_experience_months.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUALIFICATIONS -->
+
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+
+            <div class="mb-6">
+
+                <h2 class="text-xl font-semibold text-white">
+                    Qualifications
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Specify the educational and professional requirements.
+                </p>
+
+            </div>
+
+            <div class="space-y-5">
+
+                <!-- Other Qualifications -->
+
+                <div>
+
+                    <label for="{{ form.other_qualifications.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Other Qualifications
+
+                    </label>
+
+                    <textarea
+                        name="{{ form.other_qualifications.html_name }}"
+                        id="{{ form.other_qualifications.id_for_label }}"
+                        rows="4"
+                        placeholder="List additional qualifications..."
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none resize-y
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >{{ form.other_qualifications.value|default:'' }}</textarea>
+
+                    {% for error in form.other_qualifications.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Educational Level -->
+
+                    <div>
+
+                        <label for="{{ form.educational_level.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Educational Level
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.educational_level.html_name }}"
+                            id="{{ form.educational_level.id_for_label }}"
+                            value="{{ form.educational_level.value|default:'' }}"
+                            placeholder="e.g. Bachelor's Degree"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.educational_level.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Course -->
+
+                    <div>
+
+                        <label for="{{ form.course_or_strand.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Course / Strand
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.course_or_strand.html_name }}"
+                            id="{{ form.course_or_strand.id_for_label }}"
+                            value="{{ form.course_or_strand.value|default:'' }}"
+                            placeholder="e.g. BSIT, STEM, ABM"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.course_or_strand.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- License -->
+
+                    <div>
+
+                        <label for="{{ form.required_license.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Required License
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.required_license.html_name }}"
+                            id="{{ form.required_license.id_for_label }}"
+                            value="{{ form.required_license.value|default:'' }}"
+                            placeholder="e.g. PRC License"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.required_license.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Eligibility -->
+
+                    <div>
+
+                        <label for="{{ form.required_eligibility.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Required Eligibility
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.required_eligibility.html_name }}"
+                            id="{{ form.required_eligibility.id_for_label }}"
+                            value="{{ form.required_eligibility.value|default:'' }}"
+                            placeholder="e.g. Civil Service Eligibility"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.required_eligibility.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Certification -->
+
+                    <div>
+
+                        <label for="{{ form.required_certification.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Required Certification
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.required_certification.html_name }}"
+                            id="{{ form.required_certification.id_for_label }}"
+                            value="{{ form.required_certification.value|default:'' }}"
+                            placeholder="e.g. CCNA"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.required_certification.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Languages -->
+
+                    <div>
+
+                        <label for="{{ form.languages_spoken.id_for_label }}"
+                               class="block text-sm font-medium text-gray-300 mb-2">
+
+                            Languages Spoken
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="{{ form.languages_spoken.html_name }}"
+                            id="{{ form.languages_spoken.id_for_label }}"
+                            value="{{ form.languages_spoken.value|default:'' }}"
+                            placeholder="e.g. English, Filipino, Waray"
+                            class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                                   text-white placeholder-gray-600 outline-none
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                                   transition"
+                        >
+
+                        {% for error in form.languages_spoken.errors %}
+                            <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- APPLICANT PREFERENCES -->
+
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+
+            <div class="mb-6">
+
+                <h2 class="text-xl font-semibold text-white">
+                    Applicant Preferences
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Choose which applicants can apply for this position.
+                </p>
+
+            </div>
+
+            <div class="space-y-4">
+
+                <!-- PWD -->
+
+                <label class="flex items-center gap-4 p-4 rounded-xl
+                              bg-[#0b0f19] border border-gray-800
+                              hover:border-gray-700 cursor-pointer transition">
+
+                    <input
+                        type="checkbox"
+                        name="{{ form.accepts_pwd.html_name }}"
+                        id="{{ form.accepts_pwd.id_for_label }}"
+                        {% if form.accepts_pwd.value %}checked{% endif %}
+                        class="w-5 h-5 rounded border-gray-600 bg-[#111827]
+                               text-blue-600 focus:ring-blue-500 focus:ring-2"
+                    >
+
+                    <div>
+
+                        <p class="text-white font-medium">
+                            Accept Persons with Disabilities
+                        </p>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            Allow qualified PWD applicants to apply.
+                        </p>
+
+                    </div>
+
+                </label>
+
+
+                <!-- PWD Disabilities -->
+
+                <div>
+
+                    <label for="{{ form.pwd_disabilities.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        PWD Disabilities Accepted
+
+                    </label>
+
+                    <input
+                        type="text"
+                        name="{{ form.pwd_disabilities.html_name }}"
+                        id="{{ form.pwd_disabilities.id_for_label }}"
+                        value="{{ form.pwd_disabilities.value|default:'' }}"
+                        placeholder="e.g. Physical, Visual, Hearing"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    {% for error in form.pwd_disabilities.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- OFW -->
+
+                <label class="flex items-center gap-4 p-4 rounded-xl
+                              bg-[#0b0f19] border border-gray-800
+                              hover:border-gray-700 cursor-pointer transition">
+
+                    <input
+                        type="checkbox"
+                        name="{{ form.accepts_ofw.html_name }}"
+                        id="{{ form.accepts_ofw.id_for_label }}"
+                        {% if form.accepts_ofw.value %}checked{% endif %}
+                        class="w-5 h-5 rounded border-gray-600 bg-[#111827]
+                               text-blue-600 focus:ring-blue-500 focus:ring-2"
+                    >
+
+                    <div>
+
+                        <p class="text-white font-medium">
+                            Accept OFW Applicants
+                        </p>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            Allow qualified OFW applicants to apply.
+                        </p>
+
+                    </div>
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- APPLICATION SETTINGS -->
+
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 md:p-8">
+
+            <div class="mb-6">
+
+                <h2 class="text-xl font-semibold text-white">
+                    Application Settings
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Configure the application limit and expiration date.
+                </p>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <!-- Quota -->
+
+                <div>
+
+                    <label for="{{ form.application_quota.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Application Quota
+
+                    </label>
+
+                    <input
+                        type="number"
+                        name="{{ form.application_quota.html_name }}"
+                        id="{{ form.application_quota.id_for_label }}"
+                        value="{{ form.application_quota.value|default:'' }}"
+                        min="1"
+                        placeholder="e.g. 100"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white placeholder-gray-600 outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    <p class="text-xs text-gray-500 mt-2">
+                        Maximum number of applications allowed.
+                    </p>
+
+                    {% for error in form.application_quota.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- Expiry -->
+
+                <div>
+
+                    <label for="{{ form.job_posting_expiry.id_for_label }}"
+                           class="block text-sm font-medium text-gray-300 mb-2">
+
+                        Job Posting Expiry
+
+                    </label>
+
+                    <input
+                        type="date"
+                        name="{{ form.job_posting_expiry.html_name }}"
+                        id="{{ form.job_posting_expiry.id_for_label }}"
+                        value="{{ form.job_posting_expiry.value|default:'' }}"
+                        class="w-full px-4 py-3 bg-[#0b0f19] border border-gray-700 rounded-xl
+                               text-white outline-none
+                               focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                               transition"
+                    >
+
+                    {% for error in form.job_posting_expiry.errors %}
+                        <p class="text-xs text-red-400 mt-2">{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUTTONS -->
+
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-10">
+
+            <a href="{% url 'employer-home' %}"
+               class="px-6 py-3 rounded-xl border border-gray-700
+                      text-gray-300 text-sm font-medium text-center
+                      hover:bg-gray-800 hover:text-white transition">
+
+                Cancel
+
+            </a>
+
+            <button type="submit"
+                    class="px-7 py-3 rounded-xl bg-blue-600
+                           hover:bg-blue-500 text-white text-sm font-semibold
+                           shadow-lg shadow-blue-600/10 transition">
+
+                Create Job Posting
+
+            </button>
+
+        </div>
+
+    </form>
+
+    {% else %}
+
+    <!-- ================= VERIFICATION REQUIRED ================= -->
+
+    <div class="min-h-[500px] flex items-center justify-center">
+
+        <div class="w-full max-w-xl rounded-2xl border border-yellow-500/20
+                    bg-[#111827] p-8 md:p-10 text-center shadow-xl">
+
+            <div class="mx-auto flex h-16 w-16 items-center justify-center
+                        rounded-2xl bg-yellow-500/10">
+
+                <svg class="h-8 w-8 text-yellow-400"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 15v2m0-8h.01M7 10V8a5 5 0 0110 0v2m-9 0h8a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2v-6a2 2 0 012-2z"/>
+
+                </svg>
+
+            </div>
+
+            <h2 class="mt-6 text-2xl font-bold text-white">
+                Verification Required
+            </h2>
+
+            <p class="mt-3 text-sm leading-6 text-gray-400">
+                Your employer account must be verified before you can post a job.
+                Please wait for your employer profile to be reviewed and approved.
+            </p>
+
+            <div class="mt-6 rounded-xl border border-white/[0.06]
+                        bg-[#0b0f19] px-5 py-4">
+
+                <p class="text-xs uppercase tracking-wider text-gray-500">
+                    Verification Status
+                </p>
+
+                <p class="mt-1 text-sm font-semibold text-yellow-400">
+                    {{ request.user.employer_profile.get_verification_status_display }}
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
+
+    {% endif %}
+
+</div>
 
 </div>
 
