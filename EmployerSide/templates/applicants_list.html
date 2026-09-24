@@ -1,593 +1,274 @@
 {% extends 'employer-base.html' %}
-
 {% block title %}Applicants{% endblock %}
-
 {% block content %}
 
 <div class="min-h-screen bg-[#080c14] px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
 
-```
-<div class="mx-auto max-w-7xl">
-
-    <!-- ================= HEADER ================= -->
-    <div class="mb-8">
-
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    Applicants
-                </h1>
-
-                <p class="mt-1 text-sm text-gray-500">
-                    Review and manage applicants who applied to your job postings.
-                </p>
-            </div>
-
-            <div class="flex items-center gap-3">
-
-                <div class="rounded-xl border border-white/[0.06]
-                            bg-[#0e1420] px-4 py-3">
-
-                    <p class="text-xs text-gray-500">
-                        Total Applicants
-                    </p>
-
-                    <p class="mt-1 text-xl font-bold text-white">
-                        {{ object_list|length }}
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    {% if not is_verified %}
-
-    <div class="overflow-hidden rounded-2xl border border-yellow-500/20 bg-yellow-500/5 shadow-xl">
-
-        <div class="p-10 text-center">
-            <h2 class="text-xl font-bold text-white">
-                Your Account Must Be Verified
-            </h2>
-
-            <p class="mt-3 text-gray-400">
-                Your employer account must be verified before you can view applicant lists.
-            </p>
-        </div>
-
-    </div>
-
-    {% else %}
-    {% endif %}
-
-    <div class="overflow-hidden rounded-2xl border border-white/[0.06]
-                bg-[#0e1420] shadow-xl">
-
-    <!-- ================= MAIN CARD ================= -->
-    <div class="overflow-hidden rounded-2xl border border-white/[0.06]
-                bg-[#0e1420] shadow-xl">
-
-
-        <!-- TABLE HEADER -->
-        <div class="border-b border-white/[0.06] px-6 py-5">
-
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center
-                        lg:justify-between">
-
+        <!-- ================= HEADER ================= -->
+        <div class="mb-8">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-white">
-                        Application Records
-                    </h2>
-
-                    <p class="mt-1 text-sm text-gray-500">
-                        Applicants for your job postings.
-                    </p>
+                    <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">Applicants</h1>
+                    <p class="mt-1 text-sm text-gray-500">Review and manage applicants who applied to your job postings.</p>
                 </div>
 
-
-                <!-- SEARCH -->
-                <div class="relative w-full lg:w-80">
-
-                    <svg class="pointer-events-none absolute left-4 top-1/2
-                                h-4 w-4 -translate-y-1/2 text-gray-500"
-                         fill="none"
-                         stroke="currentColor"
-                         viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/>
-
-                    </svg>
-
-                    <input
-                        type="text"
-                        id="applicantSearch"
-                        placeholder="Search applicants or jobs..."
-                        class="h-11 w-full rounded-xl border border-gray-700/70
-                               bg-[#090e17] pl-11 pr-4 text-sm text-white
-                               placeholder-gray-600 outline-none transition
-                               hover:border-gray-600
-                               focus:border-blue-500
-                               focus:ring-4 focus:ring-blue-500/10">
-
+                <div class="flex items-center gap-3">
+                    <div class="rounded-xl border border-white/[0.06] bg-[#0e1420] px-4 py-3">
+                        <p class="text-xs text-gray-500">Total Applicants</p>
+                        <p class="mt-1 text-xl font-bold text-white">{{ object_list|length }}</p>
+                    </div>
                 </div>
-
             </div>
-
         </div>
 
+        {% if not is_verified %}
+            <div class="overflow-hidden rounded-2xl border border-yellow-500/20 bg-yellow-500/5 shadow-xl">
+                <div class="p-10 text-center">
+                    <h2 class="text-xl font-bold text-white">Your Account Must Be Verified</h2>
+                    <p class="mt-3 text-gray-400">Your employer account must be verified before you can view applicant lists.</p>
+                </div>
+            </div>
+        {% else %}
+        {% endif %}
 
-        <!-- ================= EMPTY STATE ================= -->
+        <div class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0e1420] shadow-xl">
 
-        {% if not object_list %}
+            <!-- ================= MAIN CARD ================= -->
+            <div class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0e1420] shadow-xl">
 
-            <div class="flex min-h-[400px] flex-col items-center
-                        justify-center px-6 text-center">
+                <!-- TABLE HEADER -->
+                <div class="border-b border-white/[0.06] px-6 py-5">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white">Application Records</h2>
+                            <p class="mt-1 text-sm text-gray-500">Applicants for your job postings.</p>
+                        </div>
 
-                <div class="flex h-16 w-16 items-center justify-center
-                            rounded-2xl border border-white/[0.06]
-                            bg-[#090e17]">
-
-                    <svg class="h-7 w-7 text-gray-600"
-                         fill="none"
-                         stroke="currentColor"
-                         viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.7"
-                              d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm11 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-
-                    </svg>
-
+                        <!-- SEARCH -->
+                        <div class="relative w-full lg:w-80">
+                            <svg class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/>
+                            </svg>
+                            <input type="text" id="applicantSearch" placeholder="Search applicants or jobs..." class="h-11 w-full rounded-xl border border-gray-700/70 bg-[#090e17] pl-11 pr-4 text-sm text-white placeholder-gray-600 outline-none transition hover:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10">
+                        </div>
+                    </div>
                 </div>
 
-                <h3 class="mt-5 text-lg font-semibold text-white">
-                    No applicants yet
-                </h3>
+                <!-- ================= EMPTY STATE ================= -->
+                {% if not object_list %}
+                    <div class="flex min-h-[400px] flex-col items-center justify-center px-6 text-center">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.06] bg-[#090e17]">
+                            <svg class="h-7 w-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm11 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h3 class="mt-5 text-lg font-semibold text-white">No applicants yet</h3>
+                        <p class="mt-2 max-w-md text-sm text-gray-500">Applicants who apply to your job postings will appear here.</p>
+                    </div>
 
-                <p class="mt-2 max-w-md text-sm text-gray-500">
-                    Applicants who apply to your job postings will appear here.
-                </p>
+                {% else %}
 
-            </div>
+                    <!-- ================= DESKTOP TABLE ================= -->
+                    <div class="hidden overflow-x-auto md:block">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-white/[0.06] bg-[#0b101a]">
+                                    <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Applicant</th>
+                                    <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Job Position</th>
+                                    <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                    <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Applied</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Action</th>
+                                </tr>
+                            </thead>
 
-        {% else %}
+                            <tbody id="applicantTable">
+                                {% for application in object_list %}
+                                    <tr class="applicant-row border-b border-white/[0.04] transition hover:bg-white/[0.015]">
 
+                                        <!-- APPLICANT -->
+                                        <td class="px-6 py-5">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-sm font-semibold text-blue-400">
+                                                    {% if application.applicant.first_name %}
+                                                        {{ application.applicant.first_name|first|upper }}
+                                                    {% else %}
+                                                        A
+                                                    {% endif %}
+                                                </div>
 
-            <!-- ================= DESKTOP TABLE ================= -->
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-sm font-semibold text-white">
+                                                        {% if application.applicant.get_full_name %}
+                                                            {{ application.applicant.get_full_name }}
+                                                        {% else %}
+                                                            {{ application.applicant }}
+                                                        {% endif %}
+                                                    </p>
 
-            <div class="hidden overflow-x-auto md:block">
+                                                    {% if application.applicant.email %}
+                                                        <p class="mt-0.5 truncate text-xs text-gray-500">{{ application.applicant.email }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
 
-                <table class="w-full text-left">
+                                        <!-- JOB -->
+                                        <td class="px-6 py-5">
+                                            <p class="text-sm font-medium text-gray-200">
+                                                {% if application.job %}
+                                                    {{ application.job }}
+                                                {% else %}
+                                                    <span class="text-gray-600">Job unavailable</span>
+                                                {% endif %}
+                                            </p>
+                                        </td>
 
-                    <thead>
-                        <tr class="border-b border-white/[0.06] bg-[#0b101a]">
+                                        <!-- STATUS -->
+                                        <td class="px-6 py-5">
+                                            {% if application.status == 'pending' %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-medium text-yellow-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
+                                                    Pending
+                                                </span>
+                                            {% elif application.status == 'reviewed' %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                                                    Reviewed
+                                                </span>
+                                            {% elif application.status == 'for interview' %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-purple-400"></span>
+                                                    For Interview
+                                                </span>
+                                            {% elif application.status == 'hired' %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                                                    Hired
+                                                </span>
+                                            {% elif application.status == 'rejected' %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>
+                                                    Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex rounded-full border border-gray-700 bg-gray-800/50 px-3 py-1 text-xs font-medium text-gray-400">
+                                                    {{ application.status|default:"Unknown" }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
 
-                            <th class="px-6 py-4 text-xs font-semibold
-                                       uppercase tracking-wider text-gray-500">
-                                Applicant
-                            </th>
+                                        <!-- DATE -->
+                                        <td class="px-6 py-5">
+                                            {% if application.applied_at %}
+                                                <span class="text-sm text-gray-400">{{ application.applied_at|date:"M d, Y" }}</span>
+                                            {% elif application.created_at %}
+                                                <span class="text-sm text-gray-400">{{ application.created_at|date:"M d, Y" }}</span>
+                                            {% else %}
+                                                <span class="text-sm text-gray-600">—</span>
+                                            {% endif %}
+                                        </td>
 
-                            <th class="px-6 py-4 text-xs font-semibold
-                                       uppercase tracking-wider text-gray-500">
-                                Job Position
-                            </th>
+                                        <!-- ACTION -->
+                                        <td class="px-6 py-5 text-right">
+                                            <a href="#" class="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400">
+                                                View
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                            </a>
+                                        </td>
 
-                            <th class="px-6 py-4 text-xs font-semibold
-                                       uppercase tracking-wider text-gray-500">
-                                Status
-                            </th>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-                            <th class="px-6 py-4 text-xs font-semibold
-                                       uppercase tracking-wider text-gray-500">
-                                Applied
-                            </th>
-
-                            <th class="px-6 py-4 text-right text-xs font-semibold
-                                       uppercase tracking-wider text-gray-500">
-                                Action
-                            </th>
-
-                        </tr>
-                    </thead>
-
-
-                    <tbody id="applicantTable">
-
+                    <!-- ================= MOBILE CARDS ================= -->
+                    <div class="space-y-3 p-4 md:hidden">
                         {% for application in object_list %}
-
-                            <tr class="applicant-row border-b border-white/[0.04]
-                                       transition hover:bg-white/[0.015]">
-
-
-                                <!-- APPLICANT -->
-                                <td class="px-6 py-5">
+                            <div class="applicant-row rounded-xl border border-white/[0.06] bg-[#090e17] p-4">
+                                <div class="flex items-start justify-between gap-3">
 
                                     <div class="flex items-center gap-3">
-
-                                        <div class="flex h-10 w-10 shrink-0
-                                                    items-center justify-center
-                                                    rounded-xl bg-blue-500/10
-                                                    text-sm font-semibold
-                                                    text-blue-400">
-
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-sm font-semibold text-blue-400">
                                             {% if application.applicant.first_name %}
                                                 {{ application.applicant.first_name|first|upper }}
                                             {% else %}
                                                 A
                                             {% endif %}
-
                                         </div>
 
-
                                         <div class="min-w-0">
-
-                                            <p class="truncate text-sm
-                                                      font-semibold text-white">
-
+                                            <p class="truncate text-sm font-semibold text-white">
                                                 {% if application.applicant.get_full_name %}
                                                     {{ application.applicant.get_full_name }}
                                                 {% else %}
                                                     {{ application.applicant }}
                                                 {% endif %}
-
                                             </p>
 
                                             {% if application.applicant.email %}
-                                                <p class="mt-0.5 truncate text-xs text-gray-500">
-                                                    {{ application.applicant.email }}
-                                                </p>
+                                                <p class="truncate text-xs text-gray-500">{{ application.applicant.email }}</p>
                                             {% endif %}
-
                                         </div>
-
                                     </div>
 
-                                </td>
-
-
-                                <!-- JOB -->
-                                <td class="px-6 py-5">
-
-                                    <p class="text-sm font-medium text-gray-200">
-
-                                        {% if application.job %}
-                                            {{ application.job }}
-                                        {% else %}
-                                            <span class="text-gray-600">
-                                                Job unavailable
-                                            </span>
-                                        {% endif %}
-
-                                    </p>
-
-                                </td>
-
-
-                                <!-- STATUS -->
-                                <td class="px-6 py-5">
-
                                     {% if application.status == 'pending' %}
-
-                                        <span class="inline-flex items-center gap-2
-                                                     rounded-full border
-                                                     border-yellow-500/20
-                                                     bg-yellow-500/10
-                                                     px-3 py-1 text-xs
-                                                     font-medium text-yellow-400">
-
-                                            <span class="h-1.5 w-1.5 rounded-full
-                                                         bg-yellow-400"></span>
-
-                                            Pending
-
-                                        </span>
-
+                                        <span class="rounded-full bg-yellow-500/10 px-2.5 py-1 text-[10px] font-medium text-yellow-400">Pending</span>
                                     {% elif application.status == 'reviewed' %}
-
-                                        <span class="inline-flex items-center gap-2
-                                                     rounded-full border
-                                                     border-blue-500/20
-                                                     bg-blue-500/10
-                                                     px-3 py-1 text-xs
-                                                     font-medium text-blue-400">
-
-                                            <span class="h-1.5 w-1.5 rounded-full
-                                                         bg-blue-400"></span>
-
-                                            Reviewed
-
-                                        </span>
-
+                                        <span class="rounded-full bg-blue-500/10 px-2.5 py-1 text-[10px] font-medium text-blue-400">Reviewed</span>
                                     {% elif application.status == 'for interview' %}
-
-                                        <span class="inline-flex items-center gap-2
-                                                     rounded-full border
-                                                     border-purple-500/20
-                                                     bg-purple-500/10
-                                                     px-3 py-1 text-xs
-                                                     font-medium text-purple-400">
-
-                                            <span class="h-1.5 w-1.5 rounded-full
-                                                         bg-purple-400"></span>
-
-                                            For Interview
-
-                                        </span>
-
+                                        <span class="rounded-full bg-purple-500/10 px-2.5 py-1 text-[10px] font-medium text-purple-400">Interview</span>
                                     {% elif application.status == 'hired' %}
-
-                                        <span class="inline-flex items-center gap-2
-                                                     rounded-full border
-                                                     border-emerald-500/20
-                                                     bg-emerald-500/10
-                                                     px-3 py-1 text-xs
-                                                     font-medium text-emerald-400">
-
-                                            <span class="h-1.5 w-1.5 rounded-full
-                                                         bg-emerald-400"></span>
-
-                                            Hired
-
-                                        </span>
-
+                                        <span class="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-400">Hired</span>
                                     {% elif application.status == 'rejected' %}
-
-                                        <span class="inline-flex items-center gap-2
-                                                     rounded-full border
-                                                     border-red-500/20
-                                                     bg-red-500/10
-                                                     px-3 py-1 text-xs
-                                                     font-medium text-red-400">
-
-                                            <span class="h-1.5 w-1.5 rounded-full
-                                                         bg-red-400"></span>
-
-                                            Rejected
-
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="inline-flex rounded-full
-                                                     border border-gray-700
-                                                     bg-gray-800/50 px-3 py-1
-                                                     text-xs font-medium
-                                                     text-gray-400">
-
-                                            {{ application.status|default:"Unknown" }}
-
-                                        </span>
-
+                                        <span class="rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-medium text-red-400">Rejected</span>
                                     {% endif %}
 
-                                </td>
+                                </div>
 
+                                <div class="mt-4 border-t border-white/[0.06] pt-4">
+                                    <p class="text-xs text-gray-500">Applied for</p>
+                                    <p class="mt-1 text-sm font-medium text-gray-200">{{ application.job|default:"Job unavailable" }}</p>
+                                </div>
 
-                                <!-- DATE -->
-                                <td class="px-6 py-5">
-
-                                    {% if application.applied_at %}
-                                        <span class="text-sm text-gray-400">
+                                <div class="mt-4 flex items-center justify-between">
+                                    <span class="text-xs text-gray-600">
+                                        {% if application.applied_at %}
                                             {{ application.applied_at|date:"M d, Y" }}
-                                        </span>
-                                    {% elif application.created_at %}
-                                        <span class="text-sm text-gray-400">
+                                        {% elif application.created_at %}
                                             {{ application.created_at|date:"M d, Y" }}
-                                        </span>
-                                    {% else %}
-                                        <span class="text-sm text-gray-600">
-                                            —
-                                        </span>
-                                    {% endif %}
-
-                                </td>
-
-
-                                <!-- ACTION -->
-                                <td class="px-6 py-5 text-right">
-
-                                    <a href="#"
-                                       class="inline-flex items-center gap-2 rounded-lg
-                                              border border-gray-700 px-3 py-2
-                                              text-xs font-medium text-gray-300
-                                              transition
-                                              hover:border-blue-500/40
-                                              hover:bg-blue-500/10
-                                              hover:text-blue-400">
-
-                                        View
-
-                                        <svg class="h-3.5 w-3.5"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M9 5l7 7-7 7"/>
-
-                                        </svg>
-
-                                    </a>
-
-                                </td>
-
-                            </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-            <!-- ================= MOBILE CARDS ================= -->
-
-            <div class="space-y-3 p-4 md:hidden">
-
-                {% for application in object_list %}
-
-                    <div class="applicant-row rounded-xl border border-white/[0.06]
-                                bg-[#090e17] p-4">
-
-                        <div class="flex items-start justify-between gap-3">
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="flex h-10 w-10 shrink-0
-                                            items-center justify-center
-                                            rounded-xl bg-blue-500/10
-                                            text-sm font-semibold text-blue-400">
-
-                                    {% if application.applicant.first_name %}
-                                        {{ application.applicant.first_name|first|upper }}
-                                    {% else %}
-                                        A
-                                    {% endif %}
-
-                                </div>
-
-
-                                <div class="min-w-0">
-
-                                    <p class="truncate text-sm font-semibold text-white">
-                                        {% if application.applicant.get_full_name %}
-                                            {{ application.applicant.get_full_name }}
-                                        {% else %}
-                                            {{ application.applicant }}
                                         {% endif %}
-                                    </p>
+                                    </span>
 
-                                    {% if application.applicant.email %}
-                                        <p class="truncate text-xs text-gray-500">
-                                            {{ application.applicant.email }}
-                                        </p>
-                                    {% endif %}
-
+                                    <a href="#" class="rounded-lg border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 hover:border-blue-500/40 hover:text-blue-400">
+                                        View Applicant
+                                    </a>
                                 </div>
-
                             </div>
-
-
-                            {% if application.status == 'pending' %}
-
-                                <span class="rounded-full bg-yellow-500/10 px-2.5 py-1
-                                             text-[10px] font-medium text-yellow-400">
-                                    Pending
-                                </span>
-
-                            {% elif application.status == 'reviewed' %}
-
-                                <span class="rounded-full bg-blue-500/10 px-2.5 py-1
-                                             text-[10px] font-medium text-blue-400">
-                                    Reviewed
-                                </span>
-
-                            {% elif application.status == 'for interview' %}
-
-                                <span class="rounded-full bg-purple-500/10 px-2.5 py-1
-                                             text-[10px] font-medium text-purple-400">
-                                    Interview
-                                </span>
-
-                            {% elif application.status == 'hired' %}
-
-                                <span class="rounded-full bg-emerald-500/10 px-2.5 py-1
-                                             text-[10px] font-medium text-emerald-400">
-                                    Hired
-                                </span>
-
-                            {% elif application.status == 'rejected' %}
-
-                                <span class="rounded-full bg-red-500/10 px-2.5 py-1
-                                             text-[10px] font-medium text-red-400">
-                                    Rejected
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <div class="mt-4 border-t border-white/[0.06] pt-4">
-
-                            <p class="text-xs text-gray-500">
-                                Applied for
-                            </p>
-
-                            <p class="mt-1 text-sm font-medium text-gray-200">
-                                {{ application.job|default:"Job unavailable" }}
-                            </p>
-
-                        </div>
-
-
-                        <div class="mt-4 flex items-center justify-between">
-
-                            <span class="text-xs text-gray-600">
-                                {% if application.applied_at %}
-                                    {{ application.applied_at|date:"M d, Y" }}
-                                {% elif application.created_at %}
-                                    {{ application.created_at|date:"M d, Y" }}
-                                {% endif %}
-                            </span>
-
-
-                            <a href="#"
-                               class="rounded-lg border border-gray-700 px-3 py-2
-                                      text-xs font-medium text-gray-300
-                                      hover:border-blue-500/40
-                                      hover:text-blue-400">
-
-                                View Applicant
-
-                            </a>
-
-                        </div>
-
+                        {% endfor %}
                     </div>
 
-                {% endfor %}
+                {% endif %}
 
             </div>
-
-        {% endif %}
-
+        </div>
     </div>
-
-</div>
-```
-
 </div>
 
 <!-- ================= SEARCH SCRIPT ================= -->
-
 <script>
     const searchInput = document.getElementById("applicantSearch");
-
     if (searchInput) {
         searchInput.addEventListener("input", function () {
-
             const search = this.value.toLowerCase().trim();
             const rows = document.querySelectorAll(".applicant-row");
-
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-
                 row.style.display = text.includes(search) ? "" : "none";
             });
-
         });
     }
 </script>
