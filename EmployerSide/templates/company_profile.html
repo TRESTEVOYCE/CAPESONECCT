@@ -1,173 +1,199 @@
 {% extends 'employer-base.html' %}
+
 {% block title %}Company Profile{% endblock %}
+
 {% block content %}
+<div class="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased">
+    <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
 
-<div class="min-h-screen bg-[#0b0f19] py-10 px-4">
-    <div class="max-w-6xl mx-auto">
-
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <!-- HEADER -->
+        <header class="flex items-center justify-between border-b border-slate-200 pb-5 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-white">Company Profile</h1>
-                <p class="mt-2 text-sm text-gray-400">View and manage your organization's information.</p>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Company Profile</h1>
+                <p class="mt-1 text-sm text-slate-500">View and manage your organization's details.</p>
             </div>
-
-            <a href="{% url 'employer-profile-create' %}" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
-                <i class="fa-solid fa-pen-to-square mr-2"></i>
+            <a href="{% url 'employer-profile-create' %}" class="rounded-md bg-slate-900 px-3.5 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
                 Edit Profile
             </a>
-        </div>
+        </header>
 
-        <!-- Profile Picture -->
-        <div class="mb-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Profile Picture</h2>
+        <div class="space-y-10">
 
-            <div class="flex items-center gap-6">
-
-                <!-- Current Profile Picture -->
-                {% if request.user.profile_picture %}
-                    <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="h-24 w-24 rounded-full object-cover border-2 border-gray-700">
-                {% else %}
-                    <div class="h-24 w-24 rounded-full bg-slate-700 flex items-center justify-center border-2 border-gray-700">
-                        <span class="text-3xl font-bold text-white">
-                            {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
-                        </span>
-                    </div>
-                {% endif %}
-
-                <!-- Upload Form -->
+            <!-- PROFILE PICTURE SECTION -->
+            <section class="space-y-4">
                 <div>
-                    <p class="text-sm text-gray-400 mb-3">Update your profile picture.</p>
+                    <h2 class="text-sm font-semibold text-slate-900">Profile Picture</h2>
+                    <p class="text-xs text-slate-500">Update your account display avatar.</p>
+                </div>
 
-                    <form method="post" action="{% url 'employer-profile-picture' %}" enctype="multipart/form-data">
+                <div class="flex items-center gap-6 rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                    <form method="post" action="{% url 'employer-profile-picture' %}" enctype="multipart/form-data" id="avatar-form" class="flex items-center gap-4">
                         {% csrf_token %}
 
-                        <div class="flex items-center gap-3">
+                        <!-- AVATAR WITH CAMERA OVERLAY -->
+                        <div class="relative group h-16 w-16 flex-shrink-0">
+                            {% if request.user.profile_picture %}
+                                <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="h-16 w-16 rounded-full object-cover border border-slate-200">
+                            {% else %}
+                                <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-200">
+                                    {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
+                                </div>
+                            {% endif %}
 
-                            <!-- Choose Image -->
-                            <label for="profile_picture" class="cursor-pointer rounded-xl bg-slate-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-600">
-                                <i class="fa-solid fa-upload mr-2"></i>
-                                Choose Image
+                            <!-- CAMERA ICON OVERLAY -->
+                            <label for="profile_picture" class="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-1" title="Change profile picture">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="hidden" onchange="handleImageSelect(this)">
                             </label>
+                        </div>
 
-                            <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="hidden">
-
-                            <!-- Update Button -->
-                            <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
-                                <i class="fa-solid fa-check mr-2"></i>
-                                Update Picture
+                        <!-- HIDDEN UNTIL IMAGE SELECTED -->
+                        <div id="upload-actions" class="hidden flex items-center gap-3">
+                            <span id="file-chosen-name" class="text-xs font-medium text-slate-900 truncate max-w-[150px]"></span>
+                            <button type="submit" class="rounded border border-slate-300 bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800">
+                                Save Picture
                             </button>
-
+                            <button type="button" onclick="cancelImageSelect()" class="text-xs text-slate-500 hover:text-slate-900">
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
+            </section>
 
-            </div>
+            <hr class="border-slate-200">
+
+            <!-- COMPANY INFORMATION -->
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Business Information</h2>
+                    <p class="text-xs text-slate-500">Registered entity identification details.</p>
+                </div>
+
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Business Name</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.business_name|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Acronym</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.acronym|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Office Type</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.get_office_type_display|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Employer Type</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.get_employer_type_display|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">TIN Number</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.tin_number|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Total Workforce</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.get_total_workforce_display|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-2 rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Line of Business</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.line_of_business|default:"Not provided" }}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <hr class="border-slate-200">
+
+            <!-- BUSINESS ADDRESS -->
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Address</h2>
+                    <p class="text-xs text-slate-500">Physical operating location.</p>
+                </div>
+
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2 rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Street Address</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.street_address|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Barangay</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.barangay|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">City / Municipality</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.municipality|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-2 rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Province</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.province|default:"Not provided" }}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <hr class="border-slate-200">
+
+            <!-- CONTACT DETAILS -->
+            <section class="space-y-4">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Contact Details</h2>
+                    <p class="text-xs text-slate-500">Points of contact for communications.</p>
+                </div>
+
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Designation</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.designation|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Contact Person</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.contact_person|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Contact Position</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.contact_position|default:"Not provided" }}</dd>
+                    </div>
+
+                    <div class="rounded-md border border-slate-200 bg-white p-3.5 shadow-sm">
+                        <dt class="text-xs font-medium text-slate-500">Telephone Number</dt>
+                        <dd class="mt-1 text-xs font-semibold text-slate-900">{{ profile.telephone_number|default:"Not provided" }}</dd>
+                    </div>
+                </dl>
+            </section>
+
         </div>
-
-        <!-- Company Information -->
-        <div class="rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Company Information</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Business Name</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.business_name|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Acronym</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.acronym|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Office Type</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_office_type_display|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Employer Type</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_employer_type_display|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">TIN Number</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.tin_number|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Total Workforce</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_total_workforce_display|default:"Not provided" }}</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <p class="text-xs text-gray-500">Line of Business</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.line_of_business|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Address -->
-        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Business Address</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Street Address</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.street_address|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Barangay</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.barangay|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Municipality</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.municipality|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Province</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.province|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Contact Information</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Designation</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.designation|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Contact Person</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.contact_person|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Contact Position</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.contact_position|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Telephone Number</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.telephone_number|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
+    </main>
 </div>
 
+<script>
+    function handleImageSelect(input) {
+        const actions = document.getElementById('upload-actions');
+        const fileName = document.getElementById('file-chosen-name');
+        if (input.files && input.files[0]) {
+            fileName.textContent = input.files[0].name;
+            actions.classList.remove('hidden');
+        }
+    }
+
+    function cancelImageSelect() {
+        const input = document.getElementById('profile_picture');
+        const actions = document.getElementById('upload-actions');
+        input.value = '';
+        actions.classList.add('hidden');
+    }
+</script>
 {% endblock %}
