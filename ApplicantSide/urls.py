@@ -1,10 +1,12 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoCreateView, ApplicantEducationCreateView, ApplicantPreferredJobCreateView, ApplicantDocumentsCreateView, ApplicantSkillCreateView, ApplicantPersonalUpdateInfoView, ApplicantEducationUpdateView, ApplicantSkillUpdateView, ApplicantPreferredJobUpdateView, ApplicantDocumentsUpdateView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView
+from .views import ApplicantPersonalInfoCreateView, ApplicantEducationCreateView, ApplicantPreferredJobCreateView, ApplicantDocumentsCreateView, ApplicantSkillCreateView, ApplicantPersonalUpdateInfoView, ApplicantEducationUpdateView, ApplicantSkillUpdateView, ApplicantPreferredJobUpdateView, ApplicantDocumentsUpdateView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView,ApplyJobView,SaveJobView
 from . import views
 
 
 
 urlpatterns = [
+    path('', DashBoardView.as_view(), name='applicant-dashboard'),
+    
     path('personal_info/', ApplicantPersonalInfoCreateView.as_view(), name='personal_info'),
     path('education/', ApplicantEducationCreateView.as_view(), name='education'),
     path('preferred_job/', ApplicantPreferredJobCreateView.as_view(), name='preferred_job'),
@@ -19,15 +21,17 @@ urlpatterns = [
 
     path('profile/delete/', ApplicantProfileDeleteView.as_view(), name='profile_delete'),
     path('logout/', LogoutView.as_view(), name='logout'),
-    path('applicant-dashboard/', DashBoardView.as_view(), name='applicant-dashboard'),
 
     path('jobs/', JobListView.as_view(), name='job_list'),
     path('jobs/sort/', SortJobView.as_view(), name='sort_jobs'),
     path('search_jobs/', SearchJobView.as_view(), name='search_jobs'),
     path('jobs/<int:pk>/', JobDetailsView.as_view(), name='job_details'),
+    path('jobs/<int:pk>/apply/',ApplyJobView.as_view(), name='apply-for-job'),
+    path('jobs/<int:pk>/save/',SaveJobView.as_view(),name='save_job'),
+    path('saved-jobs/', SavedJobsListView.as_view(), name='saved_jobs'),
 
     path('applied_jobs/', AppliedJobsListView.as_view(), name='applied_jobs'),
-    path('saved_jobs/', SavedJobsListView.as_view(), name='saved_jobs'),
     path('personal_info/edit_profile_picture/', views.edit_profile_picture, name='edit_profile_picture'),
     path('personal_info/profile/', views.view_profile, name='view_profile'),
+   
 ]
