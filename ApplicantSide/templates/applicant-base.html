@@ -211,7 +211,7 @@
                         {{ request.user.first_name|default:"T"|slice:":1" }}{{ request.user.last_name|default:"S"|slice:":1" }}
                     </div>
                     <div class="text-left hidden md:block leading-tight">
-                        <div class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">{{ request.user.get_full_name|default:"Job Seeker" }}</div>
+                        <div class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">{{ request.user.username|default:"Job Seeker" }}</div>
                         <div class="text-[10px] text-slate-400">Job Seeker</div>
                     </div>
                 </a>
