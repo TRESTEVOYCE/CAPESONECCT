@@ -210,9 +210,11 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             )
 
             # Get job UUIDs returned by ChromaDB
+           # Get job UUIDs returned by ChromaDB
             job_uuids = [
-                result['metadata']['job_uuid']
-                for result in results['results'][0]['matches']
+                metadata['job_uuid']
+                for metadata in results['metadatas'][0]
+                if metadata and 'job_uuid' in metadata
             ]
 
             # Get matching active jobs from Django database
@@ -385,10 +387,14 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 n_results=10
             )
 
-            job_uuids = [
-                result['metadata']['job_uuid']
-                for result in results['results'][0]['matches']
-            ]
+            job_uuids = []
+
+            if results.get('metadatas'):
+                job_uuids = [
+                    metadata['job_uuid']
+                    for metadata in results['metadatas'][0]
+                    if metadata and 'job_uuid' in metadata
+                ]
 
             matching_jobs = available_jobs.filter(
                 uuid__in=job_uuids
