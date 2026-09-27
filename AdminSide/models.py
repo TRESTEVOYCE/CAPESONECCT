@@ -23,11 +23,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    profile_picture = models.ImageField(
-        upload_to='profile_pictures/',
-        null=True,
-        blank=True
-    )
+    profile_picture = models.ImageField(upload_to='profile_pictures/',null=True,blank=True)
+    email_verified = models.BooleanField(default=False)
+    email_verification_sent_at = models.DateTimeField(null=True,blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
