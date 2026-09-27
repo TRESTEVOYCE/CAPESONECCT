@@ -11,7 +11,7 @@ class UserRegisterForm(UserCreationForm):
 class BasicApplicantInformationForms(ModelForm):
     class Meta:
         model = ApplicantProfile
-        fields = ['first_name','middle_name','last_name','sex','phone_number']
+        fields = ['first_name','middle_name','last_name','sex','date_of_birth','phone_number']
 
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
