@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView
+from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView,ActivateAccountView,VerifyEmailView
 
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing_page'),
@@ -9,4 +9,6 @@ urlpatterns = [
     path('register/jobseeker/account/', UserApplicantAccountRegisterView.as_view(), name='applicant-account-register'),
     path('register/employer/', UserEmployerRegisterView.as_view(), name='register_employer'),
     path('register/employer/account/', UserEmployerAccountRegisterView.as_view(), name='employer-account-register'),
+    path('activate/<uidb64>/<token>/',ActivateAccountView.as_view(),name='activate'),
+    path('verify-email/',VerifyEmailView.as_view(),name='verify-email'),
 ]
