@@ -13,7 +13,7 @@
     <style>[x-cloak]{display:none!important}</style>
 </head>
 
-<body class="h-full font-sans antialiased text-slate-800 bg-[#faf8f5]" x-data="{ sidebarOpen: false }">
+<body class="h-full font-sans flex flex-col overflow-hidden antialiased text-slate-800 bg-[#faf8f5]" x-data="{ sidebarOpen: false }">
 <div class="min-h-screen flex flex-col lg:flex-row">
 
     <!-- MOBILE HEADER -->
@@ -43,14 +43,83 @@
             <div class="text-[10px] text-slate-400">Job Seeker Portal</div>
         </div>
 
-        <!-- ACCOUNT STATUS -->
-        <div class="mx-3 mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <div class="text-[11px] leading-tight">
-                <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
-                PESO Admin is reviewing your credentials. You can browse jobs but cannot apply until approved.
+       <!-- ACCOUNT STATUS -->
+        {% if applicant_profile.status == 'approved' %}
+
+            <div class="mx-3 mt-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
+
+                <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"/>
+                </svg>
+
+                <div class="text-[11px] leading-tight">
+                    <span class="font-bold text-emerald-200 block mb-0.5">
+                        Account Approved
+                    </span>
+
+                    Your account has been verified.
+                    You can now apply for jobs.
+                </div>
+
             </div>
-        </div>
+
+        {% elif applicant_profile.status == 'rejected' %}
+
+            <div class="mx-3 mt-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5">
+
+                <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+
+                <div class="text-[11px] leading-tight">
+                    <span class="font-bold text-rose-200 block mb-0.5">
+                        Account Rejected
+                    </span>
+
+                    Your account verification was rejected.
+                    Please contact PESO Carigara for assistance.
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="mx-3 mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
+
+                <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
+                </svg>
+
+                <div class="text-[11px] leading-tight">
+                    <span class="font-bold text-amber-200 block mb-0.5">
+                        Account Pending
+                    </span>
+
+                    PESO Admin is reviewing your credentials.
+                    You can browse jobs but cannot apply until approved.
+                </div>
+
+            </div>
+
+        {% endif %}
 
         <!-- NAVIGATION LABEL -->
         <div class="px-5 pt-5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navigation</div>

@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <!-- Saved / Bookmark Toggle Button -->
-                    <a href="{% url 'applicant:unsave_job' uuid=job.pk %}" class="text-stone-900 hover:text-stone-700 p-1" title="Remove from saved">
+                    <a href="{% url 'unsave_job' pk=job.pk %}" class="text-stone-900 hover:text-stone-700 p-1" title="Remove from saved">
                         <span class="text-base font-bold">★</span>
                     </a>
                 </div>
@@ -77,8 +77,8 @@
                         <span class="text-xs text-stone-500">Posted {{ job.posted_date|timesince|default:"2" }} ago</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{% url 'applicant:job_details' uuid=job.pk %}" class="px-3.5 py-2 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-semibold transition">View</a>
-                        <a href="{% url 'applicant:apply_job' uuid=job.pk %}" class="px-4 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold shadow-3xs transition">Apply</a>
+                        <a href="{% url 'job_details' pk=job.pk %}" class="px-3.5 py-2 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-semibold transition">View</a>
+                        <a href="{% url 'apply-for-job' pk=job.pk %}" class="px-4 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold shadow-3xs transition">Apply</a>
                     </div>
                 </div>
             </div>
