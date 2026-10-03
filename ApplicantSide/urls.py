@@ -1,12 +1,9 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoCreateView, ApplicantEducationCreateView, ApplicantPreferredJobCreateView, ApplicantDocumentsCreateView, ApplicantSkillCreateView, ApplicantPersonalUpdateInfoView, ApplicantEducationUpdateView, ApplicantSkillUpdateView, ApplicantPreferredJobUpdateView, ApplicantDocumentsUpdateView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView,ApplyJobView,SaveJobView
-from . import views
-
+from .views import ApplicantPersonalInfoCreateView, ApplicantEducationCreateView, ApplicantPreferredJobCreateView, ApplicantDocumentsCreateView, ApplicantSkillCreateView, ApplicantPersonalUpdateInfoView, ApplicantEducationUpdateView, ApplicantSkillUpdateView, ApplicantPreferredJobUpdateView, ApplicantDocumentsUpdateView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView,ApplyJobView,SaveJobView,EditProfilePictureView, UnsaveJobView,ViewProfileView
 
 
 urlpatterns = [
     path('', DashBoardView.as_view(), name='applicant-dashboard'),
-    
     path('personal_info/', ApplicantPersonalInfoCreateView.as_view(), name='personal_info'),
     path('education/', ApplicantEducationCreateView.as_view(), name='education'),
     path('preferred_job/', ApplicantPreferredJobCreateView.as_view(), name='preferred_job'),
@@ -29,9 +26,10 @@ urlpatterns = [
     path('jobs/<int:pk>/apply/',ApplyJobView.as_view(), name='apply-for-job'),
     path('jobs/<int:pk>/save/',SaveJobView.as_view(),name='save_job'),
     path('saved-jobs/', SavedJobsListView.as_view(), name='saved_jobs'),
+    path('saved-jobs/<int:pk>/unsave/',UnsaveJobView.as_view(), name='unsave_job'),
 
     path('applied_jobs/', AppliedJobsListView.as_view(), name='applied_jobs'),
-    path('personal_info/edit_profile_picture/', views.edit_profile_picture, name='edit_profile_picture'),
-    path('personal_info/profile/', views.view_profile, name='view_profile'),
+    path('personal_info/edit_profile_picture/', EditProfilePictureView.as_view(), name='edit_profile_picture'),
+    path('personal_info/profile/', ViewProfileView.as_view(), name='view_profile'),
    
 ]
