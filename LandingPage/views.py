@@ -1,4 +1,4 @@
-from django.views.generic import FormView, TemplateView, RedirectView
+from django.views.generic import FormView, TemplateView, RedirectView, UpdateView
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
@@ -12,8 +12,9 @@ from django.utils.decorators import method_decorator
 from honeypot.decorators import check_honeypot
 from AdminSide.models import ApplicantProfile, EmployerProfile, User
 from AdminSide.tokens import account_activation_token
+from .forms import UserRegisterForm,SignInForm,BasicApplicantInformationForms,BasicEmployerInformationForms,ForgotPasswordForm,PasswordResetConfirmForm
+from django.contrib.auth.views import PasswordResetView,PasswordResetDoneView,PasswordResetConfirmView,PasswordResetCompleteView
 
-from .forms import UserRegisterForm,SignInForm,BasicApplicantInformationForms,BasicEmployerInformationForms
 
 
 class Register_SelectionView(TemplateView):
@@ -174,6 +175,10 @@ class SignInView(FormView):
     form_class = SignInForm
     template_name = 'LandingPage/signin.html'
 
+    def form_invalid(self, form):
+        print(form.errors)
+        return super().form_invalid(form)
+    
     def form_valid(self, form):
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
@@ -249,3 +254,24 @@ class ActivateAccountView(RedirectView):
             'Invalid or expired verification link.'
         )
         return reverse_lazy('signin')
+    
+class ForgotPasswordView(PasswordResetView):
+    template_name = 'LandingPage/ForgotPassword/forgot_password.html'
+    form_class = ForgotPasswordForm
+    subject_template_name = 'LandingPage/ForgotPassword/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_sent')
+
+
+class PasswordResetSentView(PasswordResetDoneView):
+    template_name = 'LandingPage/ForgotPassword/password_reset_sent.html'
+
+
+class PasswordResetChangeView(PasswordResetConfirmView):
+    template_name = 'LandingPage/ForgotPassword/password_reset_confirm.html'
+    form_class = PasswordResetConfirmForm
+    success_url = reverse_lazy('password_reset_complete')
+
+
+class PasswordResetSuccessView(PasswordResetCompleteView):
+    template_name = 'LandingPage/ForgotPassword/password_reset_complete.html'
+
