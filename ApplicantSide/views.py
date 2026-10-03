@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -179,7 +179,7 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html'
     context_object_name = 'matching_jobs'
-    login_url = '/signin/'
+    login_url = reverse_lazy('signin')
 
     def test_func(self):
         return (
@@ -193,6 +193,7 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         applicant_profile = ApplicantProfile.objects.filter(
             user=self.request.user
         ).first()
+        context['applicant_profile'] = applicant_profile
 
         if applicant_profile:
             # Build applicant profile text for AI matching
@@ -447,23 +448,44 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'applied_jobs'
 
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'applicant'
+        )
 
     def get_queryset(self):
         try:
             applicant_profile = self.request.user.applicant_profile
         except ApplicantProfile.DoesNotExist:
             return AppliedJobs.objects.none()
-        return AppliedJobs.objects.filter(applicant=applicant_profile)
+
+        return AppliedJobs.objects.filter(
+            applicant=applicant_profile
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         applications = self.get_queryset()
 
+        applicant_profile = self.request.user.applicant_profile
+
         context['applied_count'] = applications.count()
-        context['endorsed_count'] = applications.filter(status__in=['endorsed', 'approved']).count()
-        context['interviewed_count'] = applications.filter(status='for interview').count()
-        context['hired_count'] = applications.filter(status='hired').count()
+
+        # PESO referrals / endorsements
+        context['endorsed_count'] = OfferedJobs.objects.filter(
+            applicant=applicant_profile
+        ).count()
+
+        # Employer interview status
+        context['interviewed_count'] = applications.filter(
+            status='for interview'
+        ).count()
+
+        # Hired status
+        context['hired_count'] = applications.filter(
+            status='hired'
+        ).count()
+
         return context
 
 
@@ -638,50 +660,87 @@ class SaveJobView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         return redirect('job_details', pk=job.pk)
 
+class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    login_url = reverse_lazy('signin')
 
-@login_required
-def edit_profile_picture(request):
-    if not (getattr(request.user, 'role', None) == 'applicant'):
-        return redirect('login')
-    
-    # Safe lookup: prevents 404 if profile hasn't been created via personal_info yet
-    profile = ApplicantProfile.objects.filter(user=request.user).first()
-    #if not profile:
-       # messages.warning(request, 'Please complete your personal info setup first.')
-        #return redirect('personal_info')
-    
-    if request.method == 'POST':
-        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile picture updated successfully.')
-            return redirect('personal_info')
-    else:
-        form = ProfilePictureForm(instance=profile)
-    
-    return render(request, 'edit_profile_picture.html', {'form': form})
+    def test_func(self):
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'applicant'
+        )
+
+    def handle_no_permission(self):
+        return redirect('signin')
+
+class UnsaveJobView(ApplicantRequiredMixin, DeleteView):
+    model = SavedJobs
+    success_url = reverse_lazy('saved_jobs')
+
+    def get_queryset(self):
+        applicant_profile = ApplicantProfile.objects.filter(
+            user=self.request.user
+        ).first()
+
+        if not applicant_profile:
+            return SavedJobs.objects.none()
+
+        return SavedJobs.objects.filter(
+            applicant=applicant_profile
+        )
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            'Job removed from saved jobs.'
+        )
+        return super().form_valid(form)
 
 
-@login_required
-def view_profile(request):
-    if not (getattr(request.user, 'role', None) == 'applicant'):
-        return redirect('login')
-    
-    profile = ApplicantProfile.objects.filter(user=request.user).first()
-    #if not profile:
-        #messages.warning(request, 'Please complete your personal info setup first.')
-       # return redirect('personal_info')
-    
-    if request.method == 'POST':
-        form = ProfilePictureForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile picture updated successfully.')
-            return redirect('view_profile')
-    else:
-        form = ProfilePictureForm(instance=profile)
-    
-    return render(request, 'view_profile.html', {
-        'profile': profile,
-        'form': form
-    })
+class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
+    model = ApplicantProfile
+    form_class = ProfilePictureForm
+    template_name = 'edit_profile_picture.html'
+    success_url = reverse_lazy('personal_info')
+
+    def get_object(self):
+        return ApplicantProfile.objects.filter(
+            user=self.request.user
+        ).first()
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            'Profile picture updated successfully.'
+        )
+        return super().form_valid(form)
+
+
+class ViewProfileView(ApplicantRequiredMixin, UpdateView):
+    model = ApplicantProfile
+    form_class = ProfilePictureForm
+    template_name = 'view_profile.html'
+
+    def get_object(self):
+        return ApplicantProfile.objects.filter(
+            user=self.request.user
+        ).first()
+
+    def get_success_url(self):
+        return reverse_lazy('view_profile')
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            'Profile picture updated successfully.'
+        )
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        profile = self.object
+
+        context['profile'] = profile
+        context['applicant_profile'] = profile
+
+        return context
