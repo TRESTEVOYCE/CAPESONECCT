@@ -8,6 +8,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
+from datetime import timedelta
 
 load_dotenv()
 
@@ -111,6 +112,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'AdminSide.context_processor.applicant_profile', 
             ],
         },
     },
@@ -173,7 +175,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1 
+AXES_COOLOFF_TIME = timedelta(seconds = 30)
 AXES_RESET_ON_SUCCESS = True
 
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
