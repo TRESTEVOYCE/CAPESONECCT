@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView,ActivateAccountView,VerifyEmailView
+from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView, ActivateAccountView, VerifyEmailView, ForgotPasswordView, PasswordResetSentView, PasswordResetChangeView, PasswordResetSuccessView
 
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing_page'),
@@ -9,6 +9,10 @@ urlpatterns = [
     path('register/jobseeker/account/', UserApplicantAccountRegisterView.as_view(), name='applicant-account-register'),
     path('register/employer/', UserEmployerRegisterView.as_view(), name='register_employer'),
     path('register/employer/account/', UserEmployerAccountRegisterView.as_view(), name='employer-account-register'),
-    path('activate/<uidb64>/<token>/',ActivateAccountView.as_view(),name='activate'),
-    path('verify-email/',VerifyEmailView.as_view(),name='verify-email'),
+    path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
+    path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('password-reset/sent/', PasswordResetSentView.as_view(), name='password_reset_sent'),
+    path('password-reset/<uidb64>/<token>/', PasswordResetChangeView.as_view(), name='password_reset_confirm'),
+    path('password-reset/complete/', PasswordResetSuccessView.as_view(), name='password_reset_complete'),
 ]
