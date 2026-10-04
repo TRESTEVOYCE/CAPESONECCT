@@ -94,6 +94,17 @@
                     <p class="text-xs text-slate-500 font-medium mt-1">Please enter your administrator credentials to proceed.</p>
                 </div>
 
+                {% if messages %}
+                    <div class="mb-5 space-y-2" role="alert" aria-live="assertive">
+                        {% for message in messages %}
+                            <div class="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                                <i class="fa-solid fa-circle-exclamation mt-0.5 text-rose-600" aria-hidden="true"></i>
+                                <p>{{ message }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 <!-- Login Form -->
                 <form method="POST" action="{% url 'AdminSide:admin_login' %}" class="space-y-5">
                     {% csrf_token %}

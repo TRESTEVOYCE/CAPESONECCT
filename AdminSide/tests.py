@@ -1,9 +1,24 @@
 from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import GovernmentInternshipProgram, SpecialProgramForEmploymentOfStudents
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
+
+
+class AdminLoginViewTests(TestCase):
+    def test_repeated_invalid_credentials_show_only_one_current_message(self):
+        client = Client()
+        login_url = reverse('AdminSide:admin_login')
+        error_message = 'Invalid administrator credentials! Please Try Again.'
+
+        for _ in range(2):
+            response = client.post(login_url, {'username': 'invalid', 'password': 'invalid'})
+
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, error_message)
+            self.assertEqual(response.content.decode().count(error_message), 1)
 
 
 class EnrollBeneficiaryViewTests(TestCase):

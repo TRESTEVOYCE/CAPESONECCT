@@ -9,7 +9,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
         <!-- 1. Registered Applicants -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:applicants_list' %}" aria-label="View all registered applicants" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Registered Applicants</p>
             </div>
@@ -21,10 +21,10 @@
                     <i class="fa-solid fa-arrow-up text-[10px]"></i> {{ monthly_new_applicants|default:0 }} this month
                 </p>
             </div>
-        </div>
+        </a>
 
         <!-- 2. Registered Employers -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:employer_list' %}" aria-label="View all registered employers" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Registered Employers</p>
             </div>
@@ -36,10 +36,10 @@
                     <i class="fa-solid fa-arrow-up text-[10px]"></i> {{ monthly_new_employers|default:0 }} this month
                 </p>
             </div>
-        </div>
+        </a>
 
         <!-- 3. Active Job Postings -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:job_postings_list' %}?status=Active" aria-label="View active job postings" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Active Job Postings</p>
             </div>
@@ -51,10 +51,10 @@
                     Posted by verified employers
                 </p>
             </div>
-        </div>
+        </a>
 
         <!-- 4. Total Referrals -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:referrals_list' %}" aria-label="View all referrals" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Total Referrals</p>
             </div>
@@ -66,10 +66,10 @@
                     {{ current_month_name }} cumulative
                 </p>
             </div>
-        </div>
+        </a>
 
         <!-- 5. Placements (Hired) -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:referrals_list' %}?status=hired" aria-label="View hired referrals" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Placements (Hired)</p>
             </div>
@@ -81,10 +81,10 @@
                     {{ placement_rate|default:"0.0" }}% placement rate
                 </p>
             </div>
-        </div>
+        </a>
 
         <!-- 6. Near Hire -->
-        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
+        <a href="{% url 'AdminSide:referrals_list' %}?status=near_hire" aria-label="View near-hire referrals" class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-rows-[2.5rem_1fr_2rem] h-[160px]">
             <div class="flex items-start">
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Near Hire</p>
             </div>
@@ -96,7 +96,7 @@
                     Awaiting confirmation
                 </p>
             </div>
-        </div>
+        </a>
 
     </div>
 
@@ -105,7 +105,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm lg:col-span-2 flex flex-col justify-between">
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Monthly Referral & Placement</h3>
-                <p class="text-xs font-medium text-slate-400 mt-1">Jan – Jun 2026</p>
+                <p class="text-xs font-medium text-slate-400 mt-1">Last 6 months</p>
             </div>
             <div class="mt-6 h-72 w-full relative">
                 <canvas id="referralPlacementChart"></canvas>
@@ -115,7 +115,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
             <div>
                 <h3 class="text-lg font-bold text-slate-800">Placements by Job Type</h3>
-                <p class="text-xs font-medium text-slate-400 mt-1">June 2026</p>
+                <p class="text-xs font-medium text-slate-400 mt-1">Hired applicants from direct applications and PESO referrals</p>
             </div>
             <div class="mt-6 flex flex-col items-center justify-center relative flex-1">
                 <div class="h-48 w-48">
@@ -124,10 +124,10 @@
             </div>
             <div class="mt-4 space-y-2 text-xs font-medium text-slate-600">
                 {% for item in sector_items %}
-                    <div class="flex justify-between items-center">
+                    <a href="{% url 'AdminSide:referrals_list' %}?status=hired&amp;job_type={{ item.code|urlencode }}" class="flex justify-between items-center gap-2 rounded px-1 py-1 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-red">
                         <span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full" style="background-color: {{ item.color }};"></span> {{ item.label }}</span>
                         <span class="font-bold">{{ item.value }}</span>
-                    </div>
+                    </a>
                 {% empty %}
                     <div class="text-sm text-slate-500">No job type data yet.</div>
                 {% endfor %}
@@ -233,6 +233,8 @@
 <script>
     // 1. Setup Bar Chart: Monthly Referral & Placement
     const ctxBar = document.getElementById('referralPlacementChart').getContext('2d');
+    const chartPeriods = {{ chart_periods|safe }};
+    const referralsUrl = "{% url 'AdminSide:referrals_list' %}";
     new Chart(ctxBar, {
         type: 'bar',
         data: {
@@ -243,24 +245,43 @@
                     data: {{ chart_referred|safe }},
                     backgroundColor: '#1d3d75', // Dark Navy
                     borderRadius: 4,
+                    filterStatus: 'All',
+                    filterSource: 'referral',
                 },
                 {
                     label: 'Hired',
                     data: {{ chart_hired|safe }},
                     backgroundColor: '#10b981', // Green
                     borderRadius: 4,
+                    filterStatus: 'hired',
+                    filterSource: 'all',
                 },
                 {
                     label: 'Near Hire',
                     data: {{ chart_near_hire|safe }},
                     backgroundColor: '#f59e0b', // Amber/Orange
                     borderRadius: 4,
+                    filterStatus: 'near_hire',
+                    filterSource: 'all',
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            onClick: (_event, activeBars, chart) => {
+                if (!activeBars.length) return;
+
+                const { datasetIndex, index } = activeBars[0];
+                const period = chartPeriods[index];
+                const status = chart.data.datasets[datasetIndex].filterStatus;
+                const source = chart.data.datasets[datasetIndex].filterSource;
+                const params = new URLSearchParams({ period, status, source });
+                window.location.href = `${referralsUrl}?${params.toString()}`;
+            },
+            onHover: (event, activeBars) => {
+                event.native.target.style.cursor = activeBars.length ? 'pointer' : 'default';
+            },
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -282,19 +303,14 @@
 
     // 2. Setup Donut Chart: Placements by Sector
     const ctxDonut = document.getElementById('sectorChart').getContext('2d');
+    const sectorCodes = {{ sector_codes|safe }};
     new Chart(ctxDonut, {
         type: 'doughnut',
         data: {
+            labels: {{ sector_labels|safe }},
             datasets: [{
                 data: {{ sector_data|safe }},
-                backgroundColor: [
-                    '#1d3d75', // BPO
-                    '#10b981', // Manufacturing
-                    '#f59e0b', // Healthcare
-                    '#8b5cf6', // Hospitality
-                    '#ef4444', // Construction
-                    '#94a3b8'  // Others
-                ],
+                backgroundColor: {{ sector_colors|safe }},
                 borderWidth: 2,
                 hoverOffset: 4
             }]
@@ -302,6 +318,16 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            onClick: (_event, activeSlices) => {
+                if (!activeSlices.length) return;
+
+                const jobType = sectorCodes[activeSlices[0].index];
+                const params = new URLSearchParams({ status: 'hired', source: 'all', job_type: jobType });
+                window.location.href = `${referralsUrl}?${params.toString()}`;
+            },
+            onHover: (event, activeSlices) => {
+                event.native.target.style.cursor = activeSlices.length ? 'pointer' : 'default';
+            },
             plugins: {
                 legend: { display: false } // Custom structured legend built in HTML above
             },

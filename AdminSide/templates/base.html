@@ -181,7 +181,7 @@
                     <span class="sidebar-text-node pl-2 truncate">Employers</span>
                 </a>
 
-                <!-- Applications & Referrals -->
+                <!-- Application Statuses -->
                 <a href="{% url 'AdminSide:referrals_list' %}"
                 class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
                 {% if 'referral' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
@@ -189,7 +189,7 @@
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
-                    <span class="sidebar-text-node pl-2 truncate">Applications & Referrals</span>
+                    <span class="sidebar-text-node pl-2 truncate">Application Statuses</span>
                 </a>
 
                 <!-- Special Programs -->
@@ -271,7 +271,7 @@
                     {% elif 'job' in request.resolver_match.url_name %}Job Postings Management
                     {% elif 'applicant' in request.resolver_match.url_name %}Applicants Directory
                     {% elif 'employer' in request.resolver_match.url_name %}Employer Registry
-                    {% elif 'referral' in request.resolver_match.url_name %}Referrals & Applications
+                    {% elif 'referral' in request.resolver_match.url_name %}Application Statuses
                     {% elif 'report' in request.resolver_match.url_name %}PESO Monitoring Reports
                     {% elif 'setting' in request.resolver_match.url_name %}Account Settings
                     {% elif 'help' in request.resolver_match.url_name %}Help & Support
