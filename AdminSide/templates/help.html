@@ -22,7 +22,7 @@
                     </div>
                     
                     <!-- Input Field -->
-                    <input type="text" id="helpSearchInput" onkeyup="filterHelpTopics()" placeholder="Search help articles (e.g., 'change email', 'verify applicant', 'SPES', 'rule-based matching')..." class="w-full pl-11 pr-4 py-3.5 text-gray-900 bg-white border border-gray-200 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm placeholder-gray-500">
+                    <input type="text" id="helpSearchInput" onkeyup="filterHelpTopics()" placeholder="Search help articles (e.g., 'change email', 'verify applicant', 'SPES', 'rule-based matching')..." class="w-full pl-11 pr-4 py-3.5 text-gray-900 bg-white border border-gray-200 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-base placeholder-gray-500">
                 </div>
             </div>
         </div>
@@ -31,29 +31,29 @@
     <!-- Quick Navigation Category Hub (Interactive Tab Filter Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <button type="button" onclick="showCategory('getting-started')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 transition cursor-pointer group">
-            <h3 class="font-bold text-gray-900 text-base">Getting Started</h3>
-            <p class="text-xs text-gray-500 mt-1">CAPESONNECT system architecture, ecosystem roles, and rule-based matching.</p>
+            <h3 class="font-bold text-gray-900 text-lg">Getting Started</h3>
+            <p class="text-sm text-gray-500 mt-1">CAPESONNECT system architecture, ecosystem roles, and rule-based matching.</p>
         </button>
 
         <button type="button" onclick="showCategory('applicant-management')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-emerald-400 transition cursor-pointer group">
-            <h3 class="font-bold text-gray-900 text-base">Applicants & Employers</h3>
-            <p class="text-xs text-gray-500 mt-1">Verification workflows, document approvals, and candidate matching.</p>
+            <h3 class="font-bold text-gray-900 text-lg">Applicants & Employers</h3>
+            <p class="text-sm text-gray-500 mt-1">Verification workflows, document approvals, and candidate matching.</p>
         </button>
 
         <button type="button" onclick="showCategory('special-programs')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-purple-400 transition cursor-pointer group">
-            <h3 class="font-bold text-gray-900 text-base">Special Programs</h3>
-            <p class="text-xs text-gray-500 mt-1">Enrolling and tracking SPES, GIP, TUPAD, DILP, and Career Guidance.</p>
+            <h3 class="font-bold text-gray-900 text-lg">Special Programs</h3>
+            <p class="text-sm text-gray-500 mt-1">Enrolling and tracking SPES, GIP, TUPAD, DILP, and Career Guidance.</p>
         </button>
 
         <button type="button" onclick="showCategory('account-security')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
-            <h3 class="font-bold text-gray-900 text-base">Account & Security</h3>
-            <p class="text-xs text-gray-500 mt-1">Step-by-step OTP process for updating email and changing password.</p>
+            <h3 class="font-bold text-gray-900 text-lg">Account & Security</h3>
+            <p class="text-sm text-gray-500 mt-1">Step-by-step OTP process for updating email and changing password.</p>
         </button>
     </div>
 
     <!-- Back to FAQs Navigation Button -->
     <div id="backToFaqContainer" class="hidden -mt-4 mb-2">
-        <button type="button" onclick="resetToFaq()" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+        <button type="button" onclick="resetToFaq()" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition">
             <i class="fa-solid fa-arrow-left"></i> Back to FAQs
         </button>
     </div>
@@ -70,7 +70,7 @@
                     <div class="flex items-center space-x-3">
                         <div>
                             <h2 class="text-xl font-bold text-gray-900">Frequently Asked Questions (FAQs)</h2>
-                            <p class="text-xs text-gray-500">Quick answers to common system questions and administrative processes</p>
+                            <p class="text-sm text-gray-500">Quick answers to common system questions and administrative processes</p>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                             <span>How does automatic job posting closure work in CAPESONNECT?</span>
                             <svg class="w-4 h-4 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="hidden px-4 py-3 text-sm text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
+                        <div class="hidden px-4 py-3 text-base text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
                             Jobs automatically transition from <span class="text-emerald-600 font-semibold">Active</span> to <span class="text-rose-600 font-semibold">Closed</span> when either the job posting expiry date is reached or the total applications meet the designated candidate quota.
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                             <span>What happens if an OTP security verification code expires?</span>
                             <svg class="w-4 h-4 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="hidden px-4 py-3 text-sm text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
+                        <div class="hidden px-4 py-3 text-base text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
                             If an OTP expires or fails validation, close the verification modal and click the request button again. A fresh 6-digit security code will be generated and emailed to your registered address immediately.
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                             <span>How do I generate the PESO Monthly Statistical Matrix for DOLE?</span>
                             <svg class="w-4 h-4 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="hidden px-4 py-3 text-sm text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
+                        <div class="hidden px-4 py-3 text-base text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
                             Navigate to <span class="font-semibold text-gray-900">Reports</span>, select Carigara (or target municipality), month, and year, then click <strong>Generate Report Matrix</strong>. CAPESONNECT automatically aggregates all active registrations, referrals, placements, and beneficiary tallies.
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                             <span>How does the rule-based matching engine evaluate candidate suitability?</span>
                             <svg class="w-4 h-4 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="hidden px-4 py-3 text-sm text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
+                        <div class="hidden px-4 py-3 text-base text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
                             Rather than simple keyword searches, CAPESONNECT uses multi-indicator Boolean logic to align jobseeker skills, education level, license eligibility, and disability/OFW inclusion flags directly with active job posting constraints.
                         </div>
                     </div>
@@ -126,13 +126,13 @@
                             <span>What documents are required for employer verification?</span>
                             <svg class="w-4 h-4 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="hidden px-4 py-3 text-sm text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
+                        <div class="hidden px-4 py-3 text-base text-gray-600 bg-white border-t border-gray-100 leading-relaxed">
                             Private establishments must upload photocopies of BIR COR 2303, DTI/SEC registrations, or valid Business Permits. Government offices submit CSC Appointment Papers or DBM Plantilla extracts.   
                         </div>
                     </div>
                 </div>
 
-                <div class="p-4 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-900 flex items-center justify-between">
+                <div class="p-4 bg-blue-50/70 border border-blue-100 rounded-xl text-sm text-blue-900 flex items-center justify-between">
                     <span>Looking for specific module walkthroughs? Click any category card above to view dedicated guides.</span>
                 </div>
             </section>
@@ -142,20 +142,20 @@
                 <div class="flex items-center space-x-3 pb-3 border-b border-gray-100">
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">Getting Started with CAPESONNECT</h2>
-                        <p class="text-xs text-gray-500">Localized Digital Job Matching and Management System for the Municipality of Carigara</p>
+                        <p class="text-sm text-gray-500">Localized Digital Job Matching and Management System for the Municipality of Carigara</p>
                     </div>
                 </div>
 
-                <div class="space-y-4 text-sm text-gray-600">
+                <div class="space-y-4 text-base text-gray-600 leading-relaxed">
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-200/60">
-                        <h4 class="font-bold text-gray-800 text-base">What is CAPESONNECT?</h4>
+                        <h4 class="font-bold text-gray-800 text-lg">What is CAPESONNECT?</h4>
                         <p class="leading-relaxed">
                             <strong>CAPESONNECT</strong> is a web-based management and decision-support system engineered specifically for the <strong>Public Employment Service Office (PESO)</strong> in Carigara, Leyte. Built to solve administrative bottlenecks, eliminate slow paper-based registrations, and overcome the limitations of rigid national databases, CAPESONNECT automates local job matching, applicant tracking, and DOLE program reporting.
                         </p>
                     </article>
 
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-200/60">
-                        <h4 class="font-bold text-gray-800 text-base">How CAPESONNECT Operates (Core Modules & Workflow)</h4>
+                        <h4 class="font-bold text-gray-800 text-lg">How CAPESONNECT Operates (Core Modules & Workflow)</h4>
                         <ol class="list-decimal list-inside space-y-2 text-gray-600 pl-1">
                             <li><strong class="text-gray-900">Multi-Role User Ecosystem:</strong> Supports accounts for <em>Applicants (Jobseekers)</em>, <em>Employers (Private & Public)</em>, <em>PESO Administrators</em>, and partner agency roles (e.g., MSWDO).</li>
                             <li><strong class="text-gray-900">Digital Onboarding & Verification:</strong> Replaces manual paper forms. Jobseekers build standardized profiles with educational and skills data. Employers upload tax/business permits (e.g., COR 2303, DTI/SEC) or public appointment papers for PESO approval.</li>
@@ -174,11 +174,11 @@
                     <h2 class="text-xl font-bold text-gray-900">Applicant & Employer Verification</h2>
                 </div>
 
-                <div class="space-y-4 text-sm text-gray-600">
+                <div class="space-y-4 text-base text-gray-600 leading-relaxed">
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-200/60">
-                        <h4 class="font-bold text-gray-800 text-base">Verifying Jobseeker Profiles</h4>
+                        <h4 class="font-bold text-gray-800 text-lg">Verifying Jobseeker Profiles</h4>
                         <ol class="list-decimal list-inside space-y-1 text-gray-600">
-                            <li>Navigate to <span class="font-semibold text-gray-800">Applicant Registry</span> on the sidebar.</li>
+                            <li>Navigate to <span class="font-semibold text-gray-800">Applicants</span> on the sidebar.</li>
                             <li>Filter by <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">Pending</span> status.</li>
                             <li>Click the sequence ID (e.g., <span class="font-mono text-xs bg-gray-200 text-gray-800 px-1 rounded">AP-0001</span>) to inspect applicant demographics, education, and resume attachments.</li>
                             <li>Click <strong class="text-emerald-600">Approve</strong> to activate the profile for job referrals or <strong class="text-rose-600">Reject</strong> if information is invalid.</li>
@@ -186,7 +186,7 @@
                     </article>
 
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-200/60">
-                        <h4 class="font-bold text-gray-800 text-base">Employer Business Verification</h4>
+                        <h4 class="font-bold text-gray-800 text-lg">Employer Business Verification</h4>
                         <p class="leading-relaxed">Private establishments must attach photocopies of COR 2303, DTI/SEC registration, or Business Permits. Public government agencies submit CSC appointment papers or DBM Plantilla extracts. Review these uploads in the <strong>Employer List</strong> before granting posting rights.</p>
                     </article>
                 </div>
@@ -198,9 +198,9 @@
                     <h2 class="text-xl font-bold text-gray-900">Beneficiary Programs Management</h2>
                 </div>
 
-                <div class="space-y-4 text-sm text-gray-600">
+                <div class="space-y-4 text-base text-gray-600 leading-relaxed">
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-200/60">
-                        <h4 class="font-bold text-gray-800 text-base">Enrolling Program Beneficiaries</h4>
+                        <h4 class="font-bold text-gray-800 text-lg">Enrolling Program Beneficiaries</h4>
                         <p class="leading-relaxed">To enroll individuals under <strong>SPES</strong>, <strong>GIP</strong>, <strong>TUPAD</strong>, <strong>DILP</strong>, or <strong>Career Guidance</strong>:</p>
                         <ul class="list-disc list-inside space-y-1 pl-2 text-gray-600">
                             <li>Open <span class="font-semibold text-gray-800">Special Programs</span> from the sidebar.</li>
@@ -217,14 +217,14 @@
                     <h2 class="text-xl font-bold text-gray-900">Account Security & Credentials</h2>
                 </div>
 
-                <div class="space-y-4 text-sm text-gray-600">
+                <div class="space-y-4 text-base text-gray-600 leading-relaxed">
                     <!-- Step-by-Step Email Update Process -->
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-3 border border-gray-200/60">
                         <div class="flex items-center space-x-2">
-                            <h4 class="font-bold text-gray-800 text-base">Step-by-Step Guide: Changing Your Registered Email</h4>
+                            <h4 class="font-bold text-gray-800 text-lg">Step-by-Step Guide: Changing Your Registered Email</h4>
                         </div>
                         <ol class="list-decimal list-inside space-y-2 text-gray-600">
-                            <li>Go to <span class="font-semibold text-gray-800">Account Settings</span> from your profile menu.</li>
+                            <li>Go to <span class="font-semibold text-gray-800">Settings</span> from your profile menu.</li>
                             <li>In the email field under profile credentials, type your new email address and click <strong class="text-blue-600">Request Email Verification Code</strong>.</li>
                             <li>The system generates a secure 6-digit One-Time Password (OTP) and sends it directly to your new email inbox.</li>
                             <li>An OTP verification modal will automatically appear on screen. Enter the 6-digit code.</li>
@@ -235,10 +235,10 @@
                     <!-- Step-by-Step Password Change Process -->
                     <article class="help-article p-4 bg-gray-50 rounded-xl space-y-3 border border-gray-200/60">
                         <div class="flex items-center space-x-2">
-                            <h4 class="font-bold text-gray-800 text-base">Step-by-Step Guide: Changing Your Password</h4>
+                            <h4 class="font-bold text-gray-800 text-lg">Step-by-Step Guide: Changing Your Password</h4>
                         </div>
                         <ol class="list-decimal list-inside space-y-2 text-gray-600">
-                            <li>Navigate to <span class="font-semibold text-gray-800">Account Settings</span>.</li>
+                            <li>Navigate to <span class="font-semibold text-gray-800">Settings</span>.</li>
                             <li>Locate the <span class="font-semibold text-gray-800">Change Password</span> panel and click <strong class="text-amber-600">Change Password</strong> to open the security form.</li>
                             <li>Enter your <em class="text-gray-700">Current Password</em>, followed by your <em class="text-gray-700">New Password</em> and <em class="text-gray-700">Confirm New Password</em>.</li>
                             <li>Click <strong class="text-blue-600">Send Security Code</strong>. The system dispatches a 6-digit OTP to your registered administrator email address.</li>
@@ -255,9 +255,9 @@
             <!-- Escalation & Direct Support -->
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                 <h3 class="font-bold text-gray-900 text-base">Technical Support</h3>
-                <p class="text-xs text-gray-500 leading-relaxed">For system administrative support or bug reports regarding the CAPESONNECT Carigara portal, contact the technical team.</p>
+                <p class="text-sm text-gray-500 leading-relaxed">For system administrative support or bug reports regarding the CAPESONNECT Carigara portal, contact the technical team.</p>
                 
-                <div class="space-y-2.5 text-xs text-gray-600">
+                <div class="space-y-2.5 text-sm text-gray-600">
                     <div class="flex items-center space-x-2">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         <span>pesocarigaraadmin@gmail.com</span>
@@ -272,22 +272,22 @@
                     </div>
                 </div>
 
-                <a href="mailto:pesocarigaraadmin@gmail.com" class="block w-full text-center py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition">Email Tech Support</a>
+                <a href="mailto:pesocarigaraadmin@gmail.com" class="block w-full text-center py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition">Email Tech Support</a>
             </div>
 
             <!-- Release Notes / System Updates -->
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                <h3 class="font-bold text-gray-500 text-xs uppercase tracking-wider">System Changelog</h3>
-                <div class="space-y-3 text-xs text-gray-600">
+                <h3 class="font-bold text-gray-500 text-sm uppercase tracking-wider">System Changelog</h3>
+                <div class="space-y-3 text-sm text-gray-600">
                     <div class="border-l-2 border-blue-600 pl-3 space-y-1">
                         <div class="font-bold text-gray-800">OTP Credential Security</div>
                         <p class="text-gray-500">Integrated 2-step OTP email verification for email and password modifications.</p>
-                        <span class="text-[10px] text-gray-400 font-mono">September 2026</span>
+                        <span class="text-xs text-gray-400 font-mono">September 2026</span>
                     </div>
                     <div class="border-l-2 border-purple-600 pl-3 space-y-1">
                         <div class="font-bold text-gray-800">Beneficiary Matrix Integration</div>
                         <p class="text-gray-500">Added Career Guidance, SPES, and TUPAD reporting filters to the monthly matrix.</p>
-                        <span class="text-[10px] text-gray-400 font-mono">August 2026</span>
+                        <span class="text-xs text-gray-400 font-mono">August 2026</span>
                     </div>
                 </div>
             </div>

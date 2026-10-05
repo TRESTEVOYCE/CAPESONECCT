@@ -115,6 +115,9 @@ class JobVacancyForm(TailwindFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] += ' text-slate-900'
         # Limit employers choices to verified employers only
         self.fields['employer'].queryset = EmployerProfile.objects.filter(verification_status='verified')
 
