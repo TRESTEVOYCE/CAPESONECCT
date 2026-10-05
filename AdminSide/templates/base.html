@@ -39,9 +39,8 @@
         display: none !important; 
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
 
     /* Smooth Width Animation */
     #sidebar {
@@ -123,7 +122,7 @@
                          alt="PESO Logo" 
                          class="h-12 w-12 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-md transition-transform duration-200 hover:scale-105">
                     <div class="sidebar-text-node text-center w-full">
-                        <h2 class="text-sm font-black text-white tracking-wider uppercase leading-none">
+                        <h2 class="text-base font-black text-white tracking-wider uppercase leading-none">
                             CA<span class="text-amber-400">PESO</span>NNECT
                         </h2>
                     </div>
@@ -139,7 +138,7 @@
                 
                 <!-- Dashboard -->
                 <a href="{% url 'AdminSide:dashboard' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if request.resolver_match.url_name in 'dashboard' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name in 'dashboard' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -150,7 +149,7 @@
 
                 <!-- Job Postings -->
                 <a href="{% url 'AdminSide:job_postings_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'job_postings_list' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -161,7 +160,7 @@
 
                 <!-- Applicants -->
                 <a href="{% url 'AdminSide:applicants_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'applicant' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'applicant' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -172,7 +171,7 @@
 
                 <!-- Employers -->
                 <a href="{% url 'AdminSide:employer_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'employer' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'employer' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -183,7 +182,7 @@
 
                 <!-- Application Statuses -->
                 <a href="{% url 'AdminSide:referrals_list' %}"
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'referral' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'referral' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -194,7 +193,7 @@
 
                 <!-- Special Programs -->
                 <a href="{% url 'AdminSide:special_programs_list' %}"
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'special_program' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'special_program' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -205,7 +204,7 @@
 
                 <!-- Reports -->
                 <a href="{% url 'AdminSide:peso_monthly_report' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'report' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'report' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -224,7 +223,7 @@
 
                 <!-- Settings -->
                 <a href="{% url 'AdminSide:account_settings' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'setting' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'setting' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -235,7 +234,7 @@
 
                 <!-- Help -->
                 <a href="{% url 'AdminSide:account_help' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'help' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'help' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -248,7 +247,7 @@
 
         <!-- Sign Out Link -->
         <div class="px-3 py-2 border-t border-sidebar-border bg-sidebar-bg shrink-0">
-            <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
+            <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
                 <div class="nav-icon-wrapper">
                     <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
                 </div>
@@ -282,7 +281,7 @@
 
             <!-- TOPBAR RIGHT: PROFILE ACCOUNT TRIGGER & DROPDOWN -->
             <div class="relative">
-                <button id="userMenuBtn" class="flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
+                <button id="userMenuBtn" class="w-11 h-11 flex items-center justify-center rounded-full hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
                     <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
                         alt="Profile Picture" 
                         class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm transition hover:scale-105">
@@ -304,7 +303,7 @@
                         </p>
                         
                         <!-- Designation -->
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">
+                        <p class="text-sm font-medium text-slate-500 mt-0.5">
                             {{ request.user.groups.first.name|default:"PESO Manager" }}
                         </p>
                     </div>
@@ -312,13 +311,13 @@
                     <!-- OPTIONS SECTION -->
                     <div class="pt-2 px-2">
                         <!-- Manage Account -->
-                        <a href="{% url 'AdminSide:account_settings' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+                        <a href="{% url 'AdminSide:account_settings' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
                             <i class="fa-solid fa-user-gear text-slate-400 w-4 text-center"></i>
                             <span>Manage Account</span>
                         </a>
 
                         <!-- Logout -->
-                        <a href="{% url 'AdminSide:admin_logout' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition mt-1">
+                        <a href="{% url 'AdminSide:admin_logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition mt-1">
                             <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center"></i>
                             <span>Logout</span>
                         </a>

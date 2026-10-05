@@ -2,9 +2,53 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import GovernmentInternshipProgram, SpecialProgramForEmploymentOfStudents
+from .models import EmployerProfile, GovernmentInternshipProgram, Jobs, SpecialProgramForEmploymentOfStudents, User
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
+
+
+class JobVacancyCreateViewTests(TestCase):
+    def test_post_creates_active_vacancy_for_verified_employer(self):
+        admin = User.objects.create_user(
+            username='vacancy-admin',
+            email='vacancy-admin@example.com',
+            password='test-password',
+        )
+        employer_user = User.objects.create_user(
+            username='verified-employer',
+            email='verified-employer@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='Verified Test Employer',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            contact_person='Test Contact',
+            mobile_number='09123456789',
+            email='verified-employer-profile@example.com',
+            verification_status='verified',
+        )
+        self.client.force_login(admin)
+
+        response = self.client.post(reverse('AdminSide:job_create'), {
+            'employer': employer.pk,
+            'job_title': 'Vacancy workflow test',
+            'job_description': 'A complete test vacancy description.',
+            'nature_of_work': 'permanent',
+            'place_of_work': 'Carigara, Leyte',
+            'salary': '1000.00',
+            'vacancy': '1',
+            'work_experience_months': '0',
+            'job_posting_expiry': '2099-12-31',
+        })
+
+        self.assertRedirects(response, reverse('AdminSide:job_postings_list'))
+        job = Jobs.objects.get(job_title='Vacancy workflow test')
+        self.assertEqual(job.employer, employer)
+        self.assertEqual(job.status, 'Active')
 
 
 class AdminLoginViewTests(TestCase):

@@ -142,20 +142,26 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
         # Dynamic Placement Rate Calculation
         placement_rate = round((placement_count / referral_count * 100), 1) if referral_count > 0 else 0.0
 
-        # Existing table slices...
-        recent_applications = (
-            AppliedJobs.objects.select_related(
-                'applicant', 'applied_job', 'applicant__user', 
-                'applied_job__employer', 'applied_job__employer__user'
+        recent_referrals = (
+            OfferedJobs.objects.select_related(
+                'applicant', 'applicant__user', 'offered_job',
+                'offered_job__employer'
             )
-            .order_by('-application_date')[:5]
+            .order_by('-date_offered')[:5]
         )
 
-        pending_approvals = list(
-            ApplicantProfile.objects.filter(status='pending').select_related('user')[:3]
-        ) + list(
-            EmployerProfile.objects.filter(verification_status='pending').select_related('user')[:3]
-        )
+        pending_approvals = sorted(
+            list(
+                ApplicantProfile.objects.filter(status='pending')
+                .select_related('user')
+                .order_by('created_at')[:5]
+            ) + list(
+                EmployerProfile.objects.filter(verification_status='pending')
+                .select_related('user')
+                .order_by('created_at')[:5]
+            ),
+            key=lambda profile: profile.created_at,
+        )[:5]
 
         # Existing chart metric logic...
         chart_labels = []
@@ -233,7 +239,7 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
             'monthly_new_employers': monthly_new_employers,
             'placement_rate': placement_rate,
             'current_month_name': calendar.month_name[today.month],
-            'recent_applications': recent_applications,
+            'recent_referrals': recent_referrals,
             'pending_approvals': pending_approvals,
             'chart_labels': json.dumps(chart_labels),
             'chart_periods': json.dumps(chart_periods),
@@ -248,6 +254,22 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
         })
         return context
     
+class JobVacancyCreateView(LoginRequiredMixin, View):
+    template_name = 'job_posting_form.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, {'form': JobVacancyForm()})
+
+    def post(self, request, *args, **kwargs):
+        form = JobVacancyForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.status = 'Active'
+            job.save()
+            return redirect('AdminSide:job_postings_list')
+
+        return render(request, self.template_name, {'form': form})
+
 class JobPostingsListView(LoginRequiredMixin, View):
     template_name = 'job_posting_list.html'
 
@@ -276,37 +298,12 @@ class JobPostingsListView(LoginRequiredMixin, View):
 
         context = {
             'jobs': jobs,
-            'form': JobVacancyForm(),
             'total_active': Jobs.objects.filter(status='Active').count(),
             'total_pending': Jobs.objects.filter(status='Pending').count(),
             'total_results': jobs.count(),
             'search_query': search_query,
             'selected_sector': sector_filter,
             'selected_status': status_filter,
-        }
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-        form = JobVacancyForm(request.POST)
-        if form.is_valid():
-            job = form.save(commit=False)
-            if not job.status:
-                job.status = 'Active'
-            job.save()
-            messages.success(request, f"Job vacancy '{job.job_title}' created successfully!")
-            
-            # Post/Redirect/Get pattern prevents double submission on browser refresh
-            return redirect('AdminSide:job_postings_list')
-
-        # Re-render list with invalid form errors inside the modal
-        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
-        context = {
-            'jobs': jobs,
-            'form': form,
-            'total_active': Jobs.objects.filter(status='Active').count(),
-            'total_pending': Jobs.objects.filter(status='Pending').count(),
-            'total_results': jobs.count(),
-            'show_modal': True,
         }
         return render(request, self.template_name, context)
 
@@ -318,10 +315,32 @@ class JobPostingDetailView(LoginRequiredMixin, View):
         job = get_object_or_404(Jobs.objects.select_related('employer'), uuid=job_uuid)
         job.check_and_close()
 
+        # Retrieve direct applicants and PESO referrals
+        direct_applications = AppliedJobs.objects.filter(applied_job=job).select_related('applicant', 'applicant__user')
+        peso_referrals = OfferedJobs.objects.filter(offered_job=job).select_related('applicant', 'applicant__user')
+
         context = {
             'job': job,
+            'direct_applications': direct_applications,
+            'peso_referrals': peso_referrals,
+            'total_applications_count': job.total_applicants_count,
         }
         return render(request, self.template_name, context)
+
+    def post(self, request, job_uuid, *args, **kwargs):
+        job = get_object_or_404(Jobs, uuid=job_uuid)
+        action = request.POST.get('action')
+
+        if action == 'close_job':
+            job.status = 'Closed'
+            job.save(update_fields=['status'])
+            messages.success(request, f"Job posting '{job.job_title}' has been marked as Closed.")
+        elif action == 'activate_job':
+            job.status = 'Active'
+            job.save(update_fields=['status'])
+            messages.success(request, f"Job posting '{job.job_title}' is now Active.")
+
+        return redirect('AdminSide:job_detail', job_uuid=job.uuid)
     
 class ApplicantListView(LoginRequiredMixin, ListView):
     model = ApplicantProfile
@@ -398,10 +417,11 @@ class ApplicantListView(LoginRequiredMixin, ListView):
                 
             applicant.save()
             
-            messages.success(
-                request, 
-                f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
-            )
+            if new_status != 'approved':
+                messages.success(
+                    request,
+                    f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
+                )
             return redirect('applicant_registry')
 
         messages.error(request, "Invalid request parameters.")
@@ -424,14 +444,12 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
             if hasattr(applicant, 'verified_by'):
                 applicant.verified_by = request.user
             applicant.save()
-            messages.success(request, f"Applicant {applicant.first_name} {applicant.last_name} has been successfully verified.")
-            return redirect('AdminSide:applicants_list')
+            return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
             
         elif action == 'reject':
             applicant.status = 'rejected'
             applicant.save()
-            messages.warning(request, f"Applicant {applicant.first_name} {applicant.last_name} has been marked as rejected.")
-            return redirect('AdminSide:applicants_list')
+            return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
         return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
@@ -449,7 +467,6 @@ class EmployerListView(LoginRequiredMixin, ListView):
             if action == 'approve':
                 employer.verification_status = 'verified'
                 employer.save()
-                messages.success(request, f"{employer.business_name} has been verified.")
             elif action == 'reject':
                 employer.verification_status = 'rejected'
                 employer.save()
@@ -532,13 +549,11 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
         if action == 'approve':
             employer.verification_status = 'verified'
             employer.save()
-            messages.success(request, f"{employer.business_name} has been successfully verified.")
         elif action == 'reject':
             employer.verification_status = 'rejected'
             employer.save()
-            messages.warning(request, f"Registration for {employer.business_name} has been rejected.")
 
-        return redirect('AdminSide:employers_list')
+        return redirect('AdminSide:employer_verification', uuid=employer.uuid)
     
 class ReferralListView(LoginRequiredMixin, ListView):
     model = OfferedJobs
