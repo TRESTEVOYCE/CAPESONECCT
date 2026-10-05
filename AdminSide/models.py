@@ -191,10 +191,22 @@ class Jobs(models.Model):
     def formatted_job_id(self):
         return f"JP-{self.id:04d}"
 
+    @property
+    def total_applicants_count(self):
+        """Returns the total number of applicants who applied or were referred."""
+        applied = self.applied_applicants.count()
+        offered = self.offered_to_applicants.count()
+        return applied + offered
+
+    @property
+    def is_expired(self):
+        """Checks whether the job posting has past its expiry date."""
+        if self.job_posting_expiry:
+            return timezone.localdate() >= self.job_posting_expiry
+        return False
+
     def check_and_close(self):
-        """
-        Evaluates quota or expiry and automatically updates status to 'Closed'.
-        """
+        """Evaluates quota or expiry and automatically updates status to 'Closed'."""
         today = timezone.localdate()
         total_applications = self.applied_applicants.count()
         quota_reached = self.application_quota is not None and total_applications >= self.application_quota
