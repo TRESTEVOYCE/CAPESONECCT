@@ -274,4 +274,16 @@ class PasswordResetChangeView(PasswordResetConfirmView):
 
 class PasswordResetSuccessView(PasswordResetCompleteView):
     template_name = 'LandingPage/ForgotPassword/password_reset_complete.html'
+    
+class TermsAndConditionsView(TemplateView):
+    template_name = 'LandingPage/terms_and_conditions.html'
+    
+class PrivacyPolicyView(TemplateView):
+    template_name = 'LandingPage/privacy_policy.html'
 
+
+class EmployerTermsAndConditionsView(TemplateView):
+    template_name = 'LandingPage/terms_and_conditions_employer.html'
+    
+class EmployerPrivacyPolicyView(TemplateView):
+    template_name = 'LandingPage/privacy_policy_employer.html'
