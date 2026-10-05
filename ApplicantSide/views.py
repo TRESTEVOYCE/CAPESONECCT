@@ -672,29 +672,28 @@ class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def handle_no_permission(self):
         return redirect('signin')
 
-class UnsaveJobView(ApplicantRequiredMixin, DeleteView):
-    model = SavedJobs
-    success_url = reverse_lazy('saved_jobs')
+class UnsaveJobView(ApplicantRequiredMixin, View):
 
-    def get_queryset(self):
-        applicant_profile = ApplicantProfile.objects.filter(
-            user=self.request.user
-        ).first()
+    def get(self, request, pk):
+        applicant_profile = get_object_or_404(
+            ApplicantProfile,
+            user=request.user
+        )
 
-        if not applicant_profile:
-            return SavedJobs.objects.none()
-
-        return SavedJobs.objects.filter(
+        saved_job = get_object_or_404(
+            SavedJobs,
+            pk=pk,
             applicant=applicant_profile
         )
 
-    def form_valid(self, form):
+        saved_job.delete()
+
         messages.success(
-            self.request,
+            request,
             'Job removed from saved jobs.'
         )
-        return super().form_valid(form)
 
+        return redirect('saved_jobs')
 
 class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
     model = ApplicantProfile
