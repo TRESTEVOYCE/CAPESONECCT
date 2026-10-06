@@ -139,7 +139,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="text-lg font-bold text-slate-800">Recent Referrals</h3>
                 </div>
@@ -161,17 +161,17 @@
                         {% for referral in recent_referrals %}
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="w-16 whitespace-nowrap py-4 text-blue-600 font-bold">{{ referral.id }}</td>
-                                <td class="py-4">
+                                <td class="py-3">
                                     <p class="font-bold text-slate-800">{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}</p>
                                     <p class="text-[11px] text-slate-400 font-medium">{{ referral.offered_job.job_title }}</p>
                                 </td>
-                                <td class="py-4 text-slate-700">{{ referral.offered_job.employer.business_name }}</td>
-                                <td class="py-4">
+                                <td class="py-3 text-slate-700">{{ referral.offered_job.employer.business_name }}</td>
+                                <td class="py-3">
                                     <span class="px-2.5 py-1 rounded text-xs font-bold {% if referral.status == 'hired' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif referral.status == 'pending' %}bg-blue-50 text-blue-700 border border-blue-100{% else %}bg-amber-50 text-amber-700 border border-amber-100{% endif %}">
                                         {{ referral.status|title }}
                                     </span>
                                 </td>
-                                <td class="py-4 text-xs text-slate-400">{{ referral.date_offered|timesince }} ago</td>
+                                <td class="py-3 text-xs text-slate-400">{{ referral.date_offered|timesince }} ago</td>
                             </tr>
                         {% empty %}
                             <tr>
