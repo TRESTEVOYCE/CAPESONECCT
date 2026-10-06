@@ -1,10 +1,159 @@
+from datetime import datetime, timedelta
+
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import EmployerProfile, GovernmentInternshipProgram, Jobs, SpecialProgramForEmploymentOfStudents, User
+from .models import (
+    AppliedJobs,
+    ApplicantProfile,
+    EmployerProfile,
+    GovernmentInternshipProgram,
+    Jobs,
+    OfferedJobs,
+    SpecialProgramForEmploymentOfStudents,
+    User,
+)
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
+
+
+class DashboardViewTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='dashboard-admin',
+            email='dashboard-admin@example.com',
+            password='test-password',
+        )
+        self.client.force_login(self.admin)
+
+    def create_applicant(self, username):
+        user = User.objects.create_user(
+            username=username,
+            email=f'{username}@example.com',
+            password='test-password',
+        )
+        return ApplicantProfile.objects.create(
+            user=user,
+            first_name='Test',
+            last_name=username,
+            date_of_birth='1995-01-01',
+            sex='F',
+            civil_status='single',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            education_level='college',
+        )
+
+    def create_employer(self, username):
+        user = User.objects.create_user(
+            username=username,
+            email=f'{username}@example.com',
+            password='test-password',
+            role='employer',
+        )
+        return EmployerProfile.objects.create(
+            user=user,
+            business_name=f'{username} business',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            contact_person='Test Contact',
+            mobile_number='09123456789',
+            email=f'{username}-profile@example.com',
+        )
+
+    def test_stat_cards_show_database_metrics_and_keep_their_destinations(self):
+        today = timezone.localdate()
+        previous_month_last_day = today.replace(day=1) - timedelta(days=1)
+        previous_month_start = previous_month_last_day.replace(day=1)
+        previous_month_registration = timezone.make_aware(
+            datetime.combine(previous_month_start + timedelta(days=5), datetime.min.time())
+        )
+
+        previous_applicants = [
+            self.create_applicant('dashboard-applicant-old-1'),
+            self.create_applicant('dashboard-applicant-old-2'),
+        ]
+        for applicant in previous_applicants:
+            ApplicantProfile.objects.filter(pk=applicant.pk).update(
+                created_at=previous_month_registration
+            )
+        current_applicant = self.create_applicant('dashboard-applicant-current')
+
+        previous_employer = self.create_employer('dashboard-employer-old')
+        EmployerProfile.objects.filter(pk=previous_employer.pk).update(
+            created_at=previous_month_registration
+        )
+        self.create_employer('dashboard-employer-current')
+
+        employer = self.create_employer('dashboard-job-employer')
+        urgent_job = Jobs.objects.create(
+            employer=employer,
+            job_title='Expiring soon',
+            job_description='Test job posting.',
+            place_of_work='Carigara, Leyte',
+            salary='1000.00',
+            vacancy=1,
+            job_posting_expiry=today + timedelta(days=3),
+        )
+        Jobs.objects.create(
+            employer=employer,
+            job_title='Expiring later',
+            job_description='Test job posting.',
+            place_of_work='Carigara, Leyte',
+            salary='1000.00',
+            vacancy=1,
+            job_posting_expiry=today + timedelta(days=14),
+        )
+
+        current_referral = OfferedJobs.objects.create(
+            applicant=current_applicant,
+            offered_job=urgent_job,
+            status='hired',
+        )
+        previous_week_start = today - timedelta(days=today.weekday() + 1)
+        OfferedJobs.objects.create(
+            applicant=previous_applicants[0],
+            offered_job=urgent_job,
+            status='near_hire',
+        )
+        OfferedJobs.objects.filter(status='near_hire').update(
+            date_offered=timezone.make_aware(
+                datetime.combine(previous_week_start, datetime.min.time())
+            )
+        )
+        AppliedJobs.objects.create(
+            applicant=current_applicant,
+            applied_job=urgent_job,
+            status='hired',
+        )
+        AppliedJobs.objects.create(
+            applicant=previous_applicants[1],
+            applied_job=urgent_job,
+            status='near_hire',
+        )
+
+        response = self.client.get(reverse('AdminSide:dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['applicant_count'], 3)
+        self.assertEqual(response.context['applicant_change_display'], '-50%')
+        self.assertEqual(response.context['monthly_new_employers'], 2)
+        self.assertEqual(response.context['active_job_count'], 2)
+        self.assertEqual(response.context['urgent_job_count'], 1)
+        self.assertEqual(response.context['referral_count'], 2)
+        self.assertEqual(response.context['weekly_referral_count'], 1)
+        self.assertEqual(response.context['placement_count'], 2)
+        self.assertEqual(response.context['placement_rate'], 50.0)
+        self.assertEqual(response.context['near_hire_count'], 2)
+        self.assertContains(response, reverse('AdminSide:applicants_list'))
+        self.assertContains(response, reverse('AdminSide:employer_list'))
+        self.assertContains(response, f'{reverse("AdminSide:job_postings_list")}?status=Active')
+        self.assertContains(response, f'{reverse("AdminSide:referrals_list")}?status=hired')
+        self.assertContains(response, f'{reverse("AdminSide:referrals_list")}?status=near_hire')
 
 
 class JobVacancyCreateViewTests(TestCase):

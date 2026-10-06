@@ -298,7 +298,7 @@
                 <!-- NOTIFICATION BELL & DROPDOWN WRAPPER -->
                 <div class="relative" id="notifDropdownWrapper">
                     <!-- Bell Trigger Button -->
-                    <button id="notifBellBtn" class="relative w-10 h-10 flex items-center justify-center rounded-xl bg-transparent hover:bg-[#112954]/5 text-[#112954] transition focus:outline-none cursor-pointer shadow-none border-0">
+                    <button id="notifBellBtn" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:ring-2 hover:ring-indigo-500/30 text-[#112954] transition focus:outline-none cursor-pointer">
                         <i class="fa-regular fa-bell text-lg"></i>
                         <!-- Dynamic Unread Badge -->
                         <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
@@ -350,10 +350,10 @@
 
                 <!-- PROFILE DROPDOWN WRAPPER -->
                 <div class="relative">
-                    <button id="userMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
+                    <button id="userMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
                         <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
                             alt="Profile Picture" 
-                            class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm transition hover:scale-105">
+                            class="w-9 h-9 rounded-full object-cover transition hover:scale-105">
                     </button>
 
                     <!-- VERTICAL PROFILE MODAL / DROPDOWN -->
