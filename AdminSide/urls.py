@@ -1,7 +1,29 @@
 # capes_admin/urls.py
 from django.urls import path
-from .views import AdminLoginView, AdminLogoutView, DashboardView, HelpView, JobPostingDetailView, JobPostingsListView, JobVacancyCreateView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralCreateView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView, AccountSettingsView
-
+from .views import (
+    AdminLoginView, 
+    AdminLogoutView, 
+    DashboardView, 
+    HelpView, 
+    JobPostingDetailView, 
+    JobPostingsListView, 
+    JobVacancyCreateView, 
+    ApplicantListView, 
+    ApplicantVerificationView, 
+    EmployerListView, 
+    EmployerVerificationView, 
+    ReferralCreateView, 
+    ReferralListView, 
+    SpecialProgramsListView, 
+    EnrollBeneficiaryView, 
+    PesoMonthlyReportView, 
+    AccountSettingsView,
+    NotificationListView,
+    NotificationHeaderApiView,
+    MarkNotificationAsReadView,
+    MarkAllNotificationsAsReadView,
+    DeleteNotificationView,
+)
 app_name = 'AdminSide'
 
 urlpatterns = [
@@ -24,4 +46,12 @@ urlpatterns = [
     path('reports/excel/', PesoMonthlyReportView.as_view(), {'excel': True}, name='peso_monthly_report_excel'),
     path('account/settings/', AccountSettingsView.as_view(), name='account_settings'),
     path('account/help/', HelpView.as_view(), name='account_help'),
+    path('notifications/', NotificationListView.as_view(), name='notifications_list'),
+    path('notifications/api/header/', NotificationHeaderApiView.as_view(), name='notifications_header_api'),
+    path('notifications/<int:notification_id>/read/', MarkNotificationAsReadView.as_view(), name='mark_notification_read'),
+    path('notifications/read-all/', MarkAllNotificationsAsReadView.as_view(), name='mark_all_notifications_read'),
+    path('notifications/<int:notification_id>/delete/', DeleteNotificationView.as_view(), name='delete_notification'),
 ]
+
+
+
