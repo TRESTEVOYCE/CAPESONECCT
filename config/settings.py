@@ -16,7 +16,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings
-SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.environ.get('DEBUG') == 'True'
 
 # Host & Origin Settings
