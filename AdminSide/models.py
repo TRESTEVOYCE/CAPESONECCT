@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class User(AbstractUser):
@@ -100,13 +101,13 @@ class EmployerProfile(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     # Verification Document Attachments for Private Sector
-    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
-    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/', blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
-    business_permit = models.FileField(upload_to='employer_docs/business_permits/', blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/business_permits/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of Latest Business Permit")
 
     # Verification Document Attachments for Public Sector
     public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
-    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Uploaded verification document for public agency")
 
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -298,8 +299,8 @@ class ApplicantProfile(models.Model):
     skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
     applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
@@ -310,7 +311,6 @@ class ApplicantProfile(models.Model):
     place_of_birth = models.CharField(max_length=255, blank=True, null=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Height in cm")
-    willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
     nationality = models.CharField(max_length=100, default='Filipino')
     willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
     when_willing_to_work = models.CharField(max_length=100, blank=True, null=True)  
@@ -334,7 +334,6 @@ class ApplicantProfile(models.Model):
     edu_college_level = models.BooleanField(default=False)
     edu_tech_voc = models.BooleanField(default=False)
     school_university = models.CharField(max_length=255, blank=True, null=True)
-    course_program = models.CharField(max_length=255, blank=True, null=True)
     year_graduated_attended = models.CharField(max_length=50, blank=True, null=True)
     award_1 = models.CharField(max_length=255, blank=True, null=True)
     award_2 = models.CharField(max_length=255, blank=True, null=True)
@@ -349,8 +348,8 @@ class ApplicantProfile(models.Model):
     other_skills = models.CharField(max_length=500, blank=True, null=True)
     
     certification_agree = models.BooleanField(default=False)
-    resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)
-    supporting_doc = models.FileField(upload_to='supporting_docs/', blank=True, null=True)
+    resume_file = models.FileField(upload_to='resumes/',storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc = models.FileField(upload_to='supporting_docs/',storage=RawMediaCloudinaryStorage(), blank=True, null=True)
     
 
     training_title_1 = models.CharField(max_length=255, blank=True, null=True)
@@ -408,6 +407,23 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
+
+
+class ApplicantWorkExperience(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='work_experiences'
+    )
+
+    company = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True)
+    position = models.CharField(max_length=255)
+    dates = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.company} - {self.position}"
 
 class AppliedJobs(models.Model):
 
