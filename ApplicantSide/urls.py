@@ -1,20 +1,18 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoCreateView, ApplicantEducationCreateView, ApplicantPreferredJobCreateView, ApplicantDocumentsCreateView, ApplicantSkillCreateView, ApplicantPersonalUpdateInfoView, ApplicantEducationUpdateView, ApplicantSkillUpdateView, ApplicantPreferredJobUpdateView, ApplicantDocumentsUpdateView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView,ApplyJobView,SaveJobView,EditProfilePictureView, UnsaveJobView,ViewProfileView
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
 
 
 urlpatterns = [
     path('', DashBoardView.as_view(), name='applicant-dashboard'),
-    path('personal_info/', ApplicantPersonalInfoCreateView.as_view(), name='personal_info'),
-    path('education/', ApplicantEducationCreateView.as_view(), name='education'),
-    path('preferred_job/', ApplicantPreferredJobCreateView.as_view(), name='preferred_job'),
-    path('documents/', ApplicantDocumentsCreateView.as_view(), name='documents'),
-    path('skills/', ApplicantSkillCreateView.as_view(), name='skills'),
-
-    path('personal_info/update/', ApplicantPersonalUpdateInfoView.as_view(), name='personal_info_update'),
-    path('education/update/', ApplicantEducationUpdateView.as_view(), name='education_update'),
-    path('skills/update/', ApplicantSkillUpdateView.as_view(), name='skills_update'),
-    path('preferred_job/update/', ApplicantPreferredJobUpdateView.as_view(), name='preferred_job_update'),
-    path('documents/update/', ApplicantDocumentsUpdateView.as_view(), name='documents_update'),
+    path('my_profile/', MyProfileView.as_view(), name='my_profile'),
+    path('personal_info/', ApplicantPersonalInfoView.as_view(), name='personal_info'),
+    path('address/', ApplicantAddressView.as_view(), name='applicant-address'),
+    path('education/', ApplicantEducationView.as_view(), name='applicant-education'),
+    path('training/', ApplicantTrainingView.as_view(), name='applicant-training'),
+    path('preferred_job/', ApplicantPreferredJobView.as_view(), name='applicant-preferred-job'),
+    path('work_experience/', ApplicantWorkExperienceView.as_view(), name='applicant-work-experience'),
+    path('skills/', ApplicantSkillsView.as_view(), name='applicant-skills'),
+    path('documents/', ApplicantDocumentsView.as_view(), name='applicant-documents'),
 
     path('profile/delete/', ApplicantProfileDeleteView.as_view(), name='profile_delete'),
     path('logout/', LogoutView.as_view(), name='logout'),
@@ -23,13 +21,12 @@ urlpatterns = [
     path('jobs/sort/', SortJobView.as_view(), name='sort_jobs'),
     path('search_jobs/', SearchJobView.as_view(), name='search_jobs'),
     path('jobs/<int:pk>/', JobDetailsView.as_view(), name='job_details'),
-    path('jobs/<int:pk>/apply/',ApplyJobView.as_view(), name='apply-for-job'),
-    path('jobs/<int:pk>/save/',SaveJobView.as_view(),name='save_job'),
+    path('jobs/<int:pk>/apply/', ApplyJobView.as_view(), name='apply-for-job'),
+    path('jobs/<int:pk>/save/', SaveJobView.as_view(), name='save_job'),
     path('saved-jobs/', SavedJobsListView.as_view(), name='saved_jobs'),
-    path('saved-jobs/<int:pk>/unsave/',UnsaveJobView.as_view(), name='unsave_job'),
+    path('saved-jobs/<int:pk>/unsave/', UnsaveJobView.as_view(), name='unsave_job'),
 
     path('applied_jobs/', AppliedJobsListView.as_view(), name='applied_jobs'),
     path('personal_info/edit_profile_picture/', EditProfilePictureView.as_view(), name='edit_profile_picture'),
     path('personal_info/profile/', ViewProfileView.as_view(), name='view_profile'),
-   
 ]
