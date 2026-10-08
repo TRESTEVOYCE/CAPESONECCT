@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView,UpdateEmailView,UpdatePasswordView,UpdateUsernameView
 
 
 urlpatterns = [
@@ -29,4 +29,9 @@ urlpatterns = [
     path('applied_jobs/', AppliedJobsListView.as_view(), name='applied_jobs'),
     path('personal_info/edit_profile_picture/', EditProfilePictureView.as_view(), name='edit_profile_picture'),
     path('personal_info/profile/', ViewProfileView.as_view(), name='view_profile'),
+
+    #SETTINGS CONTENTS 
+    path('update_username/',UpdateUsernameView.as_view(),name='update-username'),
+    path('update_password/',UpdatePasswordView.as_view(),name='update-password'),
+    path('update_email/',UpdateEmailView.as_view(),name='update-email'),
 ]
