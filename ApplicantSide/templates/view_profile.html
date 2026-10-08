@@ -43,6 +43,7 @@
         method="POST"
         enctype="multipart/form-data"
         class="space-y-4"
+        action="{% url 'view_profile' %}"
     >
 
         {% csrf_token %}
@@ -51,44 +52,143 @@
 
             <div class="flex items-center gap-5">
 
+                <!-- ========================================= -->
+                <!-- PROFILE PICTURE -->
+                <!-- ========================================= -->
+
                 <div class="relative group">
 
-                    <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
-
-                        {% if profile and profile.applicant_id_picture %}
-
-                            <img
-                                src="{{ profile.applicant_id_picture.url }}"
-                                alt="Avatar"
-                                class="w-full h-full object-cover"
-                            >
-
-                        {% elif user.profile_picture %}
-
-                            <img
-                                src="{{ user.profile_picture.url }}"
-                                alt="Avatar"
-                                class="w-full h-full object-cover"
-                            >
-
-                        {% else %}
-
-                            {% with fname=profile.first_name|default:request.user.first_name lname=profile.last_name|default:request.user.last_name %}
-
-                                {{ fname|slice:":1"|default:request.user.username|slice:":1" }}{{ lname|slice:":1" }}
-
-                            {% endwith %}
-
-                        {% endif %}
-
-                    </div>
-
-
+                    <!--
+                        Clicking the image itself will open the
+                        file selector.
+                    -->
                     {% if form and form.applicant_id_picture %}
 
                         <label
+                            for="{{ form.applicant_id_picture.id_for_label }}"
+                            title="Click to change profile picture"
+                            class="relative block w-20 h-20 rounded-xl overflow-hidden border border-stone-200 cursor-pointer shadow-3xs"
+                        >
+
+                            <div class="w-full h-full bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl">
+
+                                {% if profile and profile.applicant_id_picture %}
+
+                                    <img
+                                        src="{{ profile.applicant_id_picture.url }}"
+                                        alt="Profile Picture"
+                                        class="w-full h-full object-cover"
+                                    >
+
+                                {% elif user.profile_picture %}
+
+                                    <img
+                                        src="{{ user.profile_picture.url }}"
+                                        alt="Profile Picture"
+                                        class="w-full h-full object-cover"
+                                    >
+
+                                {% else %}
+
+                                    {% with fname=profile.first_name|default:request.user.first_name lname=profile.last_name|default:request.user.last_name %}
+
+                                        {{ fname|slice:":1"|default:request.user.username|slice:":1" }}{{ lname|slice:":1" }}
+
+                                    {% endwith %}
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Hover overlay -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+
+                                <div class="flex flex-col items-center justify-center text-white">
+
+                                    <svg
+                                        class="w-5 h-5 mb-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                        />
+
+                                        <circle
+                                            cx="12"
+                                            cy="13"
+                                            r="3"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        />
+                                    </svg>
+
+                                    <span class="text-[10px] font-semibold">
+                                        Change
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Django file input -->
+                            <div class="absolute inset-0 opacity-0 overflow-hidden">
+
+                                {{ form.applicant_id_picture }}
+
+                            </div>
+
+                        </label>
+
+                    {% else %}
+
+                        <!-- Fallback when the form field is unavailable -->
+                        <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
+
+                            {% if profile and profile.applicant_id_picture %}
+
+                                <img
+                                    src="{{ profile.applicant_id_picture.url }}"
+                                    alt="Profile Picture"
+                                    class="w-full h-full object-cover"
+                                >
+
+                            {% elif user.profile_picture %}
+
+                                <img
+                                    src="{{ user.profile_picture.url }}"
+                                    alt="Profile Picture"
+                                    class="w-full h-full object-cover"
+                                >
+
+                            {% else %}
+
+                                {% with fname=profile.first_name|default:request.user.first_name lname=profile.last_name|default:request.user.last_name %}
+
+                                    {{ fname|slice:":1"|default:request.user.username|slice:":1" }}{{ lname|slice:":1" }}
+
+                                {% endwith %}
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- Small camera button -->
+                    {% if form and form.applicant_id_picture %}
+
+                        <label
+                            for="{{ form.applicant_id_picture.id_for_label }}"
                             title="Change Profile Picture"
-                            class="absolute -bottom-1 -right-1 flex items-center justify-center w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full cursor-pointer shadow-sm overflow-hidden z-15"
+                            class="absolute -bottom-1 -right-1 flex items-center justify-center w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full cursor-pointer shadow-sm z-20"
                         >
 
                             <svg
@@ -104,17 +204,15 @@
                                     d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
                                 />
 
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                                <circle
+                                    cx="12"
+                                    cy="13"
+                                    r="3"
+                                    stroke="currentColor"
                                     stroke-width="2"
-                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                                 />
-                            </svg>
 
-                            <div class="absolute inset-0 opacity-0 [&>input]:w-full [&>input]:h-full [&>input]:cursor-pointer">
-                                {{ form.applicant_id_picture }}
-                            </div>
+                            </svg>
 
                         </label>
 
@@ -123,6 +221,7 @@
                 </div>
 
 
+                <!-- Profile name/details -->
                 <div>
 
                     <div class="flex items-center gap-2.5 flex-wrap">
@@ -152,11 +251,16 @@
                         Information Technology Sector
                     </p>
 
+                    <p class="text-[10px] text-stone-400 mt-1">
+                        Click your profile picture to change it.
+                    </p>
+
                 </div>
 
             </div>
 
 
+            <!-- Save button -->
             <div class="flex items-center gap-3">
 
                 <button
@@ -171,7 +275,7 @@
         </div>
 
 
-        {% if form.applicant_id_picture.errors %}
+        {% if form and form.applicant_id_picture.errors %}
 
             <p class="text-[11px] text-red-600 px-1">
                 {{ form.applicant_id_picture.errors.0 }}
@@ -824,3 +928,4 @@
 </div>
 
 {% endblock %}
+
