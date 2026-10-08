@@ -1,18 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Applications & Referrals - CAPESONNECT{% endblock %}
+{% block title %}Application Statuses | CAPESONNECT{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-6">
 
     <!-- FILTER BAR & DATABASE GRID TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <nav class="flex flex-wrap items-center gap-1 px-4 pt-3 border-b border-slate-200" aria-label="Application source">
+            <a href="?source=all" class="px-3 py-2 text-xs font-semibold border-b-2 {% if selected_source == 'all' %}border-slate-900 text-slate-900{% else %}border-transparent text-slate-500{% endif %}">All</a>
+            <a href="?source=direct" class="px-3 py-2 text-xs font-semibold border-b-2 {% if selected_source == 'direct' %}border-blue-600 text-blue-700{% else %}border-transparent text-slate-500{% endif %}">Direct Applications</a>
+            <a href="?source=referral" class="px-3 py-2 text-xs font-semibold border-b-2 {% if selected_source == 'referral' %}border-amber-500 text-amber-700{% else %}border-transparent text-slate-500{% endif %}">PESO Referrals</a>
+        </nav>
         
         <!-- INTEGRATED ACTION & FILTER BAR -->
-        <form method="GET" action="" class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+        <form method="GET" action="" class="p-3 sm:p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap gap-2 sm:gap-3 items-center">
+            <input type="hidden" name="source" value="{{ selected_source }}">
             
             <!-- SEARCH INPUT -->
-            <div class="relative flex-1 min-w-[280px]">
+            <div class="relative flex-1 min-w-0 w-full sm:min-w-[220px]">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
                 </span>
@@ -22,13 +29,24 @@
             </div>
 
             <!-- CONTROLS & ACTION BUTTON GROUP -->
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <label class="sr-only" for="referral-period">Filter by month</label>
+                <input id="referral-period" type="month" name="period" value="{{ selected_period }}" onchange="this.form.submit()"
+                      class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                <label class="sr-only" for="job-type-filter">Filter by job type</label>
+                <select id="job-type-filter" name="job_type" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2">
+                    <option value="">All Job Types</option>
+                    {% for code, label in job_type_choices %}
+                        <option value="{{ code }}" {% if selected_job_type == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
                 <!-- STATUS FILTER DROPDOWN -->
                 <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-300 text-xs font-medium text-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#112954]">
                     <option value="All" {% if selected_status == 'All' or not selected_status %}selected{% endif %}>All Status </option>
                     <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending </option>
                     <option value="reviewed" {% if selected_status == 'reviewed' %}selected{% endif %}>Reviewed </option>
                     <option value="for interview" {% if selected_status == 'for interview' %}selected{% endif %}>For Interview </option>
+                    <option value="near_hire" {% if selected_status == 'near_hire' %}selected{% endif %}>Near Hire </option>
                     <option value="hired" {% if selected_status == 'hired' %}selected{% endif %}>Hired </option>
                     <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected </option>
                 </select>
@@ -41,39 +59,97 @@
             </div>
         </form>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+        <div class="xl:hidden divide-y divide-slate-100">
+            {% for referral in application_statuses %}
+                <article class="p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="min-w-0 break-words">
+                                <p class="font-bold text-slate-800">{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}</p>
+                                <p class="text-[10px] text-slate-400">{{ referral.applicant.get_sex_display }}</p>
+                            </div>
+                        </div>
+                        <span class="shrink-0 text-[10px] font-mono text-slate-400">#{{ referral.id }}</span>
+                        {% if referral.status == 'hired' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">Hired</span>
+                        {% elif referral.status == 'pending' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Pending</span>
+                        {% elif referral.status == 'reviewed' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold">Reviewed</span>
+                        {% elif referral.status == 'for interview' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">For Interview</span>
+                        {% elif referral.status == 'near_hire' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">Near Hire</span>
+                        {% elif referral.status == 'rejected' %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">Rejected</span>
+                        {% else %}
+                            <span class="shrink-0 px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">{{ referral.status|default:'Unknown'|title }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-1 text-xs break-words">
+                        <p class="font-semibold text-slate-800">{{ referral.offered_job.job_title }}</p>
+                        <p class="text-slate-500">{{ referral.offered_job.employer.business_name }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        {% if referral.source_type == 'Direct Application' %}
+                            <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold">Direct Application</span>
+                        {% else %}
+                            <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold">PESO Referral</span>
+                        {% endif %}
+                        <span class="text-slate-500">{{ referral.submitted_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <button type="button" onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.source_type }}', '{{ referral.status_label }}', '{{ referral.submitted_at|date:'M d, Y' }}')" class="px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700">View details</button>
+                        {% if referral.source_type == 'PESO Referral' %}
+                            {% if referral.status == 'pending' or referral.status == 'reviewed' %}
+                                <button type="button" onclick="triggerEmployerNudge('{{ referral.id }}', '{{ referral.offered_job.employer.business_name }}')" class="px-3 py-1.5 border border-amber-200 rounded-md text-[11px] font-semibold text-amber-700">Nudge HR</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <p class="py-10 px-4 text-center text-slate-400">No application statuses match the current selection.</p>
+            {% endfor %}
+        </div>
+
+        <div class="hidden xl:block w-full">
+            <table class="w-full table-fixed text-left border-collapse">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                        <th class="py-3 px-4">ID</th>
-                        <th class="py-3 px-4">Applicant</th>
-                        <th class="py-3 px-4">Job Title</th>
-                        <th class="py-3 px-4">Employer</th>
-                        <th class="py-3 px-4">Date Offered</th>
-                        <th class="py-3 px-4 text-center">Status</th>
-                        <th class="py-3 px-4">Remarks</th>
-                        <th class="py-3 px-4 text-right">Actions</th>
+                        <th class="w-[7%] py-3 px-2">ID</th>
+                        <th class="w-[21%] py-3 px-2 lg:px-3">Applicant</th>
+                        <th class="w-[22%] py-3 px-2 lg:px-3">Job &amp; Employer</th>
+                        <th class="w-[18%] py-3 px-2 lg:px-3">Source</th>
+                        <th class="w-[12%] py-3 px-2 lg:px-3">Date</th>
+                        <th class="w-[10%] py-3 px-2 lg:px-3">Status</th>
+                        <th class="w-[10%] py-3 px-2 lg:px-3 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
-                    {% for referral in referrals %}
+                    {% for referral in application_statuses %}
                     <tr class="hover:bg-slate-50/50 transition">
-                        <td class="py-4 px-4 text-[11px] font-mono text-slate-400 whitespace-nowrap">
-                            {{ referral.id }}
-                        </td>
-                        
-                        <td class="py-4 px-4">
-                            <div class="font-bold text-slate-800 text-[13px] leading-tight">{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}</div>
-                            <div class="text-[10px] text-slate-400 font-medium mt-0.5">
-                                {{ referral.applicant.get_sex_display }}
+                        <td class="py-3 px-2 text-[11px] font-mono text-slate-400 whitespace-nowrap">#{{ referral.id }}</td>
+                        <td class="py-3 px-2 lg:px-3 break-words">
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-800 text-[13px] leading-tight">{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ referral.applicant.get_sex_display }}</div>
                             </div>
                         </td>
                         
-                        <td class="py-4 px-4 font-semibold text-slate-700">{{ referral.offered_job.job_title }}</td>
-                        <td class="py-4 px-4 font-medium text-slate-500">{{ referral.offered_job.employer.business_name }}</td>
-                        <td class="py-4 px-4 text-slate-500 whitespace-nowrap">{{ referral.date_offered|date:"M d, Y" }}</td>
+                        <td class="py-3 px-2 lg:px-3 break-words">
+                            <p class="font-semibold text-slate-700">{{ referral.offered_job.job_title }}</p>
+                            <p class="mt-1 text-[11px] text-slate-500">{{ referral.offered_job.employer.business_name }}</p>
+                        </td>
+                        <td class="py-3 px-2 lg:px-3 break-words">
+                            {% if referral.source_type == 'Direct Application' %}
+                                <span class="inline-flex max-w-full px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold whitespace-normal">Direct Application</span>
+                            {% else %}
+                                <span class="inline-flex max-w-full px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold whitespace-normal">PESO Referral</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-2 lg:px-3 text-slate-500 break-words">{{ referral.submitted_at|date:"M d, Y" }}</td>
                         
-                        <td class="py-4 px-4 text-center whitespace-nowrap">
+                        <td class="py-3 px-2 lg:px-3 break-words">
                             {% if referral.status == 'hired' %}
                                 <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">Hired</span>
                             {% elif referral.status == 'for interview' %}
@@ -82,50 +158,52 @@
                                 <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-purple-100 text-purple-700">Reviewed</span>
                             {% elif referral.status == 'pending' %}
                                 <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">Pending</span>
-                            {% else %}
+                            {% elif referral.status == 'near_hire' %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 text-orange-800">Near Hire</span>
+                            {% elif referral.status == 'rejected' %}
                                 <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Rejected</span>
+                            {% else %}
+                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700">{{ referral.status|default:'Unknown'|title }}</span>
                             {% endif %}
                         </td>
                         
-                        <td class="py-4 px-4 text-slate-500 max-w-[180px] truncate" title="{{ referral.remarks }}">
-                            {{ referral.remarks|default:"--" }}
-                        </td>
-                        
                         <!-- ACTIONS COLUMN -->
-                        <td class="py-4 px-4 text-right whitespace-nowrap">
-                            <div class="flex items-center justify-end gap-1.5">
+                        <td class="py-3 px-2 lg:px-3 text-right whitespace-nowrap">
+                            <div class="flex flex-nowrap items-center justify-end gap-1">
                                 <!-- Read-Only Audit View Button -->
                                 <button type="button" 
-                                        onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.status }}', '{{ referral.date_offered|date:'M d, Y' }}')"
+                                        onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.source_type }}', '{{ referral.status_label }}', '{{ referral.submitted_at|date:'M d, Y' }}')"
                                         title="View Application Audit Timeline"
-                                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-md transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-eye text-slate-500"></i>
-                                    <span>View</span>
+                                        aria-label="View application details"
+                                        class="w-8 h-8 shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded-md transition inline-flex items-center justify-center">
+                                    <i class="fa-solid fa-eye text-slate-500" aria-hidden="true"></i>
                                 </button>
 
                                 <!-- Re-trigger Notification (Nudge HR) for Pending or Reviewed Applications -->
-                                {% if referral.status == 'pending' or referral.status == 'reviewed' %}
-                                    <button type="button" 
-                                            onclick="triggerEmployerNudge('{{ referral.id }}', '{{ referral.offered_job.employer.business_name }}')"
-                                            title="Send automated reminder ping to employer"
-                                            class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[11px] font-bold px-2.5 py-1.5 rounded-md transition flex items-center gap-1.5">
-                                        <i class="fa-solid fa-bell text-amber-600"></i>
-                                        <span>Nudge HR</span>
-                                    </button>
+                                {% if referral.source_type == 'PESO Referral' %}
+                                    {% if referral.status == 'pending' or referral.status == 'reviewed' %}
+                                        <button type="button" 
+                                                onclick="triggerEmployerNudge('{{ referral.id }}', '{{ referral.offered_job.employer.business_name }}')"
+                                                title="Send automated reminder ping to employer"
+                                                aria-label="Nudge employer"
+                                                class="w-8 h-8 shrink-0 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[11px] rounded-md transition inline-flex items-center justify-center">
+                                            <i class="fa-solid fa-bell text-amber-600" aria-hidden="true"></i>
+                                        </button>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No job offers match the current selection.</td>
+                        <td colspan="7" class="py-8 text-center text-slate-400 font-medium">No application statuses match the current selection.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-400 font-mono">
-            Showing {{ referrals|length }} of {{ total_results }} items
+        <div class="px-4 py-3 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-500 font-mono">
+            Showing {{ application_statuses|length }} of {{ total_results }} matching records
         </div>
     </div>
 </div>
@@ -147,6 +225,10 @@
                 <div>
                     <span class="text-[10px] text-slate-400 uppercase font-bold block">Applicant</span>
                     <span id="modalApplicant" class="font-bold text-slate-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Source</span>
+                    <span id="modalSource" class="font-semibold text-slate-700"></span>
                 </div>
                 <div>
                     <span class="text-[10px] text-slate-400 uppercase font-bold block">Employer</span>
@@ -186,9 +268,10 @@
 </div>
 
 <script>
-    function openAuditModal(id, applicant, job, employer, status, date) {
+    function openAuditModal(id, applicant, job, employer, source, status, date) {
         document.getElementById('modalAppId').textContent = 'ID: #' + id;
         document.getElementById('modalApplicant').textContent = applicant;
+        document.getElementById('modalSource').textContent = source;
         document.getElementById('modalJob').textContent = job;
         document.getElementById('modalEmployer').textContent = employer;
         document.getElementById('modalStatus').textContent = status;

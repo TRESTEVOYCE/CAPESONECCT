@@ -1,7 +1,29 @@
 # capes_admin/urls.py
 from django.urls import path
-from .views import AdminLoginView, AdminLogoutView, DashboardView, HelpView, JobPostingDetailView, JobPostingsListView, ApplicantListView, ApplicantVerificationView, EmployerListView, EmployerVerificationView, ReferralCreateView, ReferralListView, SpecialProgramsListView, EnrollBeneficiaryView, PesoMonthlyReportView, AccountSettingsView
-
+from .views import (
+    AdminLoginView, 
+    AdminLogoutView, 
+    DashboardView, 
+    HelpView, 
+    JobPostingDetailView, 
+    JobPostingsListView, 
+    JobVacancyCreateView, 
+    ApplicantListView, 
+    ApplicantVerificationView, 
+    EmployerListView, 
+    EmployerVerificationView, 
+    ReferralCreateView, 
+    ReferralListView, 
+    SpecialProgramsListView, 
+    EnrollBeneficiaryView, 
+    PesoMonthlyReportView, 
+    AccountSettingsView,
+    NotificationListView,
+    NotificationHeaderApiView,
+    MarkNotificationAsReadView,
+    MarkAllNotificationsAsReadView,
+    DeleteNotificationView,
+)
 app_name = 'AdminSide'
 
 urlpatterns = [
@@ -9,6 +31,7 @@ urlpatterns = [
     path('logout/', AdminLogoutView.as_view(), name='admin_logout'),
     path('', DashboardView.as_view(), name='dashboard'),
     path('jobs/', JobPostingsListView.as_view(), name='job_postings_list'),
+    path('jobs/create/', JobVacancyCreateView.as_view(), name='job_create'),
     path('jobs/<uuid:job_uuid>/', JobPostingDetailView.as_view(), name='job_detail'),
     path('applicants/', ApplicantListView.as_view(), name='applicants_list'),
     path('applicants/<uuid:uuid>/verify/', ApplicantVerificationView.as_view(), name='applicant_verification'),
@@ -23,4 +46,12 @@ urlpatterns = [
     path('reports/excel/', PesoMonthlyReportView.as_view(), {'excel': True}, name='peso_monthly_report_excel'),
     path('account/settings/', AccountSettingsView.as_view(), name='account_settings'),
     path('account/help/', HelpView.as_view(), name='account_help'),
+    path('notifications/', NotificationListView.as_view(), name='notifications_list'),
+    path('notifications/api/header/', NotificationHeaderApiView.as_view(), name='notifications_header_api'),
+    path('notifications/<int:notification_id>/read/', MarkNotificationAsReadView.as_view(), name='mark_notification_read'),
+    path('notifications/read-all/', MarkAllNotificationsAsReadView.as_view(), name='mark_all_notifications_read'),
+    path('notifications/<int:notification_id>/delete/', DeleteNotificationView.as_view(), name='delete_notification'),
 ]
+
+
+

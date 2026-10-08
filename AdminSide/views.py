@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
@@ -41,6 +42,7 @@ from .forms import (
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
+from .models import Notification
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
@@ -64,6 +66,7 @@ class AdminLoginView(View):
         username_str = request.POST.get('username')
         password_str = request.POST.get('password')
 
+        list(get_messages(request))
         user = authenticate(request, username=username_str, password=password_str)
 
         if user is not None and user.is_superuser:
@@ -125,38 +128,104 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
 
         # Job postings count filtered to active status
         active_job_count = Jobs.objects.filter(status='Active').count()
+        urgent_job_count = Jobs.objects.filter(
+            status='Active',
+            job_posting_expiry__gt=today,
+            job_posting_expiry__lte=today + timedelta(days=7),
+        ).count()
         
-        referral_count = AppliedJobs.objects.count()
-        placement_count = AppliedJobs.objects.filter(status='hired').count()
-        
-        # Near hire metric: candidates who are reviewed or in interview state
-        near_hire_count = AppliedJobs.objects.filter(status__in=['reviewed', 'for interview']).count()
+        referral_count = OfferedJobs.objects.count()
+        weekly_start = timezone.make_aware(
+            datetime.combine(today - timedelta(days=today.weekday()), datetime.min.time())
+        )
+        weekly_end = weekly_start + timedelta(days=7)
+        weekly_referral_count = OfferedJobs.objects.filter(
+            date_offered__gte=weekly_start,
+            date_offered__lt=weekly_end,
+        ).count()
 
-        # Dynamic calculation of monthly registrations
+        placement_count = (
+            OfferedJobs.objects.filter(status='hired').count() +
+            AppliedJobs.objects.filter(status='hired').count()
+        )
+        
+        near_hire_count = (
+            OfferedJobs.objects.filter(status='near_hire').count() +
+            AppliedJobs.objects.filter(status='near_hire').count()
+        )
+
+        # Compare registrations to the previous calendar month.
         first_of_month = timezone.make_aware(datetime(today.year, today.month, 1))
-        monthly_new_applicants = ApplicantProfile.objects.filter(created_at__gte=first_of_month).count()
-        monthly_new_employers = EmployerProfile.objects.filter(created_at__gte=first_of_month).count()
+        if today.month == 1:
+            first_of_previous_month = timezone.make_aware(datetime(today.year - 1, 12, 1))
+        else:
+            first_of_previous_month = timezone.make_aware(datetime(today.year, today.month - 1, 1))
+        if today.month == 12:
+            first_of_next_month = timezone.make_aware(datetime(today.year + 1, 1, 1))
+        else:
+            first_of_next_month = timezone.make_aware(datetime(today.year, today.month + 1, 1))
 
-        # Dynamic Placement Rate Calculation
-        placement_rate = round((placement_count / referral_count * 100), 1) if referral_count > 0 else 0.0
+        monthly_new_applicants = ApplicantProfile.objects.filter(
+            created_at__gte=first_of_month,
+            created_at__lt=first_of_next_month,
+        ).count()
+        previous_month_applicants = ApplicantProfile.objects.filter(
+            created_at__gte=first_of_previous_month,
+            created_at__lt=first_of_month,
+        ).count()
+        monthly_new_employers = EmployerProfile.objects.filter(
+            created_at__gte=first_of_month,
+            created_at__lt=first_of_next_month,
+        ).count()
 
-        # Existing table slices...
-        recent_applications = (
-            AppliedJobs.objects.select_related(
-                'applicant', 'applied_job', 'applicant__user', 
-                'applied_job__employer', 'applied_job__employer__user'
+        if previous_month_applicants:
+            applicant_change = (
+                (monthly_new_applicants - previous_month_applicants)
+                / previous_month_applicants
+                * 100
             )
-            .order_by('-application_date')[:5]
+            applicant_change_display = f'{applicant_change:+g}%'
+            applicant_change_caption = 'vs last month'
+            applicant_change_class = (
+                'bg-emerald-50 text-emerald-700'
+                if applicant_change >= 0 else 'bg-rose-50 text-rose-700'
+            )
+        else:
+            applicant_change_display = f'+{monthly_new_applicants} new'
+            applicant_change_caption = 'this month'
+            applicant_change_class = 'bg-emerald-50 text-emerald-700'
+
+        # The placements card links to a combined list of direct applications and referrals.
+        total_applications_and_referrals = AppliedJobs.objects.count() + referral_count
+        placement_rate = (
+            round(placement_count / total_applications_and_referrals * 100, 1)
+            if total_applications_and_referrals else 0.0
         )
 
-        pending_approvals = list(
-            ApplicantProfile.objects.filter(status='pending').select_related('user')[:3]
-        ) + list(
-            EmployerProfile.objects.filter(verification_status='pending').select_related('user')[:3]
+        recent_referrals = (
+            OfferedJobs.objects.select_related(
+                'applicant', 'applicant__user', 'offered_job',
+                'offered_job__employer'
+            )
+            .order_by('-date_offered')[:5]
         )
+
+        pending_approvals = sorted(
+            list(
+                ApplicantProfile.objects.filter(status='pending')
+                .select_related('user')
+                .order_by('created_at')[:5]
+            ) + list(
+                EmployerProfile.objects.filter(verification_status='pending')
+                .select_related('user')
+                .order_by('created_at')[:5]
+            ),
+            key=lambda profile: profile.created_at,
+        )[:5]
 
         # Existing chart metric logic...
         chart_labels = []
+        chart_periods = []
         referred_data = []
         hired_data = []
         near_hire_data = []
@@ -175,21 +244,44 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
                 next_year = year
             end = timezone.make_aware(datetime(next_year, next_month, 1))
 
+            monthly_referrals = OfferedJobs.objects.filter(date_offered__gte=start, date_offered__lt=end)
             monthly_applications = AppliedJobs.objects.filter(application_date__gte=start, application_date__lt=end)
             chart_labels.append(calendar.month_abbr[month])
-            referred_data.append(monthly_applications.count())
-            hired_data.append(monthly_applications.filter(status='hired').count())
-            near_hire_data.append(monthly_applications.filter(status__in=['reviewed', 'for interview']).count())
+            chart_periods.append(f'{year:04d}-{month:02d}')
+            referred_data.append(monthly_referrals.count())
+            hired_data.append(
+                monthly_referrals.filter(status='hired').count() +
+                monthly_applications.filter(status='hired').count()
+            )
+            near_hire_data.append(
+                monthly_referrals.filter(status='near_hire').count() +
+                monthly_applications.filter(status='near_hire').count()
+            )
 
-        # Sector chart data logic...
-        job_type_counts = Jobs.objects.values('nature_of_work').annotate(count=Count('id'))
-        job_type_lookup = {item['nature_of_work']: item['count'] for item in job_type_counts}
+        # Count hired direct applications and PESO referrals by job type.
+        job_type_lookup = {}
+        hired_application_counts = AppliedJobs.objects.filter(status='hired').values(
+            'applied_job__nature_of_work'
+        ).annotate(count=Count('id'))
+        hired_referral_counts = OfferedJobs.objects.filter(status='hired').values(
+            'offered_job__nature_of_work'
+        ).annotate(count=Count('id'))
+
+        for item in hired_application_counts:
+            code = item['applied_job__nature_of_work']
+            job_type_lookup[code] = job_type_lookup.get(code, 0) + item['count']
+
+        for item in hired_referral_counts:
+            code = item['offered_job__nature_of_work']
+            job_type_lookup[code] = job_type_lookup.get(code, 0) + item['count']
+
         sector_items = []
         colors = ['#1d3d75', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#94a3b8']
         
         for code, label in Jobs.NATURE_OF_WORK_CHOICES:
             count = job_type_lookup.get(code, 0)
             sector_items.append({
+                'code': code,
                 'label': label, 
                 'value': count, 
                 'color': colors[len(sector_items)] if len(sector_items) < len(colors) else colors[-1]
@@ -203,21 +295,46 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
             'referral_count': referral_count,
             'placement_count': placement_count,
             'near_hire_count': near_hire_count,
+            'urgent_job_count': urgent_job_count,
+            'weekly_referral_count': weekly_referral_count,
             'monthly_new_applicants': monthly_new_applicants,
             'monthly_new_employers': monthly_new_employers,
+            'applicant_change_display': applicant_change_display,
+            'applicant_change_caption': applicant_change_caption,
+            'applicant_change_class': applicant_change_class,
             'placement_rate': placement_rate,
             'current_month_name': calendar.month_name[today.month],
-            'recent_applications': recent_applications,
+            'recent_referrals': recent_referrals,
             'pending_approvals': pending_approvals,
             'chart_labels': json.dumps(chart_labels),
+            'chart_periods': json.dumps(chart_periods),
             'chart_referred': json.dumps(referred_data),
             'chart_hired': json.dumps(hired_data),
             'chart_near_hire': json.dumps(near_hire_data),
             'sector_items': sector_items,
+            'sector_codes': json.dumps([item['code'] for item in sector_items]),
+            'sector_labels': json.dumps([item['label'] for item in sector_items]),
+            'sector_colors': json.dumps([item['color'] for item in sector_items]),
             'sector_data': json.dumps([item['value'] for item in sector_items]),
         })
         return context
     
+class JobVacancyCreateView(LoginRequiredMixin, View):
+    template_name = 'job_posting_form.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, {'form': JobVacancyForm()})
+
+    def post(self, request, *args, **kwargs):
+        form = JobVacancyForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.status = 'Active'
+            job.save()
+            return redirect('AdminSide:job_postings_list')
+
+        return render(request, self.template_name, {'form': form})
+
 class JobPostingsListView(LoginRequiredMixin, View):
     template_name = 'job_posting_list.html'
 
@@ -240,43 +357,18 @@ class JobPostingsListView(LoginRequiredMixin, View):
             jobs = jobs.filter(query_filter)
 
         if sector_filter and sector_filter != "All":
-            jobs = jobs.filter(sector=sector_filter)
+            jobs = jobs.filter(nature_of_work=sector_filter)
         if status_filter and status_filter != "All":
             jobs = jobs.filter(status=status_filter)
 
         context = {
             'jobs': jobs,
-            'form': JobVacancyForm(),
             'total_active': Jobs.objects.filter(status='Active').count(),
             'total_pending': Jobs.objects.filter(status='Pending').count(),
             'total_results': jobs.count(),
             'search_query': search_query,
             'selected_sector': sector_filter,
             'selected_status': status_filter,
-        }
-        return render(request, self.template_name, context)
-
-    def post(self, request, *args, **kwargs):
-        form = JobVacancyForm(request.POST)
-        if form.is_valid():
-            job = form.save(commit=False)
-            if not job.status:
-                job.status = 'Active'
-            job.save()
-            messages.success(request, f"Job vacancy '{job.job_title}' created successfully!")
-            
-            # Post/Redirect/Get pattern prevents double submission on browser refresh
-            return redirect('AdminSide:job_postings_list')
-
-        # Re-render list with invalid form errors inside the modal
-        jobs = Jobs.objects.all().select_related('employer').order_by('-created_at')
-        context = {
-            'jobs': jobs,
-            'form': form,
-            'total_active': Jobs.objects.filter(status='Active').count(),
-            'total_pending': Jobs.objects.filter(status='Pending').count(),
-            'total_results': jobs.count(),
-            'show_modal': True,
         }
         return render(request, self.template_name, context)
 
@@ -288,10 +380,32 @@ class JobPostingDetailView(LoginRequiredMixin, View):
         job = get_object_or_404(Jobs.objects.select_related('employer'), uuid=job_uuid)
         job.check_and_close()
 
+        # Retrieve direct applicants and PESO referrals
+        direct_applications = AppliedJobs.objects.filter(applied_job=job).select_related('applicant', 'applicant__user')
+        peso_referrals = OfferedJobs.objects.filter(offered_job=job).select_related('applicant', 'applicant__user')
+
         context = {
             'job': job,
+            'direct_applications': direct_applications,
+            'peso_referrals': peso_referrals,
+            'total_applications_count': job.total_applicants_count,
         }
         return render(request, self.template_name, context)
+
+    def post(self, request, job_uuid, *args, **kwargs):
+        job = get_object_or_404(Jobs, uuid=job_uuid)
+        action = request.POST.get('action')
+
+        if action == 'close_job':
+            job.status = 'Closed'
+            job.save(update_fields=['status'])
+            messages.success(request, f"Job posting '{job.job_title}' has been marked as Closed.")
+        elif action == 'activate_job':
+            job.status = 'Active'
+            job.save(update_fields=['status'])
+            messages.success(request, f"Job posting '{job.job_title}' is now Active.")
+
+        return redirect('AdminSide:job_detail', job_uuid=job.uuid)
     
 class ApplicantListView(LoginRequiredMixin, ListView):
     model = ApplicantProfile
@@ -368,10 +482,11 @@ class ApplicantListView(LoginRequiredMixin, ListView):
                 
             applicant.save()
             
-            messages.success(
-                request, 
-                f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
-            )
+            if new_status != 'approved':
+                messages.success(
+                    request,
+                    f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
+                )
             return redirect('applicant_registry')
 
         messages.error(request, "Invalid request parameters.")
@@ -394,14 +509,12 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
             if hasattr(applicant, 'verified_by'):
                 applicant.verified_by = request.user
             applicant.save()
-            messages.success(request, f"Applicant {applicant.first_name} {applicant.last_name} has been successfully verified.")
-            return redirect('AdminSide:applicants_list')
+            return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
             
         elif action == 'reject':
             applicant.status = 'rejected'
             applicant.save()
-            messages.warning(request, f"Applicant {applicant.first_name} {applicant.last_name} has been marked as rejected.")
-            return redirect('AdminSide:applicants_list')
+            return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
         return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
@@ -419,7 +532,6 @@ class EmployerListView(LoginRequiredMixin, ListView):
             if action == 'approve':
                 employer.verification_status = 'verified'
                 employer.save()
-                messages.success(request, f"{employer.business_name} has been verified.")
             elif action == 'reject':
                 employer.verification_status = 'rejected'
                 employer.save()
@@ -502,65 +614,114 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
         if action == 'approve':
             employer.verification_status = 'verified'
             employer.save()
-            messages.success(request, f"{employer.business_name} has been successfully verified.")
         elif action == 'reject':
             employer.verification_status = 'rejected'
             employer.save()
-            messages.warning(request, f"Registration for {employer.business_name} has been rejected.")
 
-        return redirect('AdminSide:employers_list')
+        return redirect('AdminSide:employer_verification', uuid=employer.uuid)
     
 class ReferralListView(LoginRequiredMixin, ListView):
     model = OfferedJobs
     template_name = 'referrals_list.html'
-    context_object_name = 'referrals'
+    context_object_name = 'application_statuses'
 
     def get_queryset(self):
-        # Optimizing foreign key lookups based on your schema fields
-        queryset = OfferedJobs.objects.select_related(
-            'applicant', 
-            'offered_job', 
-            'offered_job__employer'
-        ).order_by('-date_offered')
+        applications = AppliedJobs.objects.select_related(
+            'applicant', 'applicant__user', 'applied_job', 'applied_job__employer'
+        )
+        referrals = OfferedJobs.objects.select_related(
+            'applicant', 'applicant__user', 'offered_job', 'offered_job__employer'
+        )
 
-        # Capture filtering text and quick-tab strings
         self.search_query = self.request.GET.get('search', '').strip()
-        self.selected_status = self.request.GET.get('status', 'All')
+        self.selected_status = self.request.GET.get('status', 'All').strip()
+        self.selected_source = self.request.GET.get('source', 'all').strip()
+        self.selected_period = self.request.GET.get('period', '').strip()
+        self.selected_job_type = self.request.GET.get('job_type', '').strip()
+        if self.selected_source not in {'all', 'direct', 'referral'}:
+            self.selected_source = 'all'
+        if self.selected_job_type not in dict(Jobs.NATURE_OF_WORK_CHOICES):
+            self.selected_job_type = ''
 
-        # Global Multi-Field Text Search
         if self.search_query:
-            queryset = queryset.filter(
+            applications = applications.filter(
+                Q(applicant__first_name__icontains=self.search_query) |
+                Q(applicant__last_name__icontains=self.search_query) |
+                Q(applied_job__job_title__icontains=self.search_query) |
+                Q(applied_job__employer__business_name__icontains=self.search_query)
+            )
+            referrals = referrals.filter(
                 Q(applicant__first_name__icontains=self.search_query) |
                 Q(applicant__last_name__icontains=self.search_query) |
                 Q(offered_job__job_title__icontains=self.search_query) |
-                Q(offered_job__employer__company_name__icontains=self.search_query)
+                Q(offered_job__employer__business_name__icontains=self.search_query)
             )
 
-        # Apply specific status tab matching your model's APPLICATION_STATUS choices
-        if self.selected_status != 'All':
-            queryset = queryset.filter(status=self.selected_status)
+        if self.selected_status == 'near_hire':
+            applications = applications.filter(status='near_hire')
+            referrals = referrals.filter(status='near_hire')
+        elif self.selected_status != 'All':
+            applications = applications.filter(status=self.selected_status)
+            referrals = referrals.filter(status=self.selected_status)
 
-        return queryset
+        if self.selected_job_type:
+            applications = applications.filter(applied_job__nature_of_work=self.selected_job_type)
+            referrals = referrals.filter(offered_job__nature_of_work=self.selected_job_type)
+
+        if self.selected_source == 'direct':
+            referrals = referrals.none()
+        elif self.selected_source == 'referral':
+            applications = applications.none()
+
+        try:
+            period_start = datetime.strptime(self.selected_period, '%Y-%m')
+        except ValueError:
+            period_start = None
+
+        if period_start:
+            period_start = timezone.make_aware(period_start)
+            if period_start.month == 12:
+                period_end = period_start.replace(year=period_start.year + 1, month=1)
+            else:
+                period_end = period_start.replace(month=period_start.month + 1)
+            applications = applications.filter(application_date__gte=period_start, application_date__lt=period_end)
+            referrals = referrals.filter(date_offered__gte=period_start, date_offered__lt=period_end)
+            self.selected_period = period_start.strftime('%Y-%m')
+        else:
+            self.selected_period = ''
+
+        statuses = []
+        for application in applications:
+            application.source_type = 'Direct Application'
+            application.job = application.applied_job
+            application.offered_job = application.applied_job
+            application.submitted_at = application.application_date
+            application.date_offered = application.application_date
+            application.remarks = ''
+            application.status_label = 'Near Hire' if application.status == 'near_hire' else application.get_status_display()
+            statuses.append(application)
+
+        for referral in referrals:
+            referral.source_type = 'PESO Referral'
+            referral.job = referral.offered_job
+            referral.submitted_at = referral.date_offered
+            referral.status_label = 'Near Hire' if referral.status == 'near_hire' else referral.get_status_display()
+            statuses.append(referral)
+
+        statuses.sort(key=lambda record: record.submitted_at, reverse=True)
+        return statuses
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Calculate metric pill counters dynamically using your model choices
-        kpis = OfferedJobs.objects.aggregate(
-            total=Count('id'),
-            female=Count('id', filter=Q(applicant__sex='F')),  # Assumes 'sex' field exists on ApplicantProfile
-            pending=Count('id', filter=Q(status='pending')),
-            reviewed=Count('id', filter=Q(status='reviewed')),
-            interview=Count('id', filter=Q(status='for interview')),
-            hired=Count('id', filter=Q(status='hired')),
-            rejected=Count('id', filter=Q(status='rejected')),
-        )
 
         context.update({
             'search_query': self.search_query,
             'selected_status': self.selected_status,
-            'kpis': kpis,
-            'total_results': self.get_queryset().count()
+            'selected_source': self.selected_source,
+            'selected_period': self.selected_period,
+            'selected_job_type': self.selected_job_type,
+            'job_type_choices': Jobs.NATURE_OF_WORK_CHOICES,
+            'total_results': len(context['application_statuses']),
         })
         return context
 
@@ -1475,3 +1636,107 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class HelpView(LoginRequiredMixin, TemplateView):
     template_name = 'help.html'
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    """
+    Renders the dedicated notification inbox page listing all notifications 
+    for the current user with read/unread filtering.
+    """
+    model = Notification
+    template_name = 'notifications.html'
+    context_object_name = 'notifications'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(recipient=self.request.user)
+        status_filter = self.request.GET.get('status', 'all').lower()
+
+        if status_filter == 'unread':
+            queryset = queryset.filter(is_read=False)
+        elif status_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_notifications = Notification.objects.filter(recipient=self.request.user)
+        
+        context.update({
+            'unread_count': user_notifications.filter(is_read=False).count(),
+            'total_count': user_notifications.count(),
+            'selected_status': self.request.GET.get('status', 'all'),
+        })
+        return context
+
+class NotificationHeaderApiView(LoginRequiredMixin, View):
+    """
+    AJAX endpoint returning unread count and latest 5 unread notifications 
+    for real-time navbar notification bell badges and dropdowns.
+    """
+    def get(self, request, *args, **kwargs):
+        user_notifications = Notification.objects.filter(recipient=request.user)
+        unread_qs = user_notifications.filter(is_read=False).order_by('-created_at')[:5]
+
+        data = {
+            'unread_count': user_notifications.filter(is_read=False).count(),
+            'notifications': [
+                {
+                    'id': str(n.id) if hasattr(n, 'id') else str(n.uuid),
+                    'title': getattr(n, 'title', 'Notification'),
+                    'message': getattr(n, 'message', str(n)),
+                    'notification_type': getattr(n, 'notification_type', 'info'),
+                    'target_url': getattr(n, 'target_url', '#'),
+                    'created_at': n.created_at.strftime('%b %d, %Y %I:%M %p') if hasattr(n, 'created_at') else '',
+                    'is_read': n.is_read,
+                }
+                for n in unread_qs
+            ]
+        }
+        return JsonResponse(data)
+
+class MarkNotificationAsReadView(LoginRequiredMixin, View):
+    """
+    Marks a single notification as read. Supports both standard POST redirects and AJAX calls.
+    """
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+
+        # Redirect to target_url if present, otherwise default to inbox
+        redirect_url = getattr(notification, 'target_url', None) or request.META.get('HTTP_REFERER', 'AdminSide:notifications_list')
+        return redirect(redirect_url)
+
+class MarkAllNotificationsAsReadView(LoginRequiredMixin, View):
+    """
+    Marks all unread notifications for the current user as read.
+    """
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False
+        ).update(is_read=True)
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'updated_count': updated_count, 'unread_count': 0})
+
+        messages.success(request, f"Marked {updated_count} notification(s) as read.")
+        return redirect(request.META.get('HTTP_REFERER', 'AdminSide:notifications_list'))
+
+class DeleteNotificationView(LoginRequiredMixin, View):
+    """
+    Deletes a single notification record.
+    """
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.delete()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+
+        messages.success(request, "Notification deleted.")
+        return redirect('AdminSide:notifications_list')

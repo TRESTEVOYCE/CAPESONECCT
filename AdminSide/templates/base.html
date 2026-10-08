@@ -39,9 +39,21 @@
         display: none !important; 
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+
+    /* Custom Scrollbar for Notification Dropdown Body */
+    .notif-scroll::-webkit-scrollbar {
+        display: block !important;
+        width: 6px;
+    }
+    .notif-scroll::-webkit-scrollbar-track {
+        background: #0F172A;
+    }
+    .notif-scroll::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+    }
 
     /* Smooth Width Animation */
     #sidebar {
@@ -123,7 +135,7 @@
                          alt="PESO Logo" 
                          class="h-12 w-12 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-md transition-transform duration-200 hover:scale-105">
                     <div class="sidebar-text-node text-center w-full">
-                        <h2 class="text-sm font-black text-white tracking-wider uppercase leading-none">
+                        <h2 class="text-base font-black text-white tracking-wider uppercase leading-none">
                             CA<span class="text-amber-400">PESO</span>NNECT
                         </h2>
                     </div>
@@ -139,7 +151,7 @@
                 
                 <!-- Dashboard -->
                 <a href="{% url 'AdminSide:dashboard' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if request.resolver_match.url_name in 'dashboard' %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name in 'dashboard' %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -150,7 +162,7 @@
 
                 <!-- Job Postings -->
                 <a href="{% url 'AdminSide:job_postings_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if request.resolver_match.url_name == 'job_postings_list' or request.resolver_match.url_name == 'job_posting_detail' or 'job' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -161,7 +173,7 @@
 
                 <!-- Applicants -->
                 <a href="{% url 'AdminSide:applicants_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'applicant' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'applicant' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -172,7 +184,7 @@
 
                 <!-- Employers -->
                 <a href="{% url 'AdminSide:employer_list' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'employer' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'employer' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -181,20 +193,20 @@
                     <span class="sidebar-text-node pl-2 truncate">Employers</span>
                 </a>
 
-                <!-- Applications & Referrals -->
+                <!-- Application Statuses -->
                 <a href="{% url 'AdminSide:referrals_list' %}"
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'referral' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'referral' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
                         <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-white transition-colors duration-200"></i>
                     </div>
-                    <span class="sidebar-text-node pl-2 truncate">Applications & Referrals</span>
+                    <span class="sidebar-text-node pl-2 truncate">Application Statuses</span>
                 </a>
 
                 <!-- Special Programs -->
                 <a href="{% url 'AdminSide:special_programs_list' %}"
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'special_program' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'special_program' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -205,7 +217,7 @@
 
                 <!-- Reports -->
                 <a href="{% url 'AdminSide:peso_monthly_report' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'report' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'report' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -224,7 +236,7 @@
 
                 <!-- Settings -->
                 <a href="{% url 'AdminSide:account_settings' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'setting' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'setting' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -235,7 +247,7 @@
 
                 <!-- Help -->
                 <a href="{% url 'AdminSide:account_help' %}" 
-                class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold transition-colors duration-200
+                class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold transition-colors duration-200
                 {% if 'help' in request.resolver_match.url_name %} bg-sidebar-active text-white {% else %} text-slate-400 hover:bg-sidebar-hover hover:text-white {% endif %}">
                     <span class="absolute left-1 w-1 h-4 bg-brand-red rounded-full transition-all duration-200 {% if 'help' in request.resolver_match.url_name %}opacity-100 scale-100{% else %}opacity-0 scale-75{% endif %}"></span>
                     <div class="nav-icon-wrapper">
@@ -248,7 +260,7 @@
 
         <!-- Sign Out Link -->
         <div class="px-3 py-2 border-t border-sidebar-border bg-sidebar-bg shrink-0">
-            <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-9 px-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
+            <a href="{% url 'AdminSide:admin_logout' %}" class="group relative flex items-center h-10 px-2 rounded-xl text-sm font-semibold text-slate-400 hover:bg-sidebar-hover hover:text-white transition-colors duration-200">
                 <div class="nav-icon-wrapper">
                     <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
                 </div>
@@ -271,7 +283,7 @@
                     {% elif 'job' in request.resolver_match.url_name %}Job Postings Management
                     {% elif 'applicant' in request.resolver_match.url_name %}Applicants Directory
                     {% elif 'employer' in request.resolver_match.url_name %}Employer Registry
-                    {% elif 'referral' in request.resolver_match.url_name %}Referrals & Applications
+                    {% elif 'referral' in request.resolver_match.url_name %}Application Statuses
                     {% elif 'report' in request.resolver_match.url_name %}PESO Monitoring Reports
                     {% elif 'setting' in request.resolver_match.url_name %}Account Settings
                     {% elif 'help' in request.resolver_match.url_name %}Help & Support
@@ -280,51 +292,103 @@
                 {% endblock %}
             </div>
 
-            <!-- TOPBAR RIGHT: PROFILE ACCOUNT TRIGGER & DROPDOWN -->
-            <div class="relative">
-                <button id="userMenuBtn" class="flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
-                    <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
-                        alt="Profile Picture" 
-                        class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm transition hover:scale-105">
-                </button>
+            <!-- TOPBAR RIGHT: NOTIFICATION BELL & PROFILE ACCOUNT TRIGGER -->
+            <div class="flex items-center space-x-4">
 
-                <!-- VERTICAL PROFILE MODAL / DROPDOWN -->
-                <div id="userDropdown" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 py-4 z-50">
-                    
-                    <!-- TOP: CENTERED PROFILE HEADER -->
-                    <div class="flex flex-col items-center text-center px-4 pb-4 border-b border-slate-100">
-                        <!-- Profile Picture at Top -->
-                        <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F172A&color=fff&bold=true{% endif %}" 
-                            alt="Profile Picture" 
-                            class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm">
+                <!-- NOTIFICATION BELL & DROPDOWN WRAPPER -->
+                <div class="relative" id="notifDropdownWrapper">
+                    <!-- Bell Trigger Button -->
+                    <button id="notifBellBtn" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:ring-2 hover:ring-indigo-500/30 text-[#112954] transition focus:outline-none cursor-pointer">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                        <!-- Dynamic Unread Badge -->
+                        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                            0
+                        </span>
+                    </button>
+
+                    <!-- NOTIFICATION DROPDOWN MODAL -->
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-[#0B1120] rounded-2xl shadow-2xl border border-slate-800 text-slate-200 z-50 overflow-hidden flex flex-col max-h-[540px]">
                         
-                        <!-- Name -->
-                        <p class="text-sm font-bold text-slate-800 leading-tight mt-2">
-                            {{ request.user.get_full_name|default:"Administrator" }}
-                        </p>
-                        
-                        <!-- Designation -->
-                        <p class="text-xs font-medium text-slate-500 mt-0.5">
-                            {{ request.user.groups.first.name|default:"PESO Manager" }}
-                        </p>
+                        <!-- Header -->
+                        <div class="px-4 py-3 bg-[#0F172A] border-b border-slate-800 flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-bell text-rose-500 text-sm"></i>
+                                <h3 class="text-sm font-extrabold text-white tracking-wide">Notifications</h3>
+                                <span id="notifNewPill" class="bg-rose-600/30 text-rose-400 border border-rose-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    0 new
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button id="markAllReadBtn" class="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1 focus:outline-none">
+                                    <i class="fa-solid fa-check-double text-[10px]"></i> Mark all read
+                                </button>
+                                <button id="closeNotifBtn" class="text-slate-400 hover:text-white text-xs focus:outline-none">
+                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Subheader Label -->
+                        <div class="px-4 py-1.5 bg-[#0B1120] border-b border-slate-800/60 shrink-0">
+                            <p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Inbox</p>
+                        </div>
+
+                        <!-- Dynamic Notification List Items Container -->
+                        <div id="notifListContainer" class="divide-y divide-slate-800/60 overflow-y-auto max-h-80 notif-scroll flex-1 bg-[#FFFDF5] text-slate-800">
+                            <!-- JS dynamic rendering injection point -->
+                        </div>
+
+                        <!-- Dropdown Footer -->
+                        <div class="px-4 py-2.5 bg-[#FFFDF5] border-t border-amber-100 flex items-center justify-between shrink-0 text-xs font-medium text-slate-600">
+                            <span id="notifFooterCounts">0 total &bull; 0 unread</span>
+                            <a href="{% url 'AdminSide:notifications_list' %}" class="font-bold text-rose-700 hover:text-rose-800 hover:underline">
+                                View all
+                            </a>
+                        </div>
                     </div>
-
-                    <!-- OPTIONS SECTION -->
-                    <div class="pt-2 px-2">
-                        <!-- Manage Account -->
-                        <a href="{% url 'AdminSide:account_settings' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
-                            <i class="fa-solid fa-user-gear text-slate-400 w-4 text-center"></i>
-                            <span>Manage Account</span>
-                        </a>
-
-                        <!-- Logout -->
-                        <a href="{% url 'AdminSide:admin_logout' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition mt-1">
-                            <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
-
                 </div>
+
+                <!-- PROFILE DROPDOWN WRAPPER -->
+                <div class="relative">
+                    <button id="userMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
+                        <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                            alt="Profile Picture" 
+                            class="w-9 h-9 rounded-full object-cover transition hover:scale-105">
+                    </button>
+
+                    <!-- VERTICAL PROFILE MODAL / DROPDOWN -->
+                    <div id="userDropdown" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 py-4 z-50">
+                        
+                        <!-- TOP: CENTERED PROFILE HEADER -->
+                        <div class="flex flex-col items-center text-center px-4 pb-4 border-b border-slate-100">
+                            <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                                alt="Profile Picture" 
+                                class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm">
+                            
+                            <p class="text-sm font-bold text-slate-800 leading-tight mt-2">
+                                {{ request.user.get_full_name|default:"Administrator" }}
+                            </p>
+                            
+                            <p class="text-sm font-medium text-slate-500 mt-0.5">
+                                {{ request.user.groups.first.name|default:"PESO Manager" }}
+                            </p>
+                        </div>
+
+                        <!-- OPTIONS SECTION -->
+                        <div class="pt-2 px-2">
+                            <a href="{% url 'AdminSide:account_settings' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+                                <i class="fa-solid fa-user-gear text-slate-400 w-4 text-center"></i>
+                                <span>Manage Account</span>
+                            </a>
+
+                            <a href="{% url 'AdminSide:admin_logout' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition mt-1">
+                                <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </header>
 
@@ -334,25 +398,12 @@
             {% endblock %}
         </main>
 
-        <!-- FOOTER -->
-        <footer class="h-9 bg-white border-t border-slate-200 shrink-0 flex items-center justify-between px-6 text-[10px] text-slate-400 z-40">
-            <div>
-                <span>PESO Employment MIS v1.0</span>
-                <span class="mx-1.5 text-slate-300">•</span>
-                <span class="font-medium text-slate-500">Municipality Government of Carigara</span>
-            </div>
-            <div>
-                <span>Powered by <span class="font-bold text-slate-600">DOLE PESO Network</span></span>
-                <span class="mx-1 text-slate-300">•</span>
-                <span>2026</span>
-            </div>
-        </footer>
-
     </div>
 
     <!-- SCRIPT -->
     <script>
         (function(){
+            // Sidebar Navigation Logic
             const sidebar = document.getElementById('sidebar');
             const logoBtn = document.getElementById('sidebarToggleLogo');
             const STORAGE_KEY = 'cap_sidebar_collapsed_v1';
@@ -401,6 +452,7 @@
                 userMenuBtn.addEventListener('click', (e)=>{
                     e.stopPropagation();
                     userDropdown.classList.toggle('hidden');
+                    if(notifDropdown) notifDropdown.classList.add('hidden');
                 });
 
                 document.addEventListener('click', (e)=>{
@@ -409,6 +461,156 @@
                     }
                 });
             }
+
+            // Real-Time Notification Logic
+            const notifBellBtn = document.getElementById('notifBellBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            const closeNotifBtn = document.getElementById('closeNotifBtn');
+            const markAllReadBtn = document.getElementById('markAllReadBtn');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifNewPill = document.getElementById('notifNewPill');
+            const notifListContainer = document.getElementById('notifListContainer');
+            const notifFooterCounts = document.getElementById('notifFooterCounts');
+
+            // Helper to fetch CSRF token from cookies
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            async function fetchHeaderNotifications() {
+                try {
+                    const response = await fetch("{% url 'AdminSide:notifications_header_api' %}", {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if(!response.ok) return;
+                    const data = await response.json();
+                    
+                    // Update Badge and Count Indicators
+                    if (data.unread_count > 0) {
+                        notifBadge.textContent = data.unread_count;
+                        notifBadge.classList.remove('hidden');
+                        notifNewPill.textContent = `${data.unread_count} new`;
+                    } else {
+                        notifBadge.classList.add('hidden');
+                        notifNewPill.textContent = `0 new`;
+                    }
+
+                    notifFooterCounts.textContent = `${data.total_count || data.unread_count} total \u2022 ${data.unread_count} unread`;
+
+                    // Populate Dropdown Items
+                    if (!data.notifications || data.notifications.length === 0) {
+                        notifListContainer.innerHTML = `
+                            <div class="p-6 text-center text-slate-400 text-xs">
+                                No new notifications.
+                            </div>`;
+                        return;
+                    }
+
+                    let html = '';
+                    data.notifications.forEach(n => {
+                        const badgeColor = n.notification_type === 'job' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : 'bg-indigo-100 text-indigo-700';
+                        const iconClass = n.notification_type === 'job' ? 'fa-file-lines' : 'fa-user-plus';
+
+                        html += `
+                        <div class="p-3.5 hover:bg-amber-50/60 transition relative group border-b border-amber-100/60">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100/70 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i class="fa-solid ${iconClass} text-xs"></i>
+                                </div>
+                                <div class="flex-1 pr-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeColor}">${n.category_label || 'New Registration'}</span>
+                                        <h4 class="text-xs font-bold text-slate-900 truncate">${n.title}</h4>
+                                        <span class="ml-auto text-[10px] font-semibold text-rose-600 flex items-center gap-1 shrink-0">
+                                            \u25CF ${n.created_at}
+                                        </span>
+                                    </div>
+                                    <a href="${n.target_url}" class="text-xs font-semibold text-slate-800 hover:text-rose-700 block line-clamp-2 leading-snug">
+                                        ${n.message}
+                                    </a>
+                                    ${n.reference_code ? `<p class="text-[10px] font-bold text-rose-800 mt-1">${n.reference_code}</p>` : ''}
+                                </div>
+                                <button onclick="markNotificationRead('${n.id}', event)" class="text-slate-300 hover:text-slate-500 text-xs p-1 focus:outline-none" title="Mark as read">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>`;
+                    });
+                    notifListContainer.innerHTML = html;
+
+                } catch (e) {
+                    console.error("Failed to load notifications:", e);
+                }
+            }
+
+            // Window level function for inline click handling
+            window.markNotificationRead = async function(notifId, event) {
+                if(event) event.stopPropagation();
+                try {
+                    const response = await fetch(`/notifications/${notifId}/read/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if(response.ok) fetchHeaderNotifications();
+                } catch(e) {
+                    console.error(e);
+                }
+            };
+
+            // Toggle Notification Dropdown
+            if(notifBellBtn && notifDropdown){
+                notifBellBtn.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('hidden');
+                    if(userDropdown) userDropdown.classList.add('hidden');
+                });
+
+                closeNotifBtn && closeNotifBtn.addEventListener('click', ()=>{
+                    notifDropdown.classList.add('hidden');
+                });
+
+                document.addEventListener('click', (e)=>{
+                    if(!notifDropdown.contains(e.target) && !notifBellBtn.contains(e.target)){
+                        notifDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Mark All Read Button Event Listener
+            markAllReadBtn && markAllReadBtn.addEventListener('click', async ()=>{
+                try {
+                    const response = await fetch("{% url 'AdminSide:mark_all_notifications_read' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if(response.ok) fetchHeaderNotifications();
+                } catch(e) {
+                    console.error(e);
+                }
+            });
+
+            // Initial Fetch and short-polling every 10 seconds
+            fetchHeaderNotifications();
+            setInterval(fetchHeaderNotifications, 10000);
         })();
     </script>
 </body>

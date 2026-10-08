@@ -17,7 +17,7 @@
             <span class="px-3 py-1 text-xs font-bold rounded-full mt-1 inline-block
                 {% if applicant.status == 'approved' %}bg-green-100 text-green-700
                 {% elif applicant.status == 'pending' %}bg-amber-100 text-amber-700
-                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {% else %}bg-red-100 text-red-700{% endif %}">
                 Status: {{ applicant.get_status_display|default:applicant.status|title }}
             </span>
         </div>
@@ -27,12 +27,12 @@
                 {% csrf_token %}
                 {% if applicant.status != 'approved' %}
                     <button type="submit" name="action" value="verify" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-check"></i> Verify Applicant
+                     Verify Applicant
                     </button>
                 {% endif %}
                 {% if applicant.status != 'rejected' %}
                     <button type="submit" name="action" value="reject" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-xmark"></i> Reject
+                     Reject
                     </button>
                 {% endif %}
             </form>
@@ -48,7 +48,7 @@
             <!-- SECTION I: PERSONAL INFORMATION -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
                 <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-user text-slate-400"></i> I. Personal Information
+                     I. Personal Information
                 </h2>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-6 text-xs">
@@ -160,7 +160,7 @@
             <!-- SECTION II: JOB PREFERENCE -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
                 <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-briefcase text-slate-400"></i> II. Job Preference
+                     II. Job Preference
                 </h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -197,7 +197,7 @@
             <!-- SECTION III: EDUCATIONAL BACKGROUND -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
                 <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-graduation-cap text-slate-400"></i> III. Educational Background
+                     III. Educational Background
                 </h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -274,7 +274,7 @@
             <!-- SECTION VI: WORK EXPERIENCE -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3">
                 <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-briefcase text-slate-400"></i> VI. Work Experience (Past 10 Years)
+                     VI. Work Experience (Past 10 Years)
                 </h2>
 
                 <div class="overflow-x-auto">
@@ -308,7 +308,7 @@
             <!-- SECTION VII & IX: SKILLS -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
                 <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-screwdriver-wrench text-slate-400"></i> VII & IX. Skills & Competencies
+                     VII & IX. Skills & Competencies
                 </h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -351,16 +351,10 @@
                 </h2>
 
                 <div class="border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50 text-center flex flex-col items-center justify-center min-h-[220px]">
-                    {% if applicant.applicant_id_pictures %}
-                        {% if applicant.applicant_id_pictures.url %}
-                            <a href="{{ applicant.applicant_id_pictures.url }}" target="_blank" title="Click to view full size">
-                                <img src="{{ applicant.applicant_id_pictures.url }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
-                            </a>
-                        {% else %}
-                            <a href="/media/{{ applicant.applicant_id_pictures }}" target="_blank" title="Click to view full size">
-                                <img src="/media/{{ applicant.applicant_id_pictures }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
-                            </a>
-                        {% endif %}
+                    {% if applicant.applicant_id_picture %}
+                        <a href="{{ applicant.applicant_id_picture.url }}" target="_blank" rel="noopener noreferrer" title="Click to view full size">
+                            <img src="{{ applicant.applicant_id_picture.url }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
+                        </a>
                         <p class="text-[11px] text-slate-400 mt-3 font-medium">Click image to inspect full size</p>
                     {% else %}
                         <div class="py-8 space-y-2">

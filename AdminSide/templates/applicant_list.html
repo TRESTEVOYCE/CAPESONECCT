@@ -111,9 +111,11 @@
                         </td>
                         
                         <td class="py-4 px-4 text-right whitespace-nowrap">
-                            <a href="{% url 'AdminSide:applicant_verification' applicant.uuid %}" 
-                            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold px-3 py-1.5 rounded transition">
-                            View
+                            <a href="{% url 'AdminSide:applicant_verification' applicant.uuid %}"
+                               title="View applicant details"
+                               aria-label="View applicant details"
+                               class="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded-md transition inline-flex items-center justify-center">
+                                <i class="fa-solid fa-eye text-slate-500" aria-hidden="true"></i>
                             </a>
                         </td>
                     </tr>
