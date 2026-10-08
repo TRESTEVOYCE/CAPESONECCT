@@ -1,6 +1,6 @@
 from django import forms
-from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience
-
+from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience,User
+from django.contrib.auth.forms import SetPasswordForm
 
 
 
@@ -513,3 +513,27 @@ class ProfilePictureForm(forms.ModelForm):
         fields = [
             'applicant_id_picture'
         ]
+
+class UpdateEmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email']
+
+
+class UpdatePasswordForm(SetPasswordForm):
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control'
+        })
+
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control'
+        })
+
+
+class UpdateUsernameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username']
