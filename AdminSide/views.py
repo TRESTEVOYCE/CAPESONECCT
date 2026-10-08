@@ -7,7 +7,7 @@ from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
@@ -42,6 +42,7 @@ from .forms import (
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
+from .models import Notification
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
@@ -127,20 +128,79 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
 
         # Job postings count filtered to active status
         active_job_count = Jobs.objects.filter(status='Active').count()
+        urgent_job_count = Jobs.objects.filter(
+            status='Active',
+            job_posting_expiry__gt=today,
+            job_posting_expiry__lte=today + timedelta(days=7),
+        ).count()
         
         referral_count = OfferedJobs.objects.count()
-        placement_count = OfferedJobs.objects.filter(status='hired').count()
+        weekly_start = timezone.make_aware(
+            datetime.combine(today - timedelta(days=today.weekday()), datetime.min.time())
+        )
+        weekly_end = weekly_start + timedelta(days=7)
+        weekly_referral_count = OfferedJobs.objects.filter(
+            date_offered__gte=weekly_start,
+            date_offered__lt=weekly_end,
+        ).count()
+
+        placement_count = (
+            OfferedJobs.objects.filter(status='hired').count() +
+            AppliedJobs.objects.filter(status='hired').count()
+        )
         
-        # Only count records explicitly assigned the near_hire status.
-        near_hire_count = OfferedJobs.objects.filter(status='near_hire').count()
+        near_hire_count = (
+            OfferedJobs.objects.filter(status='near_hire').count() +
+            AppliedJobs.objects.filter(status='near_hire').count()
+        )
 
-        # Dynamic calculation of monthly registrations
+        # Compare registrations to the previous calendar month.
         first_of_month = timezone.make_aware(datetime(today.year, today.month, 1))
-        monthly_new_applicants = ApplicantProfile.objects.filter(created_at__gte=first_of_month).count()
-        monthly_new_employers = EmployerProfile.objects.filter(created_at__gte=first_of_month).count()
+        if today.month == 1:
+            first_of_previous_month = timezone.make_aware(datetime(today.year - 1, 12, 1))
+        else:
+            first_of_previous_month = timezone.make_aware(datetime(today.year, today.month - 1, 1))
+        if today.month == 12:
+            first_of_next_month = timezone.make_aware(datetime(today.year + 1, 1, 1))
+        else:
+            first_of_next_month = timezone.make_aware(datetime(today.year, today.month + 1, 1))
 
-        # Dynamic Placement Rate Calculation
-        placement_rate = round((placement_count / referral_count * 100), 1) if referral_count > 0 else 0.0
+        monthly_new_applicants = ApplicantProfile.objects.filter(
+            created_at__gte=first_of_month,
+            created_at__lt=first_of_next_month,
+        ).count()
+        previous_month_applicants = ApplicantProfile.objects.filter(
+            created_at__gte=first_of_previous_month,
+            created_at__lt=first_of_month,
+        ).count()
+        monthly_new_employers = EmployerProfile.objects.filter(
+            created_at__gte=first_of_month,
+            created_at__lt=first_of_next_month,
+        ).count()
+
+        if previous_month_applicants:
+            applicant_change = (
+                (monthly_new_applicants - previous_month_applicants)
+                / previous_month_applicants
+                * 100
+            )
+            applicant_change_display = f'{applicant_change:+g}%'
+            applicant_change_caption = 'vs last month'
+            applicant_change_class = (
+                'bg-emerald-50 text-emerald-700'
+                if applicant_change >= 0 else 'bg-rose-50 text-rose-700'
+            )
+        else:
+            applicant_change_display = f'+{monthly_new_applicants} new'
+            applicant_change_caption = 'this month'
+            applicant_change_class = 'bg-emerald-50 text-emerald-700'
+
+        # The placements card links to a combined list of direct applications and referrals.
+        total_applications_and_referrals = AppliedJobs.objects.count() + referral_count
+        placement_rate = (
+            round(placement_count / total_applications_and_referrals * 100, 1)
+            if total_applications_and_referrals else 0.0
+        )
 
         recent_referrals = (
             OfferedJobs.objects.select_related(
@@ -235,8 +295,13 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
             'referral_count': referral_count,
             'placement_count': placement_count,
             'near_hire_count': near_hire_count,
+            'urgent_job_count': urgent_job_count,
+            'weekly_referral_count': weekly_referral_count,
             'monthly_new_applicants': monthly_new_applicants,
             'monthly_new_employers': monthly_new_employers,
+            'applicant_change_display': applicant_change_display,
+            'applicant_change_caption': applicant_change_caption,
+            'applicant_change_class': applicant_change_class,
             'placement_rate': placement_rate,
             'current_month_name': calendar.month_name[today.month],
             'recent_referrals': recent_referrals,
@@ -1571,3 +1636,107 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class HelpView(LoginRequiredMixin, TemplateView):
     template_name = 'help.html'
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    """
+    Renders the dedicated notification inbox page listing all notifications 
+    for the current user with read/unread filtering.
+    """
+    model = Notification
+    template_name = 'notifications.html'
+    context_object_name = 'notifications'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(recipient=self.request.user)
+        status_filter = self.request.GET.get('status', 'all').lower()
+
+        if status_filter == 'unread':
+            queryset = queryset.filter(is_read=False)
+        elif status_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_notifications = Notification.objects.filter(recipient=self.request.user)
+        
+        context.update({
+            'unread_count': user_notifications.filter(is_read=False).count(),
+            'total_count': user_notifications.count(),
+            'selected_status': self.request.GET.get('status', 'all'),
+        })
+        return context
+
+class NotificationHeaderApiView(LoginRequiredMixin, View):
+    """
+    AJAX endpoint returning unread count and latest 5 unread notifications 
+    for real-time navbar notification bell badges and dropdowns.
+    """
+    def get(self, request, *args, **kwargs):
+        user_notifications = Notification.objects.filter(recipient=request.user)
+        unread_qs = user_notifications.filter(is_read=False).order_by('-created_at')[:5]
+
+        data = {
+            'unread_count': user_notifications.filter(is_read=False).count(),
+            'notifications': [
+                {
+                    'id': str(n.id) if hasattr(n, 'id') else str(n.uuid),
+                    'title': getattr(n, 'title', 'Notification'),
+                    'message': getattr(n, 'message', str(n)),
+                    'notification_type': getattr(n, 'notification_type', 'info'),
+                    'target_url': getattr(n, 'target_url', '#'),
+                    'created_at': n.created_at.strftime('%b %d, %Y %I:%M %p') if hasattr(n, 'created_at') else '',
+                    'is_read': n.is_read,
+                }
+                for n in unread_qs
+            ]
+        }
+        return JsonResponse(data)
+
+class MarkNotificationAsReadView(LoginRequiredMixin, View):
+    """
+    Marks a single notification as read. Supports both standard POST redirects and AJAX calls.
+    """
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+
+        # Redirect to target_url if present, otherwise default to inbox
+        redirect_url = getattr(notification, 'target_url', None) or request.META.get('HTTP_REFERER', 'AdminSide:notifications_list')
+        return redirect(redirect_url)
+
+class MarkAllNotificationsAsReadView(LoginRequiredMixin, View):
+    """
+    Marks all unread notifications for the current user as read.
+    """
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False
+        ).update(is_read=True)
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'updated_count': updated_count, 'unread_count': 0})
+
+        messages.success(request, f"Marked {updated_count} notification(s) as read.")
+        return redirect(request.META.get('HTTP_REFERER', 'AdminSide:notifications_list'))
+
+class DeleteNotificationView(LoginRequiredMixin, View):
+    """
+    Deletes a single notification record.
+    """
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.delete()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+
+        messages.success(request, "Notification deleted.")
+        return redirect('AdminSide:notifications_list')
