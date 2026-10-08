@@ -1,0 +1,140 @@
+{% extends 'applicant-base.html' %}
+{% block title %}My Applications - CAPESCONNECT PESO Carigara{% endblock %}
+
+{% block content %}
+<div class="w-full mx-auto py-2 space-y-6 text-stone-900 font-sans">
+    <!-- Page Header -->
+    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">My Applications</h1>
+
+    <!-- Application Pipeline Card -->
+    <div class="bg-white border border-stone-200/90 rounded-xl p-5 sm:p-6 shadow-3xs">
+        <h2 class="text-lg font-bold text-stone-900">Application Pipeline</h2>
+        <p class="text-xs sm:text-sm text-stone-500 mt-0.5 mb-6">Understand the journey from application to hiring</p>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative items-center">
+
+            <!-- Applied -->
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-stone-900 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center mb-2.5">
+                    {{ applied_count }}
+                </div>
+                <span class="text-sm sm:text-base font-bold text-stone-900">Applied</span>
+                <span class="text-xs text-stone-500 mt-0.5">Submit application</span>
+            </div>
+
+            <!-- Endorsed -->
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber-400 text-amber-950 font-extrabold text-lg sm:text-xl flex items-center justify-center mb-2.5">
+                    {{ endorsed_count }}
+                </div>
+                <span class="text-sm sm:text-base font-bold text-stone-900">Endorsed</span>
+                <span class="text-xs text-stone-500 mt-0.5">PESO approval</span>
+            </div>
+
+            <!-- Interviewed -->
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-stone-700 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center mb-2.5">
+                    {{ interviewed_count }}
+                </div>
+                <span class="text-sm sm:text-base font-bold text-stone-900">Interviewed</span>
+                <span class="text-xs text-stone-500 mt-0.5">Meet employer</span>
+            </div>
+
+            <!-- Hired -->
+            <div class="flex flex-col items-center text-center relative z-10">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-600 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center mb-2.5">
+                    {{ hired_count }}
+                </div>
+                <span class="text-sm sm:text-base font-bold text-stone-900">Hired</span>
+                <span class="text-xs text-stone-500 mt-0.5">Get the job!</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Application Cards Feed -->
+    <div class="space-y-4">
+        {% for item in applied_jobs %}
+        <div class="bg-white border border-stone-200/90 rounded-xl p-5 sm:p-6 shadow-3xs space-y-5">
+            <!-- Top Row: Job Title, Company, Status Badge & Match Score -->
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0 mt-0.5 text-stone-700 font-bold text-sm">
+                        {{ item.applied_job.employer.business_name|default:"T"|slice:":1" }}
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="text-lg sm:text-xl font-bold text-stone-900">{{ item.applied_job.job_title }}</h3>
+                        </div>
+                        <p class="text-xs sm:text-sm font-semibold text-stone-600 mt-0.5">{{ item.applied_job.employer.business_name|default:"TechHub Solutions Inc." }}</p>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500 mt-2">
+                            <span class="inline-flex items-center gap-1.5 font-medium">
+                                Applied: {{ item.application_date|date:"n/j/Y" }}
+                            </span>
+                            {% if item.status == 'endorsed' or item.status == 'approved' %}
+                            <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                                Endorsed: {{ item.endorsed_date|default:item.application_date|date:"n/j/Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between md:justify-end gap-5 border-t md:border-t-0 pt-3 md:pt-0 border-stone-100">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                        {{ item.status|default:"endorsed" }}
+                    </span>
+                    <div class="text-right">
+                        <span class="text-xs text-stone-400 block font-normal">Match Score</span>
+                        <span class="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">{{ item.match_score|default:"87" }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Progress Bar Section -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-semibold text-stone-700">Application Progress</span>
+                    <span class="font-bold text-stone-900 text-sm">{{ item.progress_percent|default:"50" }}%</span>
+                </div>
+                <div class="w-full bg-stone-100 rounded-full h-2.5 p-0.5 border border-stone-200/60">
+                    <div class="bg-stone-900 h-full rounded-full transition-all duration-500" style="width: {{ item.progress_percent|default:'50' }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Breakdown Match Cards (Skills / Education / Location) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-stone-50 border border-stone-200/70 rounded-lg p-3 text-center">
+                    <span class="text-xs text-stone-500 block font-medium">Skills Match</span>
+                    <span class="text-sm font-bold text-stone-900 mt-0.5 block">{{ item.skills_match_points|default:"40" }} pts</span>
+                </div>
+                <div class="bg-stone-50 border border-stone-200/70 rounded-lg p-3 text-center">
+                    <span class="text-xs text-stone-500 block font-medium">Education Match</span>
+                    <span class="text-sm font-bold text-stone-900 mt-0.5 block">{{ item.education_match_points|default:"10" }} pts</span>
+                </div>
+                <div class="bg-stone-50 border border-stone-200/70 rounded-lg p-3 text-center">
+                    <span class="text-xs text-stone-500 block font-medium">Location Match</span>
+                    <span class="text-sm font-bold text-stone-900 mt-0.5 block">{{ item.location_match_points|default:"10" }} pts</span>
+                </div>
+            </div>
+
+            <!-- Conditional Status Alert Box (Endorsed Banner) -->
+            {% if item.status == 'endorsed' or item.status == 'approved' %}
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3.5 flex items-start gap-2.5">
+                <span class="text-emerald-700 font-bold text-sm mt-0.5">✓</span>
+                <div class="text-xs">
+                    <p class="font-bold text-emerald-900">Congratulations! PESO has endorsed your application.</p>
+                    <p class="text-emerald-700 mt-0.5">Your profile has been sent to the employer. They will contact you if interested.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="bg-white border border-stone-200/90 rounded-xl p-12 text-center text-sm text-stone-500">
+            You haven't submitted any job applications yet.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends 'applicant-base.html' %}
+
+{% block content %}
+
+<form
+    method="POST"
+    action="{% url 'applicant-address' %}"
+    class="space-y-4"
+>
+    {% csrf_token %}
+
+    <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+        II. Address & Contact Information
+    </h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Address -->
+        <div class="space-y-4">
+
+            <h3 class="text-xs font-bold text-stone-700">
+                Address
+            </h3>
+
+            <!-- House / Street / Purok -->
+            <div>
+                <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    {{ form.house_street.label|default:"House No. / Street / Purok*" }}
+                </label>
+
+                <div class="field-wrap">
+                    {{ form.house_street }}
+                </div>
+
+                {% if form.house_street.errors %}
+                    <p class="mt-1 text-xs text-red-600">
+                        {{ form.house_street.errors|striptags }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Barangay / Municipality / Province -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                <!-- Barangay -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        {{ form.barangay.label|default:"Barangay*" }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.barangay }}
+                    </div>
+
+                    {% if form.barangay.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.barangay.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Municipality -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        {{ form.municipality.label|default:"Municipality*" }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.municipality }}
+                    </div>
+
+                    {% if form.municipality.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.municipality.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Province -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        {{ form.province.label|default:"Province*" }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.province }}
+                    </div>
+
+                    {% if form.province.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.province.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- Region / Zip Code -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <!-- Region -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        {{ form.region.label|default:"Region" }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.region }}
+                    </div>
+
+                    {% if form.region.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.region.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Zip Code -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        {{ form.zip_code.label|default:"Zipcode*" }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.zip_code }}
+                    </div>
+
+                    {% if form.zip_code.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.zip_code.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Contact Information -->
+        <div class="space-y-4">
+
+            <h3 class="text-xs font-bold text-stone-700">
+                Contact Information
+            </h3>
+
+            <!-- Primary / Secondary Mobile -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <!-- Primary Mobile -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        Mobile Number (Primary)*
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.phone_number }}
+                    </div>
+
+                    {% if form.phone_number.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.phone_number.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Secondary Mobile -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        Mobile Number (Secondary)
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.mobile_number_secondary }}
+                    </div>
+
+                    {% if form.mobile_number_secondary.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.mobile_number_secondary.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+
+            <!-- Landline / Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <!-- Landline -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        Landline Number (Optional)
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.landline_number }}
+                    </div>
+
+                    {% if form.landline_number.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.landline_number.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                        Email Address
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ form.email_address }}
+                    </div>
+
+                    {% if form.email_address.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.email_address.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- General Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
+            <a
+                href="{% url 'my_profile' %}"
+                class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
+            >
+                Back
+            </a>
+        </div>
+
+        <div class="flex justify-end pt-6 border-t border-stone-200">
+
+            <button
+                type="submit"
+                class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+            >
+                Save & Changes
+            </button>
+
+        </div>
+
+
+{% endblock %}

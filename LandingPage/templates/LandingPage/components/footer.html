@@ -1,0 +1,370 @@
+<footer class="bg-slate-950 text-slate-400 relative">
+    <!-- TOP CALL-TO-ACTION SECTION -->
+    <div class="bg-gradient-to-b from-blue-950 via-blue-900 to-indigo-950 py-16 sm:py-20 border-b border-blue-900/50">
+        <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-20 text-center space-y-6">
+            <h3 class="text-4xl sm:text-5xl font-black text-amber-400 tracking-tight font-serif drop-shadow-sm">
+                Ready to Find Your Next Job?
+            </h3>
+            <p class="text-white max-w-2xl mx-auto text-base sm:text-lg lg:text-xl font-bold leading-relaxed">
+                Join thousands of Filipinos who found work through PESO.<br class="hidden sm:inline"> 
+                Registration is free and takes less than 5 minutes.
+            </p>
+            <div class="pt-2">
+                <a href="{% url 'register_selection' %}" class="inline-block px-8 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl shadow-lg transition border border-amber-500/40 text-base sm:text-lg">
+                    Create Free Account
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM COPYRIGHT & LINKS BAR -->
+    <div class="bg-black py-6">
+        <div class="w-full px-6 sm:px-10 lg:px-16 xl:px-20 flex flex-col sm:flex-row justify-between items-center gap-4 text-base sm:text-lg font-bold text-white">
+            <p>&copy; 2026 Public Employment Service Office — Republic of the Philippines</p>
+            <div class="flex space-x-6 sm:space-x-8 items-center">
+                
+                <!-- Privacy Policy Trigger Button -->
+                <button type="button" onclick="openPrivacyModal()" class="hover:text-amber-400 transition bg-transparent border-none cursor-pointer text-base sm:text-lg font-bold text-white focus:outline-none">
+                    Privacy Policy
+                </button>
+
+                <!-- Terms of Use Trigger Button -->
+                <button type="button" onclick="openTermsModal()" class="hover:text-amber-400 transition bg-transparent border-none cursor-pointer text-base sm:text-lg font-bold text-white focus:outline-none">
+                    Terms of Use
+                </button>
+
+                <a href="#" class="hover:text-amber-400 transition">Contact PESO</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- FULL PRIVACY POLICY MODAL  -->
+<div id="privacyModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-slate-900 border border-slate-700 text-slate-200 w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+            <h3 class="text-2xl sm:text-3xl font-bold text-amber-400 font-serif">CAPESONNECT Privacy Policy & Notice</h3>
+            <button type="button" onclick="closePrivacyModal()" class="text-slate-400 hover:text-white text-4xl font-bold bg-transparent border-none cursor-pointer">&times;</button>
+        </div>
+
+        <!-- Modal Scrollable Content (Full Exact Text) -->
+        <div class="p-8 sm:p-12 overflow-y-auto space-y-8 text-lg sm:text-xl text-slate-300 leading-relaxed font-normal">
+            
+            <div class="border-b border-slate-800 pb-6">
+                <h2 class="text-4xl font-bold text-amber-400 mb-3">CAPESONNECT</h2>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-white mb-2">Privacy Policy and Privacy Notice</h3>
+                <p class="text-base text-slate-400 italic">Effective Date: [Insert Date] &nbsp;|&nbsp; Last Updated: [Insert Date]</p>
+            </div>
+
+            <p>CAPESONNECT ("the System") respects your right to privacy.</p>
+            
+            <p>This Privacy Policy explains how CAPESONNECT collects, records, stores, uses, accesses, and otherwise processes personal information in connection with its employment, workforce, beneficiary, and administrative functions.</p>
+
+            <p>This Privacy Policy is intended to provide transparency regarding the System's processing of personal information and to explain the rights available to individuals whose information is processed.</p>
+
+            <p>CAPESONECT is intended to operate in accordance with the <strong>Republic Act No. 10173, also known as the Data Privacy Act of 2012 (DPA)</strong>, its Implementing Rules and Regulations, and applicable issuances of the National Privacy Commission (NPC).</p>
+
+            <p>The DPA requires personal-data processing to observe the principles of <strong>transparency, legitimate purpose, and proportionality</strong>.</p>
+
+            <hr class="border-slate-800">
+
+            <h4 class="text-2xl font-bold text-white">1. Who Controls Your Personal Information?</h4>
+            <p>For purposes of the final production deployment, the responsible organization should identify itself as the <em>Personal Information Controller (PIC)</em>.</p>
+            <ul class="list-disc pl-6 space-y-3">
+                <li><strong>Personal Information Controller:</strong> [Official Organization / Government Office Name]</li>
+                <li><strong>Address:</strong> [Official Address]</li>
+                <li><strong>Data Protection Officer / Privacy Contact:</strong> [Name / Office]</li>
+                <li><strong>Email:</strong> [Official Privacy Email]</li>
+                <li><strong>Telephone:</strong> [Official Telephone Number]</li>
+            </ul>
+            <p class="text-base text-amber-400 bg-slate-950 p-5 rounded-lg border border-slate-800"><strong>IMPORTANT:</strong> This section must be completed by the organization that will legally operate CAPESONNECT. The development team or student developer should not automatically be identified as the PIC unless that is legally accurate.</p>
+
+            <h4 class="text-2xl font-bold text-white">2. Who Are the Data Subjects?</h4>
+            <p>CAPESONNECT may process information belonging to several categories of individuals, including:</p>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>Applicants and jobseekers;</li>
+                <li>Employers and authorized employer representatives;</li>
+                <li>PESO personnel;</li>
+                <li>MSWDO personnel;</li>
+                <li>Program beneficiaries;</li>
+                <li>Career guidance participants;</li>
+                <li>System administrators;</li>
+                <li>Authorized government or institutional personnel; and</li>
+                <li>Other individuals whose information is legitimately submitted or processed through the System.</li>
+            </ul>
+
+            <h4 class="text-2xl font-bold text-white">3. What Information Does CAPESONNECT Collect?</h4>
+            <p>CAPESONNECT may collect different categories of personal information depending on the user's role and the services being used.</p>
+            
+            <h5 class="text-xl font-semibold text-white mt-5">A. Account Information</h5>
+            <p>When creating an account, the System may collect:</p>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>Full name or username;</li>
+                <li>Email address;</li>
+                <li>Password credentials in protected form;</li>
+                <li>Account role;</li>
+                <li>Account status;</li>
+                <li>Email-verification status;</li>
+                <li>Account creation and update timestamps;</li>
+                <li>Login-related information; and</li>
+                <li>Profile picture, when provided.</li>
+            </ul>
+            <p class="text-base italic text-slate-400 mt-2">Passwords are not intended to be stored as readable/plain-text passwords.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">4. Applicant / Jobseeker Information</h4>
+            <p>An applicant profile may contain substantially more information than ordinary account registration. This may include:</p>
+            
+            <h5 class="text-xl font-semibold text-white mt-4">Identity Information</h5>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>First name, middle name, last name, suffix;</li>
+                <li>Date and place of birth, sex, civil status, nationality;</li>
+                <li>Applicant identification/reference number and image/document.</li>
+            </ul>
+
+            <h5 class="text-xl font-semibold text-white mt-4">Contact Information</h5>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>Primary/additional email, mobile numbers, landline number;</li>
+                <li>Residential address, street/house info, barangay, municipality, province, region, ZIP code.</li>
+            </ul>
+
+            <h5 class="text-xl font-semibold text-white mt-4">Employment Information</h5>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>Current employment status, reason for unemployment, job search duration, expected/preferred salary;</li>
+                <li>Willingness to work immediately, OFW status, intention to return to the Philippines, preferred occupations and locations.</li>
+            </ul>
+
+            <h5 class="text-xl font-semibold text-white mt-4">Education Information</h5>
+            <ul class="list-disc pl-6 space-y-3">
+                <li>Educational attainment, school/university, course/program, year graduated, school status, history;</li>
+                <li>Awards, training hours/institutions, certifications, licenses or eligibility info.</li>
+            </ul>
+
+            <h5 class="text-xl font-semibold text-white mt-4">Skills Information & Documents</h5>
+            <p>Computer skills, driving, customer service, bookkeeping, carpentry, welding, resumes, CVs, and supporting identification documents.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">5. Applicant Program and Beneficiary Information</h4>
+            <p>Where applicable, CAPESONNECT may process 4Ps beneficiary status, household IDs, program eligibility, and outcomes. Some data may qualify as <em>sensitive personal information</em> under Philippine law, receiving heightened protection under the DPA.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">6. Employer Information</h4>
+            <p>Includes organization details (business name, classification, workforce size, tax ID), representative information (owner name, designation, contact info), and verification documents (DTI/SEC registration, business permits, government IDs).</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">7. Job Posting & Application Information</h4>
+            <p>Job postings contain titles, requirements, salaries, and statuses. Job applications track applicant records, statuses (Pending, Reviewed, For interview, Hired, Rejected), and resumes restricted by role-based access.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">8. Job Offers, Referrals, Saved Jobs & Matching</h4>
+            <p>The system tracks referrals, offers, and uses algorithmic or machine-learning techniques to assist in job matching based on skills, preferences, and qualifications. <em>A matching result is not a guarantee of employment.</em></p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">9. Beneficiary Program Information</h4>
+            <p>Supports programs including SPES, GIP, TUPAD, and DILP, tracking names, compensation, program timelines, and completion/absorption outcomes.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">10. Administrative, Audit & Technical Information</h4>
+            <p>Maintains user activity logs, failed login protections, IP addresses, session states, and authentication data necessary for system security and prevention of unauthorized activities.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">11. How We Use & Share Personal Information</h4>
+            <p>Processed for employment services, program administration, user verification, account security, communications, and legal compliance. Third-party processors (like Cloudinary for media storage and SMTP for emails) are utilized under strict contractual safeguards.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">12. Security Safeguards & Document Protection</h4>
+            <p>Protections include password hashing, role-based access control, request throttling, CSRF protection, and secure document storage. Users are strictly prohibited from downloading or disclosing another person's documents without lawful authorization.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">13. Data Retention & Secure Disposal</h4>
+            <p>Data is retained only as long as necessary for declared operational purposes and disposed of securely to prevent unauthorized recovery.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">14. Your Rights as a Data Subject</h4>
+            <p>Under the Data Privacy Act, you have the <strong>Right to be Informed, Right to Access, Right to Correction/Rectification, Right to Object, Right to Erasure or Blocking, Right to Data Portability, Right to File a Complaint with the National Privacy Commission, and Right to Damages</strong>.</p>
+
+            <h4 class="text-2xl font-bold text-white mt-8">15. Contact Information</h4>
+            <p>For privacy questions, requests, or complaints, contact your designated Data Protection Officer or Privacy Office through the official organization email and address.</p>
+
+            <div class="border-t border-slate-800 pt-6 mt-8">
+                <h5 class="text-xl font-bold text-white mb-3">Acknowledgment</h5>
+                <p>By using CAPESONNECT, you acknowledge that you have been provided information regarding the collection and processing of your personal information and that you understand the purposes for which your information may be processed. This Privacy Policy should be read together with the CAPESONNECT Terms and Conditions.</p>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-6 border-t border-slate-800 bg-slate-950 flex justify-end">
+            <button type="button" onclick="closePrivacyModal()" class="px-8 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg transition text-lg cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TERMS OF USE MODAL  -->
+<div id="termsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-slate-900 border border-slate-700 text-slate-200 w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+            <h3 class="text-2xl sm:text-3xl font-bold text-amber-400 font-serif">CAPESCONNECT Terms of Use</h3>
+            <button type="button" onclick="closeTermsModal()" class="text-slate-400 hover:text-white text-4xl font-bold bg-transparent border-none cursor-pointer">&times;</button>
+        </div>
+
+        <!-- Modal Scrollable Content (Complete 35 Sections) -->
+        <div class="p-8 sm:p-12 overflow-y-auto space-y-8 text-lg sm:text-xl text-slate-300 leading-relaxed font-normal">
+            
+            <div class="border-b border-slate-800 pb-6">
+                <h2 class="text-4xl font-bold text-amber-400 mb-3">CAPESCONNECT</h2>
+                <h3 class="text-2xl sm:text-3xl font-semibold text-white mb-2">Terms of Use</h3>
+                <p class="text-base text-slate-400 italic">Effective Date: [INSERT EFFECTIVE DATE] &nbsp;|&nbsp; Last Updated: [INSERT LAST UPDATED DATE]</p>
+            </div>
+
+            <h4 class="text-2xl font-bold text-amber-400">1. Introduction</h4>
+            <p>Welcome to CAPESCONNECT. CAPESCONNECT is an employment and workforce assistance platform operated by PESO . The Platform facilitates employment-related services, job searching, applicant registration, employer verification, job postings, applications, referrals, and workforce programs.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">2. Eligibility</h4>
+            <p>CAPESCONNECT is intended for individuals, employers, organizations, and authorized personnel legally permitted to use the services. By creating an account, you represent and warrant accurate information, authorization to provide it, adherence to security credentials, and lawful use.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">3. Purpose of CAPESCONNECT</h4>
+            <p>Facilitates applicant profile management, job searching, application tracking, saved jobs, employer verification, job management, employment referrals, workforce program beneficiary administration, resume uploads, email verification, account security, and job matchin.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">4. User Accounts</h4>
+            <p>Requires accurate account creation information, password protection, and confidentiality. Users must not share passwords, use another's account, create fraudulent accounts, or provide false details. CAPESCONNECT may suspend or terminate accounts for violations.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">5. Email Verification</h4>
+            <p>Email verification confirms address ownership, protects accounts, reduces fraudulent registrations, and enables platform communications.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">6. Applicant Responsibilities</h4>
+            <p>Applicants must submit truthful personal details, contact info, educational background, skills, work experience, resumes, and identification credentials. Submitting false credentials or fraudulent documents is strictly prohibited.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">7. Employer Responsibilities</h4>
+            <p>Employers must provide accurate organization data, valid verification documents, and truthful job listings. Employers must not post fraudulent vacancies, misleading conditions, discriminatory requirements, or demand unlawful recruitment fees.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">8. Employer Verification</h4>
+            <p>Employers undergo verification processes reviewing business permits and identification documents, classified as pending, verified, or rejected. Verification does not constitute a legal guarantee or endorsement.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">9. Job Postings</h4>
+            <p>Employers may publish job titles, descriptions, qualifications, locations, and compensation. CAPESCONNECT may remove or restrict postings that violate terms or laws.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">10. Job Applications</h4>
+            <p>Submitting applications does not guarantee interviews, responses, employment offers, specific salaries, or outcomes. Employment decisions remain the sole responsibility of the employer.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">11. Saved Jobs</h4>
+            <p>Provides a convenience feature for applicants to bookmark opportunities without constituting a formal job application.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">12. Job Matching</h4>
+            <p>Utilizes automated systems and algorithms to analyze skills, education, experience, and preferences to suggest relevant job opportunities. Matching scores do not guarantee hiring or suitability.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">13. Automated Processing</h4>
+            <p>Automated processing supports, rather than replaces, human employment decisions in accordance with data privacy laws.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">14. User-Submitted Content</h4>
+            <p>Users remain responsible for their submitted resumes, photos, and materials, warranting accuracy and lawful ownership rights.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">15. Prohibited Activities</h4>
+            <p>Prohibits fraud, impersonation, fake documents, bypassing security, malware introduction, data scraping, spamming, fake job postings, harassment, and interference with platform functions.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">16. Account Suspension and Termination</h4>
+            <p>CAPESCONNECT may suspend or terminate accounts for terms violations, fraud, security threats, or repeated misuse.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">17. Privacy</h4>
+            <p>Platform use is governed by the CAPESCONNECT Privacy Policy, detailing data collection, processing purposes, protection, retention, and data subject rights.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">18. Third-Party Services</h4>
+            <p>Relies on trusted third-party providers for cloud hosting, email delivery, storage, infrastructure, and monitoring under strict contractual safeguards.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">19. Platform Availability</h4>
+            <p>Provided on an operational basis. Uninterrupted availability cannot be guaranteed due to maintenance, updates, technical failures, or external disruptions.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">20. No Guarantee of Employment</h4>
+            <p>CAPESCONNECT is an employment assistance platform and does not guarantee employment, placements, salaries, interviews, or specific outcomes, nor does it become the employer.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">21. Intellectual Property</h4>
+            <p>Platform branding, software, interface designs, and code are protected by intellectual property laws. Unauthorized reproduction, modification, or commercial exploitation is prohibited.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">22. Security</h4>
+            <p>Implements administrative, technical, and physical safeguards including password hashing, role-based controls, rate-limiting, HTTPS, and session security. Absolute internet security cannot be guaranteed.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">23. User Responsibility for Account Security</h4>
+            <p>Users must protect credentials and immediately report or address suspected account compromises.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">24. Changes to the Platform</h4>
+            <p>CAPESCONNECT may update, modify, or discontinue features for security, maintenance, legal compliance, or operational improvements[cite: 4].</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">25. Changes to These Terms</h4>
+            <p>Terms may be updated periodically with revised "Last Updated" dates and communicated through appropriate channels.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">26. Governing Law</h4>
+            <p>Governed by and interpreted in accordance with the laws of the Republic of the Philippines.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">27. Data Breach and Security Incidents</h4>
+            <p>Maintains response procedures for identifying, containing, investigating, documenting, and mitigating security breaches, including notifying affected individuals and the National Privacy Commission where required.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">28. Cookies and Session Technologies</h4>
+            <p>Uses cookies and session technologies for authentication, session management, security, preferences, and platform functionality, providing notice and consent where non-essential tracking is introduced.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">29. Children's Privacy</h4>
+            <p>Intended for workforce services and does not knowingly collect information from children where prohibited by law.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">30. International Processing</h4>
+            <p>Where third-party providers outside the Philippines process information, appropriate privacy safeguards are implemented.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">31. Data Protection Impact and Privacy Risk Management</h4>
+            <p>Conducts privacy reviews examining data types, processing purposes, access controls, security measures, third-party processors, retention schedules, and potential risks.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">32. Changes to This Privacy Policy / Terms</h4>
+            <p>Updates occur due to platform additions, legal changes, security upgrades, or organizational modifications with revised timestamps.</p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">33. Contact Information</h4>
+            <ul class="list-disc pl-6 space-y-3">
+                <li><strong>Organization:</strong> </li>
+                <li><strong>Office:</strong></li>
+                <li><strong>Data Protection Officer:</strong> </li>
+                <li><strong>Address:</strong> </li>
+                <li><strong>Email:</strong> </li>
+                <li><strong>Telephone:</strong> </li>
+            </ul>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">34. National Privacy Commission</h4>
+            <p>For Philippine data privacy regulations, visit the National Privacy Commission website: <a href="https://privacy.gov.ph/" target="_blank" class="text-amber-400 underline">https://privacy.gov.ph/</a></p>
+
+            <h4 class="text-2xl font-bold text-amber-400 mt-8">35. Acceptance and Acknowledgment</h4>
+            <p>By registering for or using CAPESCONNECT, you acknowledge that you have read and understood these Terms of Use and Privacy Policy.</p>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-6 border-t border-slate-800 bg-slate-950 flex justify-end">
+            <button type="button" onclick="closeTermsModal()" class="px-8 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg transition text-lg cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Script Controls -->
+<script>
+    function openPrivacyModal() {
+        const modal = document.getElementById('privacyModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        }
+    }
+
+    function closePrivacyModal() {
+        const modal = document.getElementById('privacyModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; 
+        }
+    }
+
+    function openTermsModal() {
+        const modal = document.getElementById('termsModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        }
+    }
+
+    function closeTermsModal() {
+        const modal = document.getElementById('termsModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; 
+        }
+    }
+</script>

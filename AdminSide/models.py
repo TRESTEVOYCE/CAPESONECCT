@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
+from cloudinary_storage.storage import MediaCloudinaryStorage, RawMediaCloudinaryStorage
 
 
 class User(AbstractUser):
@@ -23,15 +24,17 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    profile_picture = models.ImageField(
-        upload_to='profile_pictures/',
-        null=True,
-        blank=True
-    )
+    profile_picture = models.ImageField(upload_to='profile_pictures/', storage=MediaCloudinaryStorage(), null=True, blank=True)
+    email_verified = models.BooleanField(default=False)
+    email_verification_sent_at = models.DateTimeField(null=True,blank=True)
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+    
     def __str__(self):
         return f"{self.email} ({self.username}) - {self.role}"
 
+    
 class EmployerProfile(models.Model):
     OFFICE_TYPE_CHOICES = (
         ('main', 'Main Office'),
@@ -39,13 +42,11 @@ class EmployerProfile(models.Model):
     )
 
     EMPLOYER_TYPE_CHOICES = (
-        # Public
         ('lgu', 'Local Government Unit'),
         ('nga_regional', 'National Government Agency - Regional Office'),
         ('nga_national', 'National Government Agency - National Office'),
         ('gocc', 'Government-Owned and Controlled Corporation'),
         ('suc', 'State/Local University or College'),
-        # Private
         ('direct_hire', 'Direct Hire'),
         ('local_agency', 'Local Recruitment Agency'),
         ('overseas_agency', 'Overseas Recruitment Agency'),
@@ -72,15 +73,10 @@ class EmployerProfile(models.Model):
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-
-    user = models.OneToOneField(
-        'User',
-        on_delete=models.CASCADE,
-        related_name='employer_profile'
-    )
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='employer_profile')
 
     # Establishment Details
-    business_name = models.CharField(max_length=150)
+    business_name = models.CharField(max_length=150, blank=True)
     trade_name = models.CharField(max_length=150, blank=True, null=True)
     acronym = models.CharField(max_length=50, blank=True, null=True)
     office_type = models.CharField(max_length=10, choices=OFFICE_TYPE_CHOICES, default='main')
@@ -91,34 +87,29 @@ class EmployerProfile(models.Model):
 
     # Address Breakdown
     street_address = models.CharField(max_length=255, blank=True, null=True)
-    barangay = models.CharField(max_length=100)
-    municipality = models.CharField(max_length=100)
-    province = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100, blank=True)
+    municipality = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=100, blank=True)
 
     # Contact Details
     owner_name = models.CharField(max_length=150, blank=True, null=True)
     designation = models.CharField(max_length=100, blank=True, null=True, help_text="Designation/Position of the authorized representative (e.g., HRMO II, Administrative Officer V)")
-    contact_person = models.CharField(max_length=100)
+    contact_person = models.CharField(max_length=100, blank=True)
     contact_position = models.CharField(max_length=100, blank=True, null=True)
     telephone_number = models.CharField(max_length=20, blank=True, null=True)
-    mobile_number = models.CharField(max_length=20)
-    email = models.EmailField(unique=True)
+    mobile_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True, null=True)
 
     # Verification Document Attachments for Private Sector
-    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
-    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/', blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
-    business_permit = models.FileField(upload_to='employer_docs/business_permits/', blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+    certificate_of_registration = models.FileField(upload_to='employer_docs/private_sector/cor_2303/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/private_sector/dti_sec/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/private_sector/business_permits/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of Latest Business Permit")
 
     # Verification Document Attachments for Public Sector
     public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
-    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_sector/verification_documents/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Uploaded verification document for public agency")
 
-    verification_status = models.CharField(
-        max_length=20,
-        choices=VERIFICATION_STATUS_CHOICES,
-        default='pending'
-    )
-
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -126,8 +117,13 @@ class EmployerProfile(models.Model):
     def is_public_agency(self):
         return self.employer_type in ['lgu', 'nga_regional', 'nga_national', 'gocc', 'suc']
 
+    @property
+    def is_profile_complete(self):
+        return all([self.business_name, self.contact_person, self.mobile_number, self.email, self.barangay, self.municipality, self.province])
+
     def __str__(self):
-        return f"{self.business_name} - {self.email}"
+        return self.business_name or self.user.username
+    
     
 class Jobs(models.Model):
     NATURE_OF_WORK_CHOICES = (
@@ -224,8 +220,8 @@ class Jobs(models.Model):
         
 class ApplicantSkills(models.Model):
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-    skill_name = models.CharField(max_length=100)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True,blank=True, null=True)
+    skill_name = models.CharField(max_length=100,blank=True, null=True)
 
 class ApplicantProfile(models.Model):
 
@@ -315,13 +311,79 @@ class ApplicantProfile(models.Model):
     skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
-    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    resume = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='applicant_docs/curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    suffix = models.CharField(max_length=50, blank=True, null=True)
+    place_of_birth = models.CharField(max_length=255, blank=True, null=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Height in cm")
+    nationality = models.CharField(max_length=100, default='Filipino')
+    willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
+    when_willing_to_work = models.CharField(max_length=100, blank=True, null=True)  
+    returning_to_ph_to_work = models.BooleanField(default=False, null=True, blank=True)  
+    
+    #contact additional
+    mobile_number_secondary = models.CharField(max_length=20, blank=True, null=True)
+    landline_number = models.CharField(max_length=20, blank=True, null=True)
+    email_address = models.EmailField(unique=True, blank=True, null=True)
+    
+    
+    school_status_yes = models.BooleanField(default=False)
+    school_status_no = models.BooleanField(default=False)
+    edu_no_formal = models.BooleanField(default=False)
+    edu_college_grad = models.BooleanField(default=False)
+    edu_elem_level = models.BooleanField(default=False)
+    edu_elem_grad = models.BooleanField(default=False)
+    edu_hs_level = models.BooleanField(default=False)
+    edu_hs_grad = models.BooleanField(default=False)
+    edu_post_grad = models.BooleanField(default=False)
+    edu_college_level = models.BooleanField(default=False)
+    edu_tech_voc = models.BooleanField(default=False)
+    school_university = models.CharField(max_length=255, blank=True, null=True)
+    year_graduated_attended = models.CharField(max_length=50, blank=True, null=True)
+    award_1 = models.CharField(max_length=255, blank=True, null=True)
+    award_2 = models.CharField(max_length=255, blank=True, null=True)
+    award_3 = models.CharField(max_length=255, blank=True, null=True)
+    
+    skill_computer = models.BooleanField(default=False)
+    skill_driving = models.BooleanField(default=False)
+    skill_customer_service = models.BooleanField(default=False)
+    skill_bookkeeping = models.BooleanField(default=False)
+    skill_carpentry = models.BooleanField(default=False)
+    skill_welding = models.BooleanField(default=False)
+    other_skills = models.CharField(max_length=500, blank=True, null=True)
+    
+    certification_agree = models.BooleanField(default=False)
+    resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc = models.FileField(upload_to='applicant_docs/supporting_docs/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    
+
+    training_title_1 = models.CharField(max_length=255, blank=True, null=True)
+    training_hours_1 = models.IntegerField(blank=True, null=True)
+    training_institution_1 = models.CharField(max_length=255, blank=True, null=True)
+    training_date_1 = models.CharField(max_length=50, blank=True, null=True)
+
+    training_title_2 = models.CharField(max_length=255, blank=True, null=True)
+    training_hours_2 = models.IntegerField(blank=True, null=True)
+    training_institution_2 = models.CharField(max_length=255, blank=True, null=True)
+    training_date_2 = models.CharField(max_length=50, blank=True, null=True)
+
+
+    pref_local = models.BooleanField(default=False)
+    pref_overseas = models.BooleanField(default=False)
+    pref_occupation_1 = models.CharField(max_length=255, blank=True, null=True)
+    pref_occupation_2 = models.CharField(max_length=255, blank=True, null=True)
+    pref_occupation_3 = models.CharField(max_length=255, blank=True, null=True)
+    pref_location_local = models.CharField(max_length=255, blank=True, null=True)
+    pref_location_overseas = models.CharField(max_length=255, blank=True, null=True)
+    pref_salary = models.CharField(max_length=100, blank=True, null=True)
+
 
     @property
     def age(self):
@@ -358,6 +420,23 @@ class ApplicantProfile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
 
+
+class ApplicantWorkExperience(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='work_experiences'
+    )
+
+    company = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True)
+    position = models.CharField(max_length=255)
+    dates = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.company} - {self.position}"
+
 class AppliedJobs(models.Model):
 
     APPLICATION_STATUS = (
@@ -368,28 +447,18 @@ class AppliedJobs(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False,blank=True, null=True, unique=True, db_index=True)
 
-    applicant = models.ForeignKey(
-        ApplicantProfile,
-        on_delete=models.CASCADE,
-        related_name='applied_jobs'
-    )
+    employer = models.ForeignKey(EmployerProfile,on_delete=models.CASCADE,related_name='received_applications',blank=True, null=True)
 
-    applied_job = models.ForeignKey(
-        Jobs,
-        on_delete=models.CASCADE,
-        related_name='applied_applicants'
-    )
+    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE,related_name='applied_jobs',blank=True, null=True)
 
-    application_date = models.DateTimeField(auto_now_add=True)
-    is_hired = models.BooleanField(default=False)
+    applied_job = models.ForeignKey(Jobs,on_delete=models.CASCADE,related_name='applied_applicants',blank=True, null=True)
 
-    status = models.CharField(
-        max_length=20,
-        choices=APPLICATION_STATUS,
-        default='pending'
-    )
+    application_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+    is_hired = models.BooleanField(default=False,blank=True, null=True)
+
+    status = models.CharField(max_length=20,choices=APPLICATION_STATUS,default='pending',blank=True, null=True)
 
 class OfferedJobs(models.Model):
 
@@ -403,20 +472,62 @@ class OfferedJobs(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
-    applicant = models.ForeignKey(ApplicantProfile, on_delete=models.CASCADE, related_name='offered_jobs')
-    offered_job = models.ForeignKey(Jobs, on_delete=models.CASCADE, related_name='offered_to_applicants')
-    referred_by = models.CharField(max_length=100, null=True, blank=True)
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='offered_jobs'
+    )
+
+    offered_job = models.ForeignKey(
+        Jobs,
+        on_delete=models.CASCADE,
+        related_name='offered_to_applicants'
+    )
+
+    referred_by = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
+    )
+
     date_offered = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=APPLICATION_STATUS, default='pending')
-    remarks = models.TextField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=APPLICATION_STATUS,
+        default='pending'
+    )
+
+    remarks = models.TextField(
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.applicant} {self.offered_job}"
 
-    @property
-    def employer(self):
-        """Dynamically pulls the employer through the linked job vacancy."""
-        return self.offered_job.employer if self.offered_job else None
+
+class SavedJobs(models.Model):
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='saved_jobs'
+    )
+
+    saved_job = models.ForeignKey(
+        Jobs,
+        on_delete=models.CASCADE,
+        related_name='saved_by_applicants'
+    )
+
+    date_saved = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('applicant', 'saved_job')
+
 
 # ============================================================
 # BENEFICIARY PROGRAMS

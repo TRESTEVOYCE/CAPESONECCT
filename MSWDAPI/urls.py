@@ -1,7 +1,10 @@
 from django.urls import path
 from .views import SpecialProgramForEmploymentOfStudentsListView, SpecialProgramForEmploymentOfStudentsDetailView, GovernmentInternshipProgramListView, GovernmentInternshipProgramDetailView, TupadBeneficiaryListView, TupadBeneficiaryDetailView, DisplacedInformalLaborProgramListView, DisplacedInformalLaborProgramDetailView, CareerGuidanceBeneficiaryListView, CareerGuidanceBeneficiaryDetailView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('special-programs/', SpecialProgramForEmploymentOfStudentsListView.as_view(), name='special-program-list'),
     path('special-programs/<uuid:uuid>/', SpecialProgramForEmploymentOfStudentsDetailView.as_view(), name='special-program-detail'),
     path('government-internships/', GovernmentInternshipProgramListView.as_view(), name='government-internship-list'),

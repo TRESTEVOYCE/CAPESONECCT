@@ -1,0 +1,250 @@
+{% extends 'applicant-base.html' %}
+
+{% block content %}
+
+<div class="max-w-[1300px] w-full mx-auto py-6 space-y-6 text-stone-900 font-sans">
+
+    <!-- TOP PROFILE BANNER -->
+
+    {% include 'partials/profile_banner.html' %}
+
+
+
+    <!-- NSRP PROFILE HEADER -->
+
+    <div class="bg-white p-6 sm:p-10 rounded-2xl border border-stone-200/90 shadow-sm space-y-8">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-6">
+
+            <div>
+
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
+                    National Skills Registration Program (NSRP Form 1 Rev 3)
+                </h2>
+
+                <p class="text-sm text-stone-600 mt-1">
+                    Please complete each section of your NSRP profile.
+                </p>
+
+            </div>
+
+            <span class="text-xs px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-900 border border-stone-200 font-semibold">
+                PESO Unified Profile
+            </span>
+
+        </div>
+
+
+        <!-- INFORMATION -->
+
+        <div class="p-4 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-700">
+
+            <p>
+                Your NSRP profile is divided into 8 sections.
+                Complete each section to finish your applicant profile.
+            </p>
+
+        </div>
+
+
+        <!-- STEPS -->
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+
+            <!-- STEP 1 -->
+
+            <a
+                href="{% url 'personal_info' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 1
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Personal Information
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Basic personal and employment information.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 2 -->
+
+            <a
+                href="{% url 'applicant-address' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 2
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Address & Contact
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Address and contact information.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 3 -->
+
+            <a
+                href="{% url 'applicant-education' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 3
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Educational Background
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Education, school, course, and awards.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 4 -->
+
+            <a
+                href="{% url 'applicant-training' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 4
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Training
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Training, vocational, and eligibility information.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 5 -->
+
+            <a
+                href="{% url 'applicant-preferred-job' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 5
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Job Preference
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Preferred occupations, locations, and salary.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 6 -->
+
+            <a
+                href="{% url 'applicant-work-experience' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 6
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Work Experience
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Previous employment and work experience.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 7 -->
+
+            <a
+                href="{% url 'applicant-skills' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 7
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Skills & Competencies
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Skills, competencies, and other abilities.
+                </p>
+
+            </a>
+
+
+            <!-- STEP 8 -->
+
+            <a
+                href="{% url 'applicant-documents' %}"
+                class="p-5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 hover:border-stone-400 transition-all"
+            >
+
+                <span class="text-xs font-bold text-stone-500 uppercase">
+                    Step 8
+                </span>
+
+                <h3 class="mt-2 text-sm font-bold text-stone-900">
+                    Certification & Documents
+                </h3>
+
+                <p class="mt-1 text-xs text-stone-500">
+                    Certification, consent, resume, and supporting documents.
+                </p>
+
+            </a>
+
+        </div>
+
+
+        <!-- BACK TO DASHBOARD -->
+
+        <div class="flex justify-end pt-6 border-t border-stone-200">
+
+            <a
+                href="{% url 'applicant-dashboard' %}"
+                class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+            >
+                Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
