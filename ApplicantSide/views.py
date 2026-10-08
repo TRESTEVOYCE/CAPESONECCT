@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.template import context
 from django.views.generic import ListView, CreateView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs,User
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -21,7 +22,11 @@ from .forms import (
     ApplicantSkillFormSet,
     ApplicantDocumentsForm,
     ProfilePictureForm,
+    UpdateEmailForm,
+    UpdatePasswordForm,
+    UpdateUsernameForm,
 )
+from django.contrib.auth import update_session_auth_hash
 
 
 class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -917,7 +922,76 @@ class MyProfileView(ApplicantRequiredMixin,TemplateView):
         context['profile'] = profile
         context['applicant_profile'] = profile
 
+        return context
+
     def get_object(self):
         return ApplicantProfile.objects.filter(
             user=self.request.user
-        ).first()   
+        ).first() 
+
+
+#CONTENTS OF SETTINGS SECTION
+
+class UpdateEmailView(ApplicantRequiredMixin, UpdateView):
+    model = User
+    form_class = UpdateEmailForm
+    template_name = 'update_email.html'
+    success_url = reverse_lazy('my_profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            'Email updated successfully.'
+        )
+        return super().form_valid(form)
+
+
+class UpdatePasswordView(ApplicantRequiredMixin, UpdateView):
+    model = User
+    form_class = UpdatePasswordForm
+    template_name = 'update_password.html'
+    success_url = reverse_lazy('my_profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Keep the applicant logged in after changing password
+        update_session_auth_hash(
+            self.request,
+            self.request.user
+        )
+
+        messages.success(
+            self.request,
+            'Password updated successfully.'
+        )
+
+        return response
+
+
+class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
+    model = User
+    form_class = UpdateUsernameForm
+    template_name = 'update_username.html'
+    success_url = reverse_lazy('my_profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            'Username updated successfully.'
+        )
+        return super().form_valid(form) 
