@@ -9,6 +9,12 @@
 >
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+        <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
     <div class="space-y-4">
 
         <!-- ========================================= -->
@@ -172,6 +178,11 @@
                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
                         {{ form.civil_widowed }}
                         Widowed
+                    </label>
+
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                        {{ form.civil_divorced }}
+                        Divorced
                     </label>
 
                 </div>
@@ -502,7 +513,8 @@
         const civilCheckboxes = [
             document.getElementById('id_civil_single'),
             document.getElementById('id_civil_married'),
-            document.getElementById('id_civil_widowed')
+            document.getElementById('id_civil_widowed'),
+            document.getElementById('id_civil_divorced')
         ];
 
         civilCheckboxes.forEach(function (checkbox) {

@@ -22,6 +22,19 @@ from .forms import (
     ApplicantDocumentsForm,
     ProfilePictureForm,
 )
+from AdminSide.utils import notify_admins
+
+
+class ApplicantProfileRequiredMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.role == 'applicant'
+            and not ApplicantProfile.objects.filter(user=request.user).exists()
+        ):
+            messages.info(request, 'Complete your personal information before continuing your profile.')
+            return redirect('personal_info')
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -33,16 +46,20 @@ class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
+        profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        if profile is None:
+            profile = ApplicantProfile(
+                user=self.request.user,
+                first_name=self.request.user.first_name,
+                last_name=self.request.user.last_name,
+            )
         return profile
 
     def get_success_url(self):
         return reverse_lazy('applicant-address')
 
     def form_valid(self, form):
-
+        form.instance.user = self.request.user
         self.object = form.save()
 
         messages.success(
@@ -53,7 +70,7 @@ class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return redirect(self.get_success_url())
 
 
-class ApplicantAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantAddressView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantAddressForm
     template_name = 'step_2_address.html'
@@ -62,10 +79,7 @@ class ApplicantAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-education')
@@ -81,7 +95,7 @@ class ApplicantAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return redirect(self.get_success_url())
 
 
-class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantEducationForm
     template_name = 'step_3_education.html'
@@ -90,10 +104,7 @@ class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-training')
@@ -109,7 +120,7 @@ class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         return redirect(self.get_success_url())
 
 
-class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantTrainingForm
     template_name = 'step_4_training.html'
@@ -118,10 +129,7 @@ class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-preferred-job')
@@ -137,7 +145,7 @@ class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         return redirect(self.get_success_url())
 
 
-class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
     template_name = 'step_5_job_pref.html'
@@ -146,10 +154,7 @@ class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-work-experience')
@@ -165,17 +170,14 @@ class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return redirect(self.get_success_url())
 
 
-class ApplicantWorkExperienceView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'step_6_work.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -218,17 +220,14 @@ class ApplicantWorkExperienceView(LoginRequiredMixin, UserPassesTestMixin, View)
             }
         )
 
-class ApplicantSkillsView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'step_7_skills.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -289,7 +288,7 @@ class ApplicantSkillsView(LoginRequiredMixin, UserPassesTestMixin, View):
         )
 
 
-class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantDocumentsForm
     template_name = 'step_8_certification.html'
@@ -298,10 +297,7 @@ class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(
-            user=self.request.user
-        )
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-dashboard')
@@ -315,6 +311,38 @@ class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         )
 
         return redirect(self.get_success_url())
+
+
+class ApplicantReverificationAppealView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.role == 'applicant'
+
+    def post(self, request, *args, **kwargs):
+        profile = get_object_or_404(ApplicantProfile, user=request.user)
+        if profile.status != 'rejected':
+            messages.error(request, 'An appeal can only be submitted for a rejected account.')
+            return redirect('applicant-dashboard')
+
+        reason = request.POST.get('reason', '').strip()
+        if not reason or len(reason) > 2000:
+            messages.error(request, 'Enter an appeal reason (up to 2,000 characters).')
+            return redirect('applicant-dashboard')
+
+        profile.status = 'pending'
+        profile.save(update_fields=['status', 'updated_at'])
+        notify_admins(
+            title='Appeal for Reverification',
+            message=f'{profile.first_name} {profile.last_name} requested applicant account reverification. Reason: {reason}',
+            notification_type='APPEAL_REVERIFICATION',
+            sender=request.user,
+            reason=reason,
+            target_url=reverse_lazy(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+        messages.success(request, 'Your appeal was submitted. Your account is pending review.')
+        return redirect('applicant-dashboard')
 
 
 class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -916,8 +944,5 @@ class MyProfileView(ApplicantRequiredMixin,TemplateView):
 
         context['profile'] = profile
         context['applicant_profile'] = profile
-
-    def get_object(self):
-        return ApplicantProfile.objects.filter(
-            user=self.request.user
-        ).first()   
+        context['account_email'] = self.request.user.email
+        return context

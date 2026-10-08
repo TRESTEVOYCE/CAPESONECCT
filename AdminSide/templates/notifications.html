@@ -44,15 +44,30 @@
         <div class="p-4 sm:p-5 hover:bg-slate-50/80 transition flex items-start gap-4 relative {% if not notification.is_read %}bg-amber-50/30{% endif %}">
             
             <!-- Type Icon -->
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 {% if notification.notification_type == 'job' %}bg-purple-100 text-purple-700{% else %}bg-indigo-100 text-indigo-700{% endif %}">
-                <i class="fa-solid {% if notification.notification_type == 'job' %}fa-file-lines{% else %}fa-user-plus{% endif %} text-sm"></i>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5
+                {% if notification.notification_type == 'NEW_APPLICANT' or notification.notification_type == 'NEW_REGISTRATION' %}bg-indigo-100 text-indigo-700
+                {% elif notification.notification_type == 'NEW_EMPLOYER' %}bg-emerald-100 text-emerald-700
+                {% elif notification.notification_type == 'NEW_JOB_POST' or notification.notification_type == 'job' %}bg-purple-100 text-purple-700
+                {% elif notification.notification_type == 'APPEAL_REVERIFICATION' %}bg-amber-100 text-amber-700
+                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                <i class="fa-solid
+                    {% if notification.notification_type == 'NEW_APPLICANT' or notification.notification_type == 'NEW_REGISTRATION' %}fa-user-plus
+                    {% elif notification.notification_type == 'NEW_EMPLOYER' %}fa-building
+                    {% elif notification.notification_type == 'NEW_JOB_POST' or notification.notification_type == 'job' %}fa-briefcase
+                    {% elif notification.notification_type == 'APPEAL_REVERIFICATION' %}fa-rotate
+                    {% else %}fa-bell{% endif %} text-sm"></i>
             </div>
 
             <!-- Content Area -->
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md {% if notification.notification_type == 'job' %}bg-purple-100 text-purple-800{% else %}bg-indigo-100 text-indigo-800{% endif %}">
-                        {{ notification.notification_type|title }}
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md
+                        {% if notification.notification_type == 'NEW_APPLICANT' or notification.notification_type == 'NEW_REGISTRATION' %}bg-indigo-100 text-indigo-800
+                        {% elif notification.notification_type == 'NEW_EMPLOYER' %}bg-emerald-100 text-emerald-800
+                        {% elif notification.notification_type == 'NEW_JOB_POST' or notification.notification_type == 'job' %}bg-purple-100 text-purple-800
+                        {% elif notification.notification_type == 'APPEAL_REVERIFICATION' %}bg-amber-100 text-amber-800
+                        {% else %}bg-slate-100 text-slate-800{% endif %}">
+                        {{ notification.get_notification_type_display }}
                     </span>
                     <h3 class="text-sm font-extrabold text-slate-900">{{ notification.title }}</h3>
                     {% if not notification.is_read %}

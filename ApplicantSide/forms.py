@@ -51,6 +51,7 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
     civil_single = forms.BooleanField(required=False)
     civil_married = forms.BooleanField(required=False)
     civil_widowed = forms.BooleanField(required=False)
+    civil_divorced = forms.BooleanField(required=False)
 
     # EMPLOYMENT STATUS
     emp_employed = forms.BooleanField(required=False)
@@ -123,6 +124,27 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
             elif reason == 'resigned':
                 self.initial['emp_resigned'] = True
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        sex_choices = (
+            cleaned_data.get('sex_male'),
+            cleaned_data.get('sex_female'),
+        )
+        if sum(bool(choice) for choice in sex_choices) != 1:
+            raise forms.ValidationError('Select exactly one sex option.')
+
+        civil_status_choices = (
+            cleaned_data.get('civil_single'),
+            cleaned_data.get('civil_married'),
+            cleaned_data.get('civil_widowed'),
+            cleaned_data.get('civil_divorced'),
+        )
+        if sum(bool(choice) for choice in civil_status_choices) != 1:
+            raise forms.ValidationError('Select exactly one civil status option.')
+
+        return cleaned_data
+
     def save(self, commit=True):
         instance = super().save(commit=False)
 
@@ -148,6 +170,9 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
 
         elif self.cleaned_data.get('civil_widowed'):
             instance.civil_status = 'widowed'
+
+        elif self.cleaned_data.get('civil_divorced'):
+            instance.civil_status = 'divorced'
 
         # -------------------------
         # EMPLOYMENT STATUS
@@ -245,6 +270,8 @@ class ApplicantAddressForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field_name in ('phone_number', 'barangay', 'municipality', 'province'):
+            self.fields[field_name].required = True
         apply_tailwind_widgets(self)
 
     class Meta:

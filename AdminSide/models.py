@@ -285,13 +285,13 @@ class ApplicantProfile(models.Model):
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
-    phone_number = models.CharField(max_length=20)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     house_street = models.CharField(max_length=255, blank=True, null=True)
-    barangay = models.CharField(max_length=100)
-    municipality = models.CharField(max_length=100)
-    province = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100, blank=True, null=True)
+    municipality = models.CharField(max_length=100, blank=True, null=True)
+    province = models.CharField(max_length=100, blank=True, null=True)
     region = models.CharField(max_length=100, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
 
@@ -304,7 +304,7 @@ class ApplicantProfile(models.Model):
     is_ofw = models.BooleanField(default=False)
     expected_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES, blank=True, null=True)
     school_name = models.CharField(max_length=255, blank=True, null=True)
     course_program = models.CharField(max_length=255, blank=True, null=True)
     year_graduated = models.CharField(max_length=10, blank=True, null=True)
@@ -816,6 +816,10 @@ class Notification(models.Model):
         ('APPLICATION_STATUS', 'Application Status Update'),
         ('NEW_REGISTRATION', 'New Registration Pending Verification'),
         ('RESUBMISSION', 'Account Re-submitted for Verification'),
+        ('NEW_APPLICANT', 'New Applicant'),
+        ('NEW_EMPLOYER', 'New Employer'),
+        ('NEW_JOB_POST', 'New Job Post'),
+        ('APPEAL_REVERIFICATION', 'Appeal for Reverification'),
     )
 
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')

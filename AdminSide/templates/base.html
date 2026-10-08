@@ -518,20 +518,42 @@
 
                     let html = '';
                     data.notifications.forEach(n => {
-                        const badgeColor = n.notification_type === 'job' 
-                            ? 'bg-purple-100 text-purple-700' 
-                            : 'bg-indigo-100 text-indigo-700';
-                        const iconClass = n.notification_type === 'job' ? 'fa-file-lines' : 'fa-user-plus';
+                        const appearance = {
+                            NEW_APPLICANT: {
+                                badge: 'bg-indigo-100 text-indigo-700',
+                                iconBackground: 'bg-indigo-100/70 text-indigo-600',
+                                icon: 'fa-user-plus'
+                            },
+                            NEW_EMPLOYER: {
+                                badge: 'bg-emerald-100 text-emerald-700',
+                                iconBackground: 'bg-emerald-100/70 text-emerald-600',
+                                icon: 'fa-building'
+                            },
+                            NEW_JOB_POST: {
+                                badge: 'bg-purple-100 text-purple-700',
+                                iconBackground: 'bg-purple-100/70 text-purple-600',
+                                icon: 'fa-briefcase'
+                            },
+                            APPEAL_REVERIFICATION: {
+                                badge: 'bg-amber-100 text-amber-700',
+                                iconBackground: 'bg-amber-100/70 text-amber-600',
+                                icon: 'fa-rotate'
+                            }
+                        }[n.notification_type] || {
+                            badge: 'bg-slate-100 text-slate-700',
+                            iconBackground: 'bg-slate-100 text-slate-600',
+                            icon: 'fa-bell'
+                        };
 
                         html += `
                         <div class="p-3.5 hover:bg-amber-50/60 transition relative group border-b border-amber-100/60">
                             <div class="flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-100/70 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                                    <i class="fa-solid ${iconClass} text-xs"></i>
+                                <div class="w-8 h-8 rounded-lg ${appearance.iconBackground} flex items-center justify-center shrink-0 mt-0.5">
+                                    <i class="fa-solid ${appearance.icon} text-xs"></i>
                                 </div>
                                 <div class="flex-1 pr-4">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeColor}">${n.category_label || 'New Registration'}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${appearance.badge}">${n.category_label || 'Notification'}</span>
                                         <h4 class="text-xs font-bold text-slate-900 truncate">${n.title}</h4>
                                         <span class="ml-auto text-[10px] font-semibold text-rose-600 flex items-center gap-1 shrink-0">
                                             \u25CF ${n.created_at}

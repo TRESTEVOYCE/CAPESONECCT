@@ -1,10 +1,11 @@
 from django import urls
 from django.urls import path
-from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView
+from .views import EmployerProfileCreateView, EmployerReverificationAppealView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView
 
 urlpatterns = [
     path('company_profile/',CompanyProfileView.as_view(),name='company_profile_view'),
     path('employer-profile/create/', EmployerProfileCreateView.as_view(), name='employer-profile-create'),
+    path('employer-profile/appeal/', EmployerReverificationAppealView.as_view(), name='employer-reverification-appeal'),
     path('home/', HomeView.as_view(), name='employer-home'),
     path('applicants/', ApplicantsListView.as_view(), name='applicants-list'),
     path('applicants/<int:pk>/', ApplicantDetailView.as_view(), name='applicant-detail'),

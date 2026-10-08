@@ -89,8 +89,17 @@
                     </span>
 
                     Your account verification was rejected.
-                    Please contact PESO Carigara for assistance.
+                    Submit an appeal if you believe this decision should be reviewed.
                 </div>
+
+                <form method="post" action="{% url 'applicant-reverification-appeal' %}" class="w-full">
+                    {% csrf_token %}
+                    <label for="applicantAppealReason" class="sr-only">Reason for appeal</label>
+                    <textarea id="applicantAppealReason" name="reason" rows="2" maxlength="2000" required placeholder="Reason for appeal" class="w-full rounded-lg border border-rose-400/30 bg-slate-900/50 p-2 text-[11px] text-white placeholder:text-slate-400"></textarea>
+                    <button type="submit" class="mt-2 w-full rounded-lg bg-rose-500/20 px-3 py-2 text-[11px] font-bold text-rose-100 hover:bg-rose-500/30">
+                        Appeal for Reverification
+                    </button>
+                </form>
 
             </div>
 
@@ -318,4 +327,3 @@
 </div>
 </body>
 </html>
-

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, ApplicantReverificationAppealView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
 
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('work_experience/', ApplicantWorkExperienceView.as_view(), name='applicant-work-experience'),
     path('skills/', ApplicantSkillsView.as_view(), name='applicant-skills'),
     path('documents/', ApplicantDocumentsView.as_view(), name='applicant-documents'),
+    path('appeal/reverification/', ApplicantReverificationAppealView.as_view(), name='applicant-reverification-appeal'),
 
     path('profile/delete/', ApplicantProfileDeleteView.as_view(), name='profile_delete'),
     path('logout/', LogoutView.as_view(), name='logout'),

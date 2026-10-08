@@ -14,6 +14,7 @@ from django.contrib.messages import get_messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
 from django.contrib.auth.forms import PasswordChangeForm
@@ -48,6 +49,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
 from .models import Notification
+from .utils import notify_admins
 
 logger = logging.getLogger(__name__)
 
@@ -338,6 +340,16 @@ class JobVacancyCreateView(LoginRequiredMixin, View):
             job = form.save(commit=False)
             job.status = 'Active'
             job.save()
+            notify_admins(
+                title='New Job Post',
+                message=f'{job.job_title} was created by {request.user.get_full_name() or request.user.username}.',
+                notification_type='NEW_JOB_POST',
+                sender=request.user,
+                target_url=reverse_lazy(
+                    'AdminSide:job_detail',
+                    kwargs={'job_uuid': job.uuid},
+                ),
+            )
             return redirect('AdminSide:job_postings_list')
 
         return render(request, self.template_name, {'form': form})
@@ -1755,6 +1767,7 @@ class NotificationHeaderApiView(LoginRequiredMixin, View):
                     'title': getattr(n, 'title', 'Notification'),
                     'message': getattr(n, 'message', str(n)),
                     'notification_type': getattr(n, 'notification_type', 'info'),
+                    'category_label': n.get_notification_type_display(),
                     'target_url': getattr(n, 'target_url', '#'),
                     'created_at': n.created_at.strftime('%b %d, %Y %I:%M %p') if hasattr(n, 'created_at') else '',
                     'is_read': n.is_read,
