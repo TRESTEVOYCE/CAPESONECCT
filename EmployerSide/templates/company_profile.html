@@ -1,173 +1,167 @@
 {% extends 'employer-base.html' %}
-{% block title %}Company Profile{% endblock %}
+{% block title %}Company Profile — CAPESONNECT{% endblock %}
 {% block content %}
 
-<div class="min-h-screen bg-[#0b0f19] py-10 px-4">
-    <div class="max-w-6xl mx-auto">
+<div class="w-full mx-auto space-y-8 font-sans">
 
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-white">Company Profile</h1>
-                <p class="mt-2 text-sm text-gray-400">View and manage your organization's information.</p>
-            </div>
-
-            <a href="{% url 'employer-profile-create' %}" class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
-                <i class="fa-solid fa-pen-to-square mr-2"></i>
-                Edit Profile
-            </a>
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-200/80 pb-6">
+        <div class="space-y-1.5">
+            <p class="text-xs font-bold text-stone-500 uppercase tracking-widest">Corporate Settings</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">Company Profile</h1>
+            <p class="text-base text-stone-600">View and maintain your official organization credentials.</p>
         </div>
 
-        <!-- Profile Picture -->
-        <div class="mb-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Profile Picture</h2>
-
-            <div class="flex items-center gap-6">
-
-                <!-- Current Profile Picture -->
-                {% if request.user.profile_picture %}
-                    <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="h-24 w-24 rounded-full object-cover border-2 border-gray-700">
-                {% else %}
-                    <div class="h-24 w-24 rounded-full bg-slate-700 flex items-center justify-center border-2 border-gray-700">
-                        <span class="text-3xl font-bold text-white">
-                            {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
-                        </span>
-                    </div>
-                {% endif %}
-
-                <!-- Upload Form -->
-                <div>
-                    <p class="text-sm text-gray-400 mb-3">Update your profile picture.</p>
-
-                    <form method="post" action="{% url 'employer-profile-picture' %}" enctype="multipart/form-data">
-                        {% csrf_token %}
-
-                        <div class="flex items-center gap-3">
-
-                            <!-- Choose Image -->
-                            <label for="profile_picture" class="cursor-pointer rounded-xl bg-slate-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-600">
-                                <i class="fa-solid fa-upload mr-2"></i>
-                                Choose Image
-                            </label>
-
-                            <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="hidden">
-
-                            <!-- Update Button -->
-                            <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
-                                <i class="fa-solid fa-check mr-2"></i>
-                                Update Picture
-                            </button>
-
-                        </div>
-                    </form>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Company Information -->
-        <div class="rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Company Information</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Business Name</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.business_name|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Acronym</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.acronym|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Office Type</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_office_type_display|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Employer Type</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_employer_type_display|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">TIN Number</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.tin_number|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Total Workforce</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.get_total_workforce_display|default:"Not provided" }}</p>
-                </div>
-
-                <div class="md:col-span-2">
-                    <p class="text-xs text-gray-500">Line of Business</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.line_of_business|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Address -->
-        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Business Address</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Street Address</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.street_address|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Barangay</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.barangay|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Municipality</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.municipality|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Province</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.province|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Contact -->
-        <div class="mt-6 rounded-2xl border border-gray-800 bg-[#111827] p-6">
-            <h2 class="mb-6 text-lg font-semibold text-white">Contact Information</h2>
-
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                <div>
-                    <p class="text-xs text-gray-500">Designation</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.designation|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Contact Person</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.contact_person|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Contact Position</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.contact_position|default:"Not provided" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500">Telephone Number</p>
-                    <p class="mt-1 text-sm text-white">{{ profile.telephone_number|default:"Not provided" }}</p>
-                </div>
-
-            </div>
-        </div>
-
+        <a href="{% url 'employer-profile-create' %}" class="inline-flex items-center justify-center gap-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 px-6 py-3.5 text-base font-bold text-slate-950 shadow-md transition-all active:scale-[0.98]">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Edit Profile Data</span>
+        </a>
     </div>
-</div>
 
+    <!-- Profile Picture Section -->
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-5">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Profile Avatar</h2>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" alt="Logo" class="h-24 w-24 rounded-2xl object-cover border border-stone-200 shadow-sm">
+            {% else %}
+                <div class="h-24 w-24 rounded-2xl bg-stone-100 flex items-center justify-center border border-stone-200 text-stone-700 font-bold text-2xl shadow-sm">
+                    {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
+                </div>
+            {% endif %}
+
+            <div class="space-y-3">
+                <p class="text-sm text-stone-600">Upload or replace your organization seal or logo.</p>
+                <form method="post" action="{% url 'employer-profile-picture' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="flex flex-wrap items-center gap-3.5">
+                        <label for="profile_picture" class="cursor-pointer rounded-xl bg-stone-100 hover:bg-stone-200/80 px-5 py-2.5 text-sm font-semibold text-stone-700 border border-stone-300 transition-colors">
+                            <i class="fa-solid fa-upload mr-2"></i> Choose Image
+                        </label>
+                        <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="hidden">
+                        <button type="submit" class="rounded-xl bg-stone-900 hover:bg-stone-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all">
+                            Update Picture
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Sections -->
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-6">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-4">Company Information</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 text-sm">
+            <div><p class="text-stone-400 font-medium">Business Name</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.business_name|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Acronym</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.acronym|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Office Type</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.get_office_type_display|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Employer Type</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.get_employer_type_display|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">TIN Number</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.tin_number|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Total Workforce</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.get_total_workforce_display|default:"Not provided" }}</p></div>
+            <div class="md:col-span-2"><p class="text-stone-400 font-medium">Line of Business</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.line_of_business|default:"Not provided" }}</p></div>
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-6">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-4">Business Address</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 text-sm">
+            <div><p class="text-stone-400 font-medium">Street Address</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.street_address|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Barangay</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.barangay|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Municipality</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.municipality|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Province</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.province|default:"Not provided" }}</p></div>
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-6">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-4">Contact Information</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 text-sm">
+            <div><p class="text-stone-400 font-medium">Designation</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.designation|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Contact Person</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.contact_person|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Contact Position</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.contact_position|default:"Not provided" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Telephone Number</p><p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.telephone_number|default:"Not provided" }}</p></div>
+        </div>
+    </div>
+
+    <!-- Business Documents Verification Section -->
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-6">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-4">Business Documents</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3 text-sm">
+            
+            <!-- Certificate of Registration -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50/50 p-5 space-y-3">
+                <p class="text-stone-400 font-medium text-xs uppercase tracking-wider">Certificate of Registration</p>
+                {% if profile.certificate_of_registration %}
+                    <div class="flex items-center justify-between pt-1">
+                        <a href="{{ profile.certificate_of_registration.url }}" target="_blank" class="inline-flex items-center gap-2 text-stone-900 font-bold hover:text-amber-600 transition-colors text-xs truncate">
+                            <i class="fa-solid fa-file-pdf text-rose-500 text-base"></i>
+                            <span class="truncate">View Document</span>
+                        </a>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Uploaded</span>
+                    </div>
+                {% else %}
+                    <p class="text-xs text-stone-400 italic">Not uploaded</p>
+                {% endif %}
+            </div>
+
+            <!-- DTI / SEC Registration -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50/50 p-5 space-y-3">
+                <p class="text-stone-400 font-medium text-xs uppercase tracking-wider">DTI / SEC Registration</p>
+                {% if profile.dti_sec_registration %}
+                    <div class="flex items-center justify-between pt-1">
+                        <a href="{{ profile.dti_sec_registration.url }}" target="_blank" class="inline-flex items-center gap-2 text-stone-900 font-bold hover:text-amber-600 transition-colors text-xs truncate">
+                            <i class="fa-solid fa-file-pdf text-rose-500 text-base"></i>
+                            <span class="truncate">View Document</span>
+                        </a>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Uploaded</span>
+                    </div>
+                {% else %}
+                    <p class="text-xs text-stone-400 italic">Not uploaded</p>
+                {% endif %}
+            </div>
+
+            <!-- Business Permit -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50/50 p-5 space-y-3">
+                <p class="text-stone-400 font-medium text-xs uppercase tracking-wider">Business Permit</p>
+                {% if profile.business_permit %}
+                    <div class="flex items-center justify-between pt-1">
+                        <a href="{{ profile.business_permit.url }}" target="_blank" class="inline-flex items-center gap-2 text-stone-900 font-bold hover:text-amber-600 transition-colors text-xs truncate">
+                            <i class="fa-solid fa-file-pdf text-rose-500 text-base"></i>
+                            <span class="truncate">View Document</span>
+                        </a>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Uploaded</span>
+                    </div>
+                {% else %}
+                    <p class="text-xs text-stone-400 italic">Not uploaded</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Public Employer Verification Section -->
+    <div class="rounded-2xl border border-stone-200/95 bg-white p-8 shadow-sm space-y-6 pb-10">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-4">Public Employer Verification</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 text-sm">
+            <div>
+                <p class="text-stone-400 font-medium">Public Document Type</p>
+                <p class="mt-1 font-semibold text-stone-900 text-base">{{ profile.get_public_doc_type_display|default:"Not provided" }}</p>
+            </div>
+            <div>
+                <p class="text-stone-400 font-medium">Public Verification Document</p>
+                {% if profile.public_verification_document %}
+                    <div class="mt-1 flex items-center gap-3">
+                        <a href="{{ profile.public_verification_document.url }}" target="_blank" class="inline-flex items-center gap-2 text-stone-900 font-bold hover:text-amber-600 transition-colors text-sm">
+                            <i class="fa-solid fa-file-pdf text-rose-500 text-lg"></i>
+                            <span>View Public Document</span>
+                        </a>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Uploaded</span>
+                    </div>
+                {% else %}
+                    <p class="mt-1 font-semibold text-stone-900 text-base italic text-stone-400">Not provided</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
 {% endblock %}

@@ -22,7 +22,7 @@ DEBUG = os.environ.get('DEBUG') == 'True'
 # Host & Origin Settings
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.254.114").split(",")
     if host.strip()
 ]
 
