@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 
+from django.core import mail
 from django.test import Client, RequestFactory, TestCase
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -16,6 +18,45 @@ from .models import (
 )
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    DEFAULT_FROM_EMAIL='CAPESONNECT System <system@example.com>',
+)
+class HelpViewTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='help-admin',
+            email='help-admin@example.com',
+            password='test-password',
+        )
+        self.client.force_login(self.admin)
+
+    def test_support_report_is_sent_to_system_email_with_admin_as_reply_to(self):
+        response = self.client.post(reverse('AdminSide:account_help'), {
+            'subject': 'Cannot approve applicant',
+            'message': 'The approval page shows an error.',
+        })
+
+        self.assertRedirects(response, reverse('AdminSide:account_help'))
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.to, ['capessonect650@gmail.com'])
+        self.assertEqual(sent_email.reply_to, [self.admin.email])
+        self.assertEqual(sent_email.from_email, 'CAPESONNECT System <system@example.com>')
+        self.assertIn('The approval page shows an error.', sent_email.body)
+
+    def test_support_report_requires_subject_and_message(self):
+        response = self.client.post(reverse('AdminSide:account_help'), {
+            'subject': '',
+            'message': '   ',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['support_modal_open'])
+        self.assertContains(response, 'Enter both a subject and a description of the issue.')
+        self.assertEqual(mail.outbox, [])
 
 
 class DashboardViewTests(TestCase):

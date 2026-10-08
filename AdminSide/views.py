@@ -1,8 +1,13 @@
 import calendar
 import json
 import random
+import logging
+from smtplib import SMTPException
 from datetime import datetime, timedelta
 from django.contrib.auth import update_session_auth_hash
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
+from django.core.validators import validate_email
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -43,6 +48,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
 from .models import Notification
+
+logger = logging.getLogger(__name__)
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
@@ -1636,6 +1643,68 @@ class AccountSettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class HelpView(LoginRequiredMixin, TemplateView):
     template_name = 'help.html'
+    support_email = 'capessonect650@gmail.com'
+
+    def post(self, request, *args, **kwargs):
+        subject = request.POST.get('subject', '').strip()
+        message_body = request.POST.get('message', '').strip()
+        error = None
+
+        if not subject or not message_body:
+            error = "Enter both a subject and a description of the issue."
+        elif len(subject) > 150:
+            error = "The subject must be 150 characters or fewer."
+        elif '\r' in subject or '\n' in subject:
+            error = "The subject must be a single line."
+        elif len(message_body) > 5000:
+            error = "The report must be 5,000 characters or fewer."
+
+        try:
+            validate_email(request.user.email)
+        except ValidationError:
+            error = "Add a valid email address to your account settings before contacting support."
+
+        if error:
+            messages.error(request, error)
+            return self.render_to_response(self.get_context_data(
+                support_modal_open=True,
+                support_subject=subject,
+                support_message=message_body,
+            ))
+
+        email = EmailMessage(
+            subject=f"CAPESONNECT Support: {subject}",
+            body=(
+                f"Support request from {request.user.get_full_name() or request.user.username}\n"
+                f"Reply-to: {request.user.email}\n\n"
+                f"{message_body}"
+            ),
+            from_email=None,
+            to=[self.support_email],
+            reply_to=[request.user.email],
+        )
+
+        try:
+            sent_count = email.send()
+        except (OSError, SMTPException):
+            logger.exception("Failed to send a CAPESONNECT support request.")
+            messages.error(request, "The report could not be sent. Please try again later.")
+            return self.render_to_response(self.get_context_data(
+                support_modal_open=True,
+                support_subject=subject,
+                support_message=message_body,
+            ))
+
+        if sent_count != 1:
+            messages.error(request, "The report could not be sent. Please try again later.")
+            return self.render_to_response(self.get_context_data(
+                support_modal_open=True,
+                support_subject=subject,
+                support_message=message_body,
+            ))
+
+        messages.success(request, "Your support report was sent successfully.")
+        return redirect('AdminSide:account_help')
 
 class NotificationListView(LoginRequiredMixin, ListView):
     """
