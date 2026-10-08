@@ -111,27 +111,27 @@ class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     
 #view to display details of a specific applicant
 class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-    model = ApplicantProfile
+    model = AppliedJobs
     template_name = 'applicant_detail.html'
+    context_object_name = 'application'  # Matches `object` or `application` in your template
 
     def test_func(self):
         employer_profile = getattr(
             self.request.user,
-            'employerprofile',
+            'employer_profile',
             None
         )
 
         return (
             self.request.user.role == 'employer'
-            and employer_profile
+            and employer_profile is not None
             and employer_profile.verification_status == 'verified'
         )
 
     def get_queryset(self):
-        return ApplicantProfile.objects.filter(
-            employer=self.request.user.employerprofile
+        return AppliedJobs.objects.filter(
+            employer=self.request.user.employer_profile
         ).distinct()
-
     
 #view to update the status of an applicant's job application
 class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
@@ -185,15 +185,26 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Jobs
     form_class = JobsForm
     template_name = 'job_form.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
     raise_exception = True
 
     def test_func(self):
+        employer_profile = getattr(self.request.user, 'employer_profile', None)
         return (
             self.request.user.is_authenticated
             and self.request.user.role == 'employer'
-            and self.request.user.employer_profile.verification_status == 'verified'
+            and employer_profile is not None
+            and employer_profile.verification_status == 'verified'
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        employer_profile = getattr(self.request.user, 'employer_profile', None)
+        context['is_verified'] = (
+            employer_profile is not None
+            and employer_profile.verification_status == 'verified'
+        )
+        return context
 
     def get_queryset(self):
         return Jobs.objects.filter(

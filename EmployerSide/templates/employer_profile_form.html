@@ -370,4 +370,18 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const label = e.target.closest('label');
+                const textSpan = label.querySelector('span');
+                if (textSpan) textSpan.textContent = fileName;
+            }
+        });
+    });
+</script>
+
 {% endblock %}

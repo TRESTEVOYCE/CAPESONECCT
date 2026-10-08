@@ -1,321 +1,165 @@
-
 {% extends 'employer-base.html' %}
 
-{% block title %}Applicant Details{% endblock %}
+{% block title %}Candidate Details — CAPESONCONNECT{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#0b0f19] py-10 px-4">
-    <div class="max-w-6xl mx-auto">
+<div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <a href="{% url 'applicants-list' %}"
-               class="text-sm text-slate-400 hover:text-white transition">
-                ← Back to Applicants
-            </a>
+    <!-- Header -->
+    <div class="border-b border-stone-200/80 pb-5">
+        <a href="{% url 'applicants-list' %}" class="text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors inline-flex items-center gap-1.5">
+            &larr; Back to Applicants Ledger
+        </a>
 
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-white">
-                        Applicant Details
-                    </h1>
-                    <p class="text-slate-400 mt-2">
-                        Review the applicant's profile and qualifications.
-                    </p>
-                </div>
-
-                <!-- Status -->
-                <div>
-                    {% if object.status == 'approved' %}
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                            Approved
-                        </span>
-                    {% elif object.status == 'pending' %}
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                            Pending
-                        </span>
-                    {% elif object.status == 'rejected' %}
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-red-500/10 text-red-400 border border-red-500/20">
-                            Rejected
-                        </span>
-                    {% else %}
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                            {{ object.status }}
-                        </span>
-                    {% endif %}
-                </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-3">
+            <div>
+                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Candidate Review</p>
+                <h1 class="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl mt-0.5">Applicant Profile Details</h1>
+                <p class="text-xs sm:text-sm text-stone-600 mt-1">Comprehensive background data and submitted credentials.</p>
             </div>
-        </div>
 
-        <!-- Profile Header -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <div class="flex flex-col md:flex-row md:items-center gap-6">
-
-                <!-- Profile Picture -->
-                <div class="shrink-0">
-                    {% if object.id_picture %}
-                        <img src="{{ object.id_picture.url }}"
-                             alt="Applicant Profile"
-                             class="w-28 h-28 rounded-full object-cover border-2 border-slate-700">
-                    {% elif object.user.profile_picture %}
-                        <img src="{{ object.user.profile_picture.url }}"
-                             alt="Applicant Profile"
-                             class="w-28 h-28 rounded-full object-cover border-2 border-slate-700">
-                    {% else %}
-                        <div class="w-28 h-28 rounded-full bg-slate-700 flex items-center justify-center text-4xl font-bold text-slate-300">
-                            {{ object.first_name|slice:":1"|upper|default:"A" }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Basic Information -->
-                <div class="flex-1">
-                    <h2 class="text-2xl font-bold text-white">
-                        {{ object.first_name }}
-                        {% if object.middle_name %}
-                            {{ object.middle_name }}
-                        {% endif %}
-                        {{ object.last_name }}
-                        {% if object.suffix %}
-                            {{ object.suffix }}
-                        {% endif %}
-                    </h2>
-
-                    <p class="text-slate-400 mt-1">
-                        Applicant ID: AP-{{ object.id|stringformat:"04d" }}
-                    </p>
-
-                    {% if object.preferred_job %}
-                        <p class="text-slate-300 mt-3">
-                            <span class="text-slate-500">Preferred Job:</span>
-                            {{ object.preferred_job }}
-                        </p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Personal Information -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-white mb-6">
-                Personal Information
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-                <div>
-                    <p class="text-sm text-slate-500">First Name</p>
-                    <p class="text-slate-200 mt-1">{{ object.first_name|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Middle Name</p>
-                    <p class="text-slate-200 mt-1">{{ object.middle_name|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Last Name</p>
-                    <p class="text-slate-200 mt-1">{{ object.last_name|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Suffix</p>
-                    <p class="text-slate-200 mt-1">{{ object.suffix|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Date of Birth</p>
-                    <p class="text-slate-200 mt-1">{{ object.date_of_birth|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Sex</p>
-                    <p class="text-slate-200 mt-1">{{ object.get_sex_display|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Civil Status</p>
-                    <p class="text-slate-200 mt-1">{{ object.get_civil_status_display|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Contact Number</p>
-                    <p class="text-slate-200 mt-1">{{ object.contact_number|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Email</p>
-                    <p class="text-slate-200 mt-1 break-all">
-                        {{ object.user.email|default:"—" }}
-                    </p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Address -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-white mb-6">
-                Address
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                <div>
-                    <p class="text-sm text-slate-500">Street Address</p>
-                    <p class="text-slate-200 mt-1">{{ object.street_address|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Barangay</p>
-                    <p class="text-slate-200 mt-1">{{ object.barangay|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Municipality</p>
-                    <p class="text-slate-200 mt-1">{{ object.municipality|default:"—" }}</p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Province</p>
-                    <p class="text-slate-200 mt-1">{{ object.province|default:"—" }}</p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Education -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-white mb-6">
-                Education
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                <div>
-                    <p class="text-sm text-slate-500">Educational Level</p>
-                    <p class="text-slate-200 mt-1">
-                        {{ object.get_educational_level_display|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Course / Strand</p>
-                    <p class="text-slate-200 mt-1">
-                        {{ object.course_or_strand|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">School</p>
-                    <p class="text-slate-200 mt-1">
-                        {{ object.school|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Graduation Year</p>
-                    <p class="text-slate-200 mt-1">
-                        {{ object.graduation_year|default:"—" }}
-                    </p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Skills & Qualifications -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-white mb-6">
-                Skills & Qualifications
-            </h2>
-
-            <div class="space-y-5">
-
-                <div>
-                    <p class="text-sm text-slate-500">Skills</p>
-                    <p class="text-slate-200 mt-1 whitespace-pre-line">
-                        {{ object.skills|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Work Experience</p>
-                    <p class="text-slate-200 mt-1 whitespace-pre-line">
-                        {{ object.work_experience|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm text-slate-500">Preferred Job</p>
-                    <p class="text-slate-200 mt-1">
-                        {{ object.preferred_job|default:"—" }}
-                    </p>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Documents -->
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-white mb-6">
-                Documents
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {% if object.resume %}
-                    <a href="{{ object.resume.url }}"
-                       target="_blank"
-                       class="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-500 transition">
-                        <div>
-                            <p class="text-white font-medium">Resume</p>
-                            <p class="text-sm text-slate-500">View uploaded resume</p>
-                        </div>
-                        <span class="text-slate-400">→</span>
-                    </a>
+            <div>
+                {% if object.status == 'approved' or object.status == 'hired' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> {{ object.get_status_display|default:object.status|title }}
+                    </span>
+                {% elif object.status == 'pending' or object.status == 'reviewed' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> {{ object.get_status_display|default:object.status|title }}
+                    </span>
+                {% elif object.status == 'rejected' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> {{ object.get_status_display|default:object.status|title }}
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+                        {{ object.status|default:"Pending"|title }}
+                    </span>
                 {% endif %}
-
-                {% if object.cv %}
-                    <a href="{{ object.cv.url }}"
-                       target="_blank"
-                       class="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-500 transition">
-                        <div>
-                            <p class="text-white font-medium">CV</p>
-                            <p class="text-sm text-slate-500">View uploaded CV</p>
-                        </div>
-                        <span class="text-slate-400">→</span>
-                    </a>
-                {% endif %}
-
-                {% if object.id_picture %}
-                    <a href="{{ object.id_picture.url }}"
-                       target="_blank"
-                       class="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-500 transition">
-                        <div>
-                            <p class="text-white font-medium">Valid ID</p>
-                            <p class="text-sm text-slate-500">View uploaded identification</p>
-                        </div>
-                        <span class="text-slate-400">→</span>
-                    </a>
-                {% endif %}
-
-                {% if not object.resume and not object.cv and not object.id_picture %}
-                    <p class="text-slate-500 col-span-full">
-                        No documents uploaded.
-                    </p>
-                {% endif %}
-
             </div>
         </div>
-
-        <!-- Actions -->
-        <div class="flex flex-wrap items-center gap-3 pb-10">
-            <a href="{% url 'applicants-list' %}"
-               class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition">
-                Back to Applicants
-            </a>
-        </div>
-
     </div>
+
+    <!-- Overview Banner -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div class="shrink-0">
+                {% if object.applicant.id_picture %}
+                    <img src="{{ object.applicant.id_picture.url }}" alt="Profile Photo" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-stone-200 shadow-3xs">
+                {% elif object.applicant.user.profile_picture %}
+                    <img src="{{ object.applicant.user.profile_picture.url }}" alt="Profile Photo" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-stone-200 shadow-3xs">
+                {% else %}
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl font-bold text-stone-700 border border-stone-200 shadow-3xs">
+                        {{ object.applicant.first_name|slice:":1"|upper|default:"A" }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="flex-1 space-y-1">
+                <h2 class="text-xl font-bold text-stone-900">
+                    {% if object.applicant.get_full_name %}
+                        {{ object.applicant.get_full_name }}
+                    {% else %}
+                        {{ object.applicant.first_name }} {{ object.applicant.last_name }}
+                    {% endif %}
+                </h2>
+                <p class="text-xs text-stone-500 font-medium">Application ID: APP-{{ object.id|stringformat:"04d" }} &bull; Target Position: <strong class="text-stone-800">{{ object.job }}</strong></p>
+                {% if object.applicant.preferred_job %}
+                    <p class="text-xs text-stone-600 pt-1">
+                        <span class="text-stone-400">Preferred Role Goal:</span> <span class="font-semibold text-stone-800">{{ object.applicant.preferred_job }}</span>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information Card -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs space-y-4">
+        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">Personal Information</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-xs">
+            <div><p class="text-stone-400 font-medium">First Name</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.first_name|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Middle Name</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.middle_name|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Last Name</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.last_name|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Suffix</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.suffix|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Birth Date</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.date_of_birth|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Sex</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.get_sex_display|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Civil Status</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.get_civil_status_display|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Contact Number</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.contact_number|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Email Address</p><p class="text-stone-900 font-semibold mt-0.5 break-all">{{ object.applicant.user.email|default:"—" }}</p></div>
+        </div>
+    </div>
+
+    <!-- Address Card -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs space-y-4">
+        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">Residential Address</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+            <div><p class="text-stone-400 font-medium">Street Address</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.street_address|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Barangay</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.barangay|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Municipality / City</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.municipality|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Province</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.province|default:"—" }}</p></div>
+        </div>
+    </div>
+
+    <!-- Education Card -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs space-y-4">
+        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">Educational Background</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+            <div><p class="text-stone-400 font-medium">Level</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.get_educational_level_display|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Course / Strand</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.course_or_strand|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Institution</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.school|default:"—" }}</p></div>
+            <div><p class="text-stone-400 font-medium">Graduation Year</p><p class="text-stone-900 font-semibold mt-0.5">{{ object.applicant.graduation_year|default:"—" }}</p></div>
+        </div>
+    </div>
+
+    <!-- Skills & Experience -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs space-y-4">
+        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">Competencies & Experience</h3>
+        <div class="space-y-4 text-xs">
+            <div>
+                <p class="text-stone-400 font-medium mb-1">Skills</p>
+                <p class="text-stone-900 bg-stone-50 p-3.5 rounded-xl border border-stone-200/60 leading-relaxed whitespace-pre-line">{{ object.applicant.skills|default:"None listed." }}</p>
+            </div>
+            <div>
+                <p class="text-stone-400 font-medium mb-1">Work History</p>
+                <p class="text-stone-900 bg-stone-50 p-3.5 rounded-xl border border-stone-200/60 leading-relaxed whitespace-pre-line">{{ object.applicant.work_experience|default:"None listed." }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 shadow-3xs space-y-4">
+        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">Credentials & Documents</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            {% if object.applicant.resume %}
+                <a href="{{ object.applicant.resume.url }}" target="_blank" class="flex items-center justify-between p-3.5 bg-stone-50 border border-stone-200/80 rounded-xl hover:border-stone-400 transition-colors">
+                    <div><p class="font-bold text-stone-900">Resume File</p><p class="text-[11px] text-stone-500">View document</p></div>
+                    <span class="text-stone-400">&rarr;</span>
+                </a>
+            {% endif %}
+            {% if object.applicant.cv %}
+                <a href="{{ object.applicant.cv.url }}" target="_blank" class="flex items-center justify-between p-3.5 bg-stone-50 border border-stone-200/80 rounded-xl hover:border-stone-400 transition-colors">
+                    <div><p class="font-bold text-stone-900">Curriculum Vitae</p><p class="text-[11px] text-stone-500">View document</p></div>
+                    <span class="text-stone-400">&rarr;</span>
+                </a>
+            {% endif %}
+            {% if object.applicant.id_picture %}
+                <a href="{{ object.applicant.id_picture.url }}" target="_blank" class="flex items-center justify-between p-3.5 bg-stone-50 border border-stone-200/80 rounded-xl hover:border-stone-400 transition-colors">
+                    <div><p class="font-bold text-stone-900">Valid ID Card</p><p class="text-[11px] text-stone-500">View image</p></div>
+                    <span class="text-stone-400">&rarr;</span>
+                </a>
+            {% endif %}
+            {% if not object.applicant.resume and not object.applicant.cv and not object.applicant.id_picture %}
+                <p class="text-stone-400 italic col-span-full">No documents uploaded.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="pb-8">
+        <a href="{% url 'applicants-list' %}" class="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl shadow-3xs transition-all inline-block">
+            &larr; Return to Applicants Ledger
+        </a>
+    </div>
+
 </div>
 {% endblock %}

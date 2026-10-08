@@ -1,104 +1,108 @@
 {% extends 'employer-base.html' %}
 
-{% block title %}My Job Postings{% endblock %}
+{% block title %}My Job Postings — CAPESONCONNECT{% endblock %}
 {% block content %}
-<div class="min-h-screen bg-[#0b0f19] px-6 py-8">
-    <div class="max-w-7xl mx-auto">
+<div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
 
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-white">My Job Postings</h1>
-                <p class="text-gray-400 mt-1">Manage the jobs you have posted.</p>
-            </div>
-            <a href="{% url 'job_create' %}" class="inline-flex items-center justify-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
-                + Post a Job
-            </a>
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 pb-5">
+        <div>
+            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Employer Portal</p>
+            <h1 class="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl mt-0.5">My Job Postings</h1>
+            <p class="mt-1 text-xs sm:text-sm text-stone-600">Manage and track the active job positions you have posted.</p>
         </div>
+        <a href="{% url 'job_create' %}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl shadow-3xs transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Post a Job</span>
+        </a>
+    </div>
 
-        <!-- Job Count -->
-        <div class="mb-6">
-            <p class="text-sm text-gray-400">{{ jobs|length }} job{{ jobs|length|pluralize }} posted</p>
-        </div>
+    <!-- Job Count -->
+    <div>
+        <p class="text-xs font-semibold text-stone-500">{{ jobs|length }} job{{ jobs|length|pluralize }} posted</p>
+    </div>
 
-        {% if jobs %}
+    {% if jobs %}
 
-        <!-- Job List -->
-        <div class="space-y-4">
-            {% for job in jobs %}
-            <div class="bg-[#111827] border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <!-- Job List -->
+    <div class="space-y-4">
+        {% for job in jobs %}
+        <div class="bg-white border border-stone-200/90 rounded-xl p-6 shadow-3xs hover:border-stone-300 transition-colors">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-                    <!-- Job Information -->
-                    <div class="flex-1">
-                        <div class="flex flex-wrap items-center gap-3 mb-2">
-                            <h2 class="text-xl font-semibold text-white">{{ job.job_title }}</h2>
+                <!-- Job Information -->
+                <div class="flex-1 space-y-2">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <h2 class="text-base font-bold text-stone-900">{{ job.job_title }}</h2>
 
-                            {% if job.status == 'Active' %}
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-400">Active</span>
-                            {% elif job.status == 'Filled' %}
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-400">Filled</span>
-                            {% elif job.status == 'Closed' %}
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-400">Closed</span>
-                            {% else %}
-                            <span class="px-3 py-1 text-xs font-medium rounded-full bg-gray-500/10 text-gray-400">{{ job.status }}</span>
-                            {% endif %}
-                        </div>
+                        {% if job.status == 'Active' %}
+                            <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
+                        {% elif job.status == 'Filled' %}
+                            <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">Filled</span>
+                        {% elif job.status == 'Closed' %}
+                            <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200">Closed</span>
+                        {% else %}
+                            <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-stone-100 text-stone-600 border border-stone-200">{{ job.status }}</span>
+                        {% endif %}
+                    </div>
 
-                        <!-- Job Details -->
-                        <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-400">
-                            {% if job.nature_of_work %}
+                    <!-- Job Details -->
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-600">
+                        {% if job.nature_of_work %}
                             <span>{{ job.get_nature_of_work_display }}</span>
-                            {% endif %}
-                            {% if job.place_of_work %}
-                            <span>{{ job.place_of_work }}</span>
-                            {% endif %}
-                            {% if job.application_quota %}
-                            <span>{{ job.application_quota }} applicants</span>
-                            {% endif %}
-                        </div>
+                        {% endif %}
+                        {% if job.place_of_work %}
+                            <span>&bull; {{ job.place_of_work }}</span>
+                        {% endif %}
+                        {% if job.application_quota %}
+                            <span>&bull; Quota: {{ job.application_quota }} applicants</span>
+                        {% endif %}
+                    </div>
 
-                        <!-- Dates -->
-                        <div class="mt-4 flex flex-wrap gap-6 text-sm text-gray-500">
-                            {% if job.created_at %}
+                    <!-- Dates -->
+                    <div class="flex flex-wrap gap-4 text-[11px] text-stone-400 pt-1">
+                        {% if job.created_at %}
                             <span>Posted: {{ job.created_at|date:"M d, Y" }}</span>
-                            {% endif %}
-                            {% if job.job_posting_expiry %}
+                        {% endif %}
+                        {% if job.job_posting_expiry %}
                             <span>Expires: {{ job.job_posting_expiry|date:"M d, Y" }}</span>
-                            {% endif %}
-                        </div>
+                        {% endif %}
                     </div>
-
-                    <!-- Actions -->
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{% url 'job-detail' job.pk %}" class="px-4 py-2 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition">
-                            View
-                        </a>
-                        <a href="{% url 'job-update' job.pk %}" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition">
-                            Edit
-                        </a>
-                    </div>
-
                 </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 pt-4 lg:pt-0 border-t lg:border-t-0 border-stone-100">
+                    <a href="{% url 'job-detail' job.pk %}" class="px-3.5 py-2 rounded-lg border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:border-stone-400 text-xs font-semibold shadow-3xs transition-all">
+                        View
+                    </a>
+                    <a href="{% url 'job-update' job.pk %}" class="px-3.5 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold shadow-3xs transition-all">
+                        Edit
+                    </a>
+                </div>
+
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
+    </div>
 
-        {% else %}
+    {% else %}
 
-        <!-- Empty State -->
-        <div class="bg-[#111827] border border-gray-800 rounded-xl p-12 text-center">
-            <div class="text-5xl mb-4">+</div>
-            <h2 class="text-xl font-semibold text-white mb-2">No Job Postings Yet</h2>
-            <p class="text-gray-400 max-w-md mx-auto mb-6">
-                You haven't posted any jobs yet. Create your first job posting to start receiving applications.
-            </p>
-            <a href="{% url 'job_create' %}" class="inline-flex px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+    <!-- Empty State -->
+    <div class="bg-white border border-stone-200/90 rounded-xl p-12 text-center shadow-3xs space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center mx-auto border border-stone-200">
+            <i class="fa-solid fa-folder-open text-lg"></i>
+        </div>
+        <h2 class="text-base font-bold text-stone-900">No Job Postings Yet</h2>
+        <p class="text-xs text-stone-500 max-w-sm mx-auto">
+            You haven't posted any jobs yet. Create your first job posting to start receiving applications.
+        </p>
+        <div class="pt-2">
+            <a href="{% url 'job_create' %}" class="inline-flex px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl shadow-3xs transition-all">
                 Post Your First Job
             </a>
         </div>
-
-        {% endif %}
     </div>
+
+    {% endif %}
 </div>
 {% endblock %}
