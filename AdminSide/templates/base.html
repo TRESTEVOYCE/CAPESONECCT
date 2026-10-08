@@ -351,7 +351,7 @@
                 <!-- PROFILE DROPDOWN WRAPPER -->
                 <div class="relative">
                     <button id="userMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm hover:ring-2 hover:ring-indigo-500/30 transition focus:outline-none cursor-pointer">
-                        <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:'PESO+Admin' }}&background=0F172A&color=fff&bold=true{% endif %}" 
+                        <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% elif request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F172A&color=fff&bold=true{% endif %}"
                             alt="Profile Picture" 
                             class="w-9 h-9 rounded-full object-cover transition hover:scale-105">
                     </button>
