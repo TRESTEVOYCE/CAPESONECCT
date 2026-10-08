@@ -1,63 +1,61 @@
 {% extends 'employer-base.html' %}
-{% block title %}Applicants Management — CAPESONCONNECT{% endblock %}
+{% block title %}Applicants Management — CAPESONNECT{% endblock %}
 {% block content %}
 
-<div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
+<div class="w-full mx-auto space-y-8 font-sans">
 
     <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200/80 pb-5">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200/80 pb-6">
         <div>
-            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Talent Acquisition</p>
-            <h1 class="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl mt-0.5">Applicants</h1>
-            <p class="mt-1 text-xs sm:text-sm text-stone-600">Review, filter, and manage candidates who applied to your vacancies.</p>
+            <p class="text-xs font-bold text-stone-500 uppercase tracking-widest">Talent Acquisition</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl mt-1">Applicants</h1>
+            <p class="mt-1.5 text-sm sm:text-base text-stone-600">Review, filter, and manage candidates who applied to your vacancies.</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <div class="rounded-2xl border border-stone-200/90 bg-white px-4 py-3 shadow-3xs">
-                <p class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Total Records</p>
-                <p class="mt-0.5 text-xl font-bold text-stone-900">{{ object_list|length }}</p>
+            <div class="rounded-2xl border border-stone-200/95 bg-white px-5 py-3.5 shadow-sm">
+                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Records</p>
+                <p class="mt-1 text-2xl font-bold text-stone-900">{{ object_list|length }}</p>
             </div>
         </div>
     </div>
 
     {% if not is_verified %}
-        <div class="overflow-hidden rounded-2xl border border-amber-300 bg-amber-50/60 shadow-3xs">
+        <div class="overflow-hidden rounded-2xl border border-amber-300 bg-amber-50/60 shadow-sm">
             <div class="p-8 text-center space-y-2">
                 <h2 class="text-base font-bold text-stone-900">Account Verification Required</h2>
-                <p class="text-xs text-stone-600 max-w-md mx-auto">Your employer organization account must be reviewed and verified before you can access applicant details.</p>
+                <p class="text-sm text-stone-600 max-w-md mx-auto">Your employer organization account must be reviewed and verified before you can access applicant details.</p>
             </div>
         </div>
     {% endif %}
 
     <!-- Main Table Container -->
-    <div class="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-3xs">
+    <div class="overflow-hidden rounded-2xl border border-stone-200/95 bg-white shadow-sm">
 
         <!-- Search Bar Header -->
-        <div class="border-b border-stone-200/80 px-6 py-4 bg-stone-50/60">
+        <div class="border-b border-stone-200/80 px-7 py-5 bg-stone-50/80">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Application Records</h2>
-                    <p class="text-[11px] text-stone-500 mt-0.5">Real-time candidate tracking ledger.</p>
+                    <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Application Records</h2>
+                    <p class="text-xs text-stone-500 mt-0.5">Real-time candidate tracking ledger.</p>
                 </div>
 
                 <div class="relative w-full sm:w-80">
                     <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/>
                     </svg>
-                    <input type="text" id="applicantSearch" placeholder="Search applicant name or job..." class="h-10 w-full rounded-xl border border-stone-300 bg-white pl-10 pr-4 text-xs text-stone-900 placeholder-stone-400 outline-none transition focus:border-stone-500 focus:ring-2 focus:ring-stone-900/10">
+                    <input type="text" id="applicantSearch" placeholder="Search applicant name or job..." class="h-11 w-full rounded-xl border border-stone-300 bg-white pl-10 pr-4 text-sm text-stone-900 placeholder-stone-400 outline-none transition focus:border-stone-500 focus:ring-2 focus:ring-stone-900/10">
                 </div>
             </div>
         </div>
 
         {% if not object_list %}
-            <div class="flex min-h-[350px] flex-col items-center justify-center px-6 text-center space-y-2">
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 text-stone-400">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm11 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
+            <div class="flex min-h-[350px] flex-col items-center justify-center px-6 text-center space-y-3">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 text-stone-400 text-xl">
+                    <i class="fa-solid fa-folder-open"></i>
                 </div>
-                <h3 class="text-sm font-bold text-stone-900">No applicants yet</h3>
-                <p class="text-xs text-stone-500 max-w-xs">Candidates who apply to your posted vacancies will populate here automatically.</p>
+                <h3 class="text-base font-bold text-stone-900">No applicants yet</h3>
+                <p class="text-sm text-stone-500 max-w-sm">Candidates who apply to your posted vacancies will populate here automatically.</p>
             </div>
         {% else %}
 
@@ -66,75 +64,75 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-stone-200/80 bg-stone-50/80">
-                            <th class="px-6 py-3.5 text-[11px] font-bold uppercase tracking-wider text-stone-500">Candidate</th>
-                            <th class="px-6 py-3.5 text-[11px] font-bold uppercase tracking-wider text-stone-500">Position</th>
-                            <th class="px-6 py-3.5 text-[11px] font-bold uppercase tracking-wider text-stone-500">Status</th>
-                            <th class="px-6 py-3.5 text-[11px] font-bold uppercase tracking-wider text-stone-500">Applied Date</th>
-                            <th class="px-6 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-stone-500">Action</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-wider text-stone-500">Candidate</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-wider text-stone-500">Position</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-wider text-stone-500">Status</th>
+                            <th class="px-7 py-4 text-xs font-bold uppercase tracking-wider text-stone-500">Applied Date</th>
+                            <th class="px-7 py-4 text-right text-xs font-bold uppercase tracking-wider text-stone-500">Action</th>
                         </tr>
                     </thead>
 
-                    <tbody id="applicantTable" class="divide-y divide-stone-100 text-xs font-medium">
+                    <tbody id="applicantTable" class="divide-y divide-stone-100 text-sm font-medium">
                         {% for application in object_list %}
                             <tr class="applicant-row transition hover:bg-stone-50/80">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-xs font-bold text-stone-700 border border-stone-200">
+                                <td class="px-7 py-5">
+                                    <div class="flex items-center gap-3.5">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-sm font-bold text-stone-700 border border-stone-200">
                                             {{ application.applicant.first_name|first|upper|default:"A" }}
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="truncate font-bold text-stone-900">
+                                            <p class="truncate font-bold text-stone-900 text-base">
                                                 {% if application.applicant.get_full_name %}
                                                     {{ application.applicant.get_full_name }}
                                                 {% else %}
                                                     {{ application.applicant }}
                                                 {% endif %}
                                             </p>
-                                            <p class="truncate text-[11px] text-stone-500 font-normal">{{ application.applicant.user.email|default:"No email listed" }}</p>
+                                            <p class="truncate text-xs text-stone-500 font-normal">{{ application.applicant.user.email|default:"No email listed" }}</p>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td class="px-6 py-4 text-stone-800">
-                                    {{ application.job|default:"Position Unavailable" }}
+                                <td class="px-7 py-5 text-stone-800 font-semibold">
+                                    {{ application.applied_job|default:"Position Unavailable" }}
                                 </td>
 
-                                <td class="px-6 py-4">
+                                <td class="px-7 py-5">
                                     {% if application.status == 'pending' %}
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Pending
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-bold text-amber-800">
+                                            <span class="h-2 w-2 rounded-full bg-amber-500"></span> Pending
                                         </span>
                                     {% elif application.status == 'reviewed' %}
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span> Reviewed
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-bold text-blue-700">
+                                            <span class="h-2 w-2 rounded-full bg-blue-500"></span> Reviewed
                                         </span>
                                     {% elif application.status == 'for interview' %}
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-semibold text-purple-700">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-purple-500"></span> Interview
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3.5 py-1 text-xs font-bold text-purple-700">
+                                            <span class="h-2 w-2 rounded-full bg-purple-500"></span> Interview
                                         </span>
                                     {% elif application.status == 'hired' %}
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Hired
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1 text-xs font-bold text-emerald-700">
+                                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Hired
                                         </span>
                                     {% elif application.status == 'rejected' %}
-                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Rejected
+                                        <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1 text-xs font-bold text-rose-700">
+                                            <span class="h-2 w-2 rounded-full bg-rose-500"></span> Rejected
                                         </span>
                                     {% else %}
-                                        <span class="inline-flex rounded-full border border-stone-200 bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+                                        <span class="inline-flex rounded-full border border-stone-200 bg-stone-100 px-3.5 py-1 text-xs font-bold text-stone-600">
                                             {{ application.status|default:"Unknown"|title }}
                                         </span>
                                     {% endif %}
                                 </td>
 
-                                <td class="px-6 py-4 text-stone-500 font-normal">
-                                    {{ application.applied_at|date:"M d, Y"|default:application.created_at|date:"M d, Y"|default:"—" }}
+                                <td class="px-7 py-5 text-stone-500 font-normal">
+                                    {{ application.application_date|date:"M d, Y"|default:"—" }}
                                 </td>
 
-                                <td class="px-6 py-4 text-right">
-                                    <a href="{% url 'applicant-detail' application.pk %}" class="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-700 shadow-3xs transition hover:border-stone-400 hover:bg-stone-50 active:scale-[0.98]">
-                                        View Profile
-                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                <td class="px-7 py-5 text-right">
+                                    <a href="{% url 'applicant-detail' application.pk %}" class="inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 text-sm font-bold shadow-sm transition-all active:scale-[0.98]">
+                                        <span>View Profile</span>
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                     </a>
                                 </td>
                             </tr>
@@ -144,38 +142,38 @@
             </div>
 
             <!-- Mobile Card View -->
-            <div class="space-y-3 p-4 md:hidden">
+            <div class="space-y-4 p-5 md:hidden">
                 {% for application in object_list %}
-                    <div class="applicant-row rounded-2xl border border-stone-200/90 bg-stone-50/50 p-4 space-y-3 shadow-3xs">
+                    <div class="applicant-row rounded-2xl border border-stone-200/95 bg-stone-50/50 p-5 space-y-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-xs font-bold text-stone-700 border border-stone-200">
+                            <div class="flex items-center gap-3.5">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-sm font-bold text-stone-700 border border-stone-200">
                                     {{ application.applicant.first_name|first|upper|default:"A" }}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate text-xs font-bold text-stone-900">
+                                    <p class="truncate text-sm font-bold text-stone-900">
                                         {% if application.applicant.get_full_name %}
                                             {{ application.applicant.get_full_name }}
                                         {% else %}
                                             {{ application.applicant }}
                                         {% endif %}
                                     </p>
-                                    <p class="truncate text-[11px] text-stone-500">{{ application.applicant.user.email }}</p>
+                                    <p class="truncate text-xs text-stone-500">{{ application.applicant.user.email }}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="border-t border-stone-200/60 pt-2.5">
-                            <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Position Applied</p>
-                            <p class="mt-0.5 text-xs font-bold text-stone-800">{{ application.job|default:"Unavailable" }}</p>
+                        <div class="border-t border-stone-200/60 pt-3">
+                            <p class="text-[11px] uppercase font-bold text-stone-400 tracking-wider">Position Applied</p>
+                            <p class="mt-0.5 text-sm font-bold text-stone-800">{{ application.applied_job|default:"Unavailable" }}</p>
                         </div>
 
-                        <div class="flex items-center justify-between pt-2 border-t border-stone-200/60">
-                            <span class="text-[11px] text-stone-500">
-                                {{ application.applied_at|date:"M d, Y"|default:application.created_at|date:"M d, Y"|default:"—" }}
+                        <div class="flex items-center justify-between pt-3 border-t border-stone-200/60">
+                            <span class="text-xs text-stone-500">
+                                {{ application.application_date|date:"M d, Y"|default:"—" }}
                             </span>
 
-                            <a href="{% url 'applicant-detail' application.pk %}" class="rounded-xl bg-stone-900 text-white px-3.5 py-1.5 text-xs font-semibold shadow-3xs hover:bg-stone-800 transition-colors">
+                            <a href="{% url 'applicant-detail' application.pk %}" class="rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 px-5 py-2.5 text-xs font-bold shadow-sm transition-all active:scale-[0.98]">
                                 View Profile
                             </a>
                         </div>

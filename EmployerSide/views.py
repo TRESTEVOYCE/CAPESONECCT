@@ -6,6 +6,23 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LogoutView
 from JobMatchingEngine.database import upsert_job_vector
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from django.contrib import messages
+
+import random
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.conf import settings
+from django.contrib.auth.views import PasswordChangeView
+from django.db.models import Q
 
 #home or the dashboard view for the employer
 class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -15,9 +32,20 @@ class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
     def get_queryset(self):
-            return Jobs.objects.filter(
-                employer__user=self.request.user
-            ).order_by('-created_at')[:10]
+        queryset = Jobs.objects.filter(
+            employer__user=self.request.user
+        ).order_by('-created_at')
+
+        # Add search filtering here
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(job_title__icontains=query) |
+                Q(job_description__icontains=query) |
+                Q(place_of_work__icontains=query)
+            )
+
+        return queryset[:10]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -79,7 +107,6 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     def get_object(self):
         return EmployerProfile.objects.get(user=self.request.user)
     
-#view to list all applicants who have applied to the employer's job postings
 class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = AppliedJobs
     template_name = 'applicants_list.html'
@@ -96,17 +123,26 @@ class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         if employer_profile.verification_status != 'verified':
             return AppliedJobs.objects.none()
 
-        return AppliedJobs.objects.filter(
+        queryset = AppliedJobs.objects.filter(
             employer=employer_profile
-        )
+        ).order_by('-application_date')
+
+        # Capture search query for applicants using correct field lookups
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(applicant__first_name__icontains=query) |
+                Q(applicant__last_name__icontains=query) |
+                Q(applied_job__job_title__icontains=query)
+            )
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context['is_verified'] = (
             self.request.user.employer_profile.verification_status == 'verified'
         )
-
         return context
     
 #view to display details of a specific applicant
@@ -245,9 +281,20 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         if employer_profile.verification_status != 'verified':
             return Jobs.objects.none()
 
-        return Jobs.objects.filter(
+        queryset = Jobs.objects.filter(
             employer__user=self.request.user
         ).order_by('-created_at')
+
+        # Capture search query for jobs
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(job_title__icontains=query) |
+                Q(job_description__icontains=query) |
+                Q(place_of_work__icontains=query)
+            )
+
+        return queryset
     
     
 class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -281,12 +328,178 @@ class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'employer_settings.html'
 
-    template_name = 'settings.html'
-
-    #to ensure that only authenticated employers can access this view
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'employer'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = getattr(self.request.user, 'employer_profile', None)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        # Handle updating the user's name/username from settings
+        full_name = request.POST.get('full_name')
+        if full_name:
+            request.user.username = full_name.strip()
+            request.user.save()
+            messages.success(request, "Your profile name has been successfully updated.")
+        
+        # Handle saving other general preferences if needed
+        messages.success(request, "Your employer preferences have been successfully updated.")
+        return redirect('employer-settings')
+    
+    
 class LogoutView(LoginRequiredMixin,LogoutView): 
      next_page = reverse_lazy('landing_page')
+     
+     
+class EmployerPasswordChangeView(LoginRequiredMixin, UserPassesTestMixin, PasswordChangeView):
+    template_name = 'change_password.html'
+    success_url = reverse_lazy('employer-settings')
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your password has been successfully updated.")
+        return super().form_valid(form)
+
+@login_required
+def employer_email_change_view(request):
+    if request.user.role != 'employer':
+        return redirect('employer-home')
+        
+    if request.method == 'POST':
+        new_email = request.POST.get('email')
+        if new_email:
+            # Check if email is already taken
+            if User.objects.filter(email=new_email).exclude(pk=request.user.pk).exists():
+                messages.error(request, "This email address is already in use.")
+            else:
+                request.user.email = new_email
+                request.user.save()
+                messages.success(request, "Your email address has been successfully updated.")
+                return redirect('employer-settings')
+                
+    return render(request, 'change_email.html')
+
+User = get_user_model()
+def send_email_otp(request):
+    if request.method == "POST":
+        new_email = request.POST.get("email")
+        if not new_email:
+            return JsonResponse({"status": "error", "message": "Email is required." }, status=400)
+        
+        # Generate 6-digit OTP
+        otp_code = str(random.randint(100000, 999999))
+        
+        # Store OTP and target email in session temporarily
+        request.session['pending_new_email'] = new_email
+        request.session['email_otp_code'] = otp_code
+        
+        # Send email via configured Django EMAIL_BACKEND
+        try:
+            send_mail(
+                subject="Your CAPESONNECT Verification Code",
+                message=f"Your One-Time Password (OTP) to change your email is: {otp_code}. Valid for 10 minutes.",
+                from_email=None,  # Uses DEFAULT_FROM_EMAIL
+                recipient_list=[new_email],
+                fail_silently=False,
+            )
+            return JsonResponse({"status": "success", "message": "OTP sent successfully."})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            
+    return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+@login_required
+def employer_email_change_view(request):
+    if request.user.role != 'employer':
+        return redirect('employer-home')
+        
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp_code", "").strip()
+        
+        session_email = request.session.get('pending_new_email')
+        session_otp = request.session.get('email_otp_code')
+        
+        # Validation checks
+        if not session_otp or not session_email:
+            messages.error(request, "Please request a verification code first.")
+        elif entered_otp != session_otp:
+            messages.error(request, "Invalid verification code. Please try again.")
+        elif User.objects.filter(email=session_email).exclude(pk=request.user.pk).exists():
+            messages.error(request, "This email address is already registered to another account.")
+        else:
+            # Update user's email and username to keep login credentials synchronized
+            user = request.user
+            user.email = session_email
+            
+            # If your login relies on username matching the email or being editable
+            if hasattr(user, 'username'):
+                user.username = session_email
+                
+            user.save()
+            
+            # Clear session data
+            request.session.pop('pending_new_email', None)
+            request.session.pop('email_otp_code', None)
+            
+            messages.success(request, "Your email address and login credentials have been successfully updated.")
+            return redirect('employer-settings')
+            
+    return render(request, 'change_email.html')
+
+
+def send_password_otp_view(request):
+    # Generate a random 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+    
+    # Store OTP in session temporarily
+    request.session['password_otp'] = otp
+    request.session['otp_verified'] = False
+
+    # Send via Gmail (configured in settings.py)
+    send_mail(
+        subject='Password Change Verification Code — CAPESONCONNECT',
+        message=f'Your security verification code to change your password is: {otp}. This code expires shortly.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[request.user.email],
+        fail_silently=False,
+    )
+    
+    return redirect('verify-password-otp')
+
+
+def verify_password_otp_view(request):
+    if request.method == 'POST':
+        user_otp = request.POST.get('otp')
+        if user_otp == request.session.get('password_otp'):
+            request.session['otp_verified'] = True
+            return redirect('employer-password-change') # Proceed to the password form template above
+        else:
+            messages.error(request, "Invalid OTP code. Please try again.")
+            
+    return render(request, 'verify_otp.html')
+
+
+class SecurePasswordChangeView(PasswordChangeView):
+    template_name = 'change_password.html'
+    success_url = '/employer/settings/'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if OTP was verified in this session sequence
+        if not request.session.get('otp_verified', False):
+            messages.warning(request, "Please verify your email with an OTP first.")
+            return redirect('send-password-otp')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        # Clear OTP session flags after successful update
+        request = self.request
+        request.session.pop('password_otp', None)
+        request.session.pop('otp_verified', None)
+        messages.success(request, "Your password has been changed successfully.")
+        return super().form_valid(form)

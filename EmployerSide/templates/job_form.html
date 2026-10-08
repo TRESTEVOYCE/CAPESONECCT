@@ -1,14 +1,14 @@
 {% extends 'employer-base.html' %}
 
-{% block title %}Create Job Posting — CAPESONCONNECT{% endblock %}
+{% block title %}Create Job Posting — CAPESONNECT{% endblock %}
 {% block content %}
 <div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
 
     <!-- Header -->
     <div class="border-b border-stone-200/80 pb-5">
-        <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Employer Portal</p>
-        <h1 class="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl mt-0.5">Create Job Posting</h1>
-        <p class="text-xs sm:text-sm text-stone-600 mt-1">Add the details and requirements for your new career opportunity.</p>
+        <p class="text-sm font-semibold text-stone-500 uppercase tracking-wider">Employer Portal</p>
+        <h1 class="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl mt-0.5">Create Job Posting</h1>
+        <p class="text-sm sm:text-base text-stone-600 mt-1">Add the details and requirements for your new career opportunity.</p>
     </div>
 
     {% if is_verified %}
@@ -18,7 +18,7 @@
         {% if form.non_field_errors %}
         <div class="rounded-xl border border-rose-200 bg-rose-50 p-4">
             {% for error in form.non_field_errors %}
-            <p class="text-xs font-semibold text-rose-700">{{ error }}</p>
+            <p class="text-sm font-semibold text-rose-700">{{ error }}</p>
             {% endfor %}
         </div>
         {% endif %}
@@ -26,11 +26,11 @@
         <!-- JOB DETAILS -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Job Details</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Basic information about the position.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Job Details</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Basic information about the position.</p>
             </div>
 
-            <div class="space-y-4 text-xs">
+            <div class="space-y-5 text-sm">
 
                 <!-- Job Title -->
                 <div>
@@ -39,7 +39,7 @@
                     </label>
                     <input type="text" name="{{ form.job_title.html_name }}" id="{{ form.job_title.id_for_label }}"
                            value="{{ form.job_title.value|default:'' }}" placeholder="e.g. Software Developer"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.job_title.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -52,7 +52,7 @@
                     </label>
                     <textarea name="{{ form.job_description.html_name }}" id="{{ form.job_description.id_for_label }}"
                               rows="5" placeholder="Describe the responsibilities and duties of this position..."
-                              class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition">{{ form.job_description.value|default:'' }}</textarea>
+                              class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition text-sm">{{ form.job_description.value|default:'' }}</textarea>
                     {% for error in form.job_description.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -66,7 +66,7 @@
                             Nature of Work
                         </label>
                         <select name="{{ form.nature_of_work.html_name }}" id="{{ form.nature_of_work.id_for_label }}"
-                                class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition">
+                                class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                             {% for value, label in form.nature_of_work.field.choices %}
                             <option value="{{ value }}" {% if form.nature_of_work.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
@@ -83,7 +83,7 @@
                         </label>
                         <input type="text" name="{{ form.place_of_work.html_name }}" id="{{ form.place_of_work.id_for_label }}"
                                value="{{ form.place_of_work.value|default:'' }}" placeholder="e.g. Carigara, Leyte"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.place_of_work.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -96,18 +96,18 @@
         <!-- COMPENSATION -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Compensation & Vacancy</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Information about salary, vacancies, and experience required.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Compensation & Vacancy</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Information about salary, vacancies, and experience required.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
 
                 <!-- Salary -->
                 <div>
                     <label for="{{ form.salary.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Salary</label>
                     <input type="number" name="{{ form.salary.html_name }}" id="{{ form.salary.id_for_label }}"
                            value="{{ form.salary.value|default:'' }}" min="0" step="0.01" placeholder="e.g. 25000.00"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.salary.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -118,7 +118,7 @@
                     <label for="{{ form.vacancy.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Number of Vacancies</label>
                     <input type="number" name="{{ form.vacancy.html_name }}" id="{{ form.vacancy.id_for_label }}"
                            value="{{ form.vacancy.value|default:'' }}" min="1" placeholder="e.g. 5"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.vacancy.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -129,7 +129,7 @@
                     <label for="{{ form.work_experience_months.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Experience (Months)</label>
                     <input type="number" name="{{ form.work_experience_months.html_name }}" id="{{ form.work_experience_months.id_for_label }}"
                            value="{{ form.work_experience_months.value|default:'' }}" min="0" placeholder="Months"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.work_experience_months.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -141,11 +141,11 @@
         <!-- QUALIFICATIONS -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Qualifications</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Specify the educational and professional requirements.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Qualifications</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Specify the educational and professional requirements.</p>
             </div>
 
-            <div class="space-y-4 text-xs">
+            <div class="space-y-5 text-sm">
 
                 <!-- Other Qualifications -->
                 <div>
@@ -154,7 +154,7 @@
                     </label>
                     <textarea name="{{ form.other_qualifications.html_name }}" id="{{ form.other_qualifications.id_for_label }}"
                               rows="3" placeholder="List additional qualifications..."
-                              class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition">{{ form.other_qualifications.value|default:'' }}</textarea>
+                              class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition text-sm">{{ form.other_qualifications.value|default:'' }}</textarea>
                     {% for error in form.other_qualifications.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -167,7 +167,7 @@
                         <label for="{{ form.educational_level.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Educational Level</label>
                         <input type="text" name="{{ form.educational_level.html_name }}" id="{{ form.educational_level.id_for_label }}"
                                value="{{ form.educational_level.value|default:'' }}" placeholder="e.g. Bachelor's Degree"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.educational_level.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -178,7 +178,7 @@
                         <label for="{{ form.course_or_strand.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Course / Strand</label>
                         <input type="text" name="{{ form.course_or_strand.html_name }}" id="{{ form.course_or_strand.id_for_label }}"
                                value="{{ form.course_or_strand.value|default:'' }}" placeholder="e.g. BSIT, STEM, ABM"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.course_or_strand.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -189,7 +189,7 @@
                         <label for="{{ form.required_license.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Required License</label>
                         <input type="text" name="{{ form.required_license.html_name }}" id="{{ form.required_license.id_for_label }}"
                                value="{{ form.required_license.value|default:'' }}" placeholder="e.g. PRC License"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.required_license.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -200,7 +200,7 @@
                         <label for="{{ form.required_eligibility.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Required Eligibility</label>
                         <input type="text" name="{{ form.required_eligibility.html_name }}" id="{{ form.required_eligibility.id_for_label }}"
                                value="{{ form.required_eligibility.value|default:'' }}" placeholder="e.g. Civil Service Eligibility"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.required_eligibility.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -211,7 +211,7 @@
                         <label for="{{ form.required_certification.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Required Certification</label>
                         <input type="text" name="{{ form.required_certification.html_name }}" id="{{ form.required_certification.id_for_label }}"
                                value="{{ form.required_certification.value|default:'' }}" placeholder="e.g. CCNA"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.required_certification.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -222,7 +222,7 @@
                         <label for="{{ form.languages_spoken.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Languages Spoken</label>
                         <input type="text" name="{{ form.languages_spoken.html_name }}" id="{{ form.languages_spoken.id_for_label }}"
                                value="{{ form.languages_spoken.value|default:'' }}" placeholder="e.g. English, Filipino, Waray"
-                               class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                               class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                         {% for error in form.languages_spoken.errors %}
                         <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                         {% endfor %}
@@ -235,20 +235,20 @@
         <!-- APPLICANT PREFERENCES -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Applicant Preferences</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Choose which applicant groups can apply for this position.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Applicant Preferences</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Choose which applicant groups can apply for this position.</p>
             </div>
 
-            <div class="space-y-4 text-xs">
+            <div class="space-y-4 text-sm">
 
                 <!-- PWD Checkbox -->
-                <label class="flex items-center gap-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
+                <label class="flex items-center gap-3.5 p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
                     <input type="checkbox" name="{{ form.accepts_pwd.html_name }}" id="{{ form.accepts_pwd.id_for_label }}"
                            {% if form.accepts_pwd.value %}checked{% endif %}
-                           class="w-4 h-4 rounded border-stone-300 accent-stone-900 cursor-pointer">
+                           class="w-5 h-5 rounded border-stone-300 accent-stone-900 cursor-pointer">
                     <div>
-                        <p class="font-bold text-stone-900">Accept Persons with Disabilities (PWD)</p>
-                        <p class="text-[11px] text-stone-500">Allow qualified PWD applicants to apply.</p>
+                        <p class="font-bold text-stone-900 text-sm">Accept Persons with Disabilities (PWD)</p>
+                        <p class="text-xs text-stone-500">Allow qualified PWD applicants to apply.</p>
                     </div>
                 </label>
 
@@ -259,20 +259,20 @@
                     </label>
                     <input type="text" name="{{ form.pwd_disabilities.html_name }}" id="{{ form.pwd_disabilities.id_for_label }}"
                            value="{{ form.pwd_disabilities.value|default:'' }}" placeholder="e.g. Physical, Visual, Hearing"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.pwd_disabilities.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
 
                 <!-- OFW Checkbox -->
-                <label class="flex items-center gap-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
+                <label class="flex items-center gap-3.5 p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
                     <input type="checkbox" name="{{ form.accepts_ofw.html_name }}" id="{{ form.accepts_ofw.id_for_label }}"
                            {% if form.accepts_ofw.value %}checked{% endif %}
-                           class="w-4 h-4 rounded border-stone-300 accent-stone-900 cursor-pointer">
+                           class="w-5 h-5 rounded border-stone-300 accent-stone-900 cursor-pointer">
                     <div>
-                        <p class="font-bold text-stone-900">Accept Overseas Filipino Workers (OFW)</p>
-                        <p class="text-[11px] text-stone-500">Allow qualified OFW applicants to apply.</p>
+                        <p class="font-bold text-stone-900 text-sm">Accept Overseas Filipino Workers (OFW)</p>
+                        <p class="text-xs text-stone-500">Allow qualified OFW applicants to apply.</p>
                     </div>
                 </label>
 
@@ -282,18 +282,18 @@
         <!-- APPLICATION SETTINGS -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Application Settings</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Configure the application limit and expiration date.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Application Settings</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Configure the application limit and expiration date.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
 
                 <!-- Quota -->
                 <div>
                     <label for="{{ form.application_quota.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Application Quota</label>
                     <input type="number" name="{{ form.application_quota.html_name }}" id="{{ form.application_quota.id_for_label }}"
                            value="{{ form.application_quota.value|default:'' }}" min="1" placeholder="e.g. 100"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.application_quota.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -304,7 +304,7 @@
                     <label for="{{ form.job_posting_expiry.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Job Posting Expiry</label>
                     <input type="date" name="{{ form.job_posting_expiry.html_name }}" id="{{ form.job_posting_expiry.id_for_label }}"
                            value="{{ form.job_posting_expiry.value|default:'' }}"
-                           class="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
                     {% for error in form.job_posting_expiry.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -314,11 +314,11 @@
         </div>
 
         <!-- BUTTONS -->
-        <div class="flex items-center justify-end gap-3 pb-10">
-            <a href="{% url 'employer-home' %}" class="px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors">
+        <div class="flex items-center justify-end gap-4 pb-10">
+            <a href="{% url 'employer-home' %}" class="px-6 py-3 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-semibold transition-colors">
                 Cancel
             </a>
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold shadow-3xs transition-all">
+            <button type="submit" class="px-7 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-[0.98]">
                 Save & Post Job
             </button>
         </div>
@@ -336,16 +336,16 @@
                 </svg>
             </div>
 
-            <h2 class="text-lg font-bold text-stone-900">Verification Required</h2>
+            <h2 class="text-xl font-bold text-stone-900">Verification Required</h2>
 
-            <p class="text-xs leading-relaxed text-stone-600">
+            <p class="text-sm leading-relaxed text-stone-600">
                 Your employer account must be verified before you can post a job.
                 Please wait for PESO Carigara admin to review and approve your corporate profile.
             </p>
 
             <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-                <p class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Current Status</p>
-                <p class="mt-0.5 text-xs font-bold text-amber-700">
+                <p class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Current Status</p>
+                <p class="mt-0.5 text-sm font-bold text-amber-700">
                     {{ request.user.employer_profile.get_verification_status_display|default:"Pending Review" }}
                 </p>
             </div>

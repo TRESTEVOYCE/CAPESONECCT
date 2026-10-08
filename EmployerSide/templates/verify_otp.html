@@ -1,0 +1,58 @@
+{% extends 'employer-base.html' %}
+{% block title %}Verify OTP — CAPESONNECT{% endblock %}
+{% block content %}
+<div class="max-w-[550px] w-full mx-auto px-4 py-12 font-sans space-y-8">
+    
+    <!-- Header with Icon Badge -->
+    <div class="text-center space-y-3">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 text-xl shadow-2xs mb-1">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+        <p class="text-xs font-bold text-stone-500 uppercase tracking-widest">Security Verification</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-stone-900">Enter Verification Code</h1>
+        <p class="text-sm text-stone-600 max-w-md mx-auto">
+            We’ve sent a 6-digit security code to your registered Gmail address. Please enter it below to continue.
+        </p>
+    </div>
+
+    <!-- Django Messages Banner -->
+    {% if messages %}
+        <div class="space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- OTP Form Card -->
+  <form method="POST" class="bg-white border border-stone-200/95 rounded-2xl p-8 shadow-sm space-y-6">
+    {% csrf_token %}
+        
+        <div class="space-y-2">
+            <label for="otp" class="block text-xs font-bold text-stone-900 uppercase tracking-wider text-center">6-Digit OTP Code</label>
+            <input type="text" name="otp" id="otp" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" required autofocus
+                   class="w-full h-14 text-center tracking-[0.75em] text-2xl font-bold rounded-xl border border-stone-300 text-stone-900 focus:border-stone-500 focus:ring-2 focus:ring-stone-900/10 outline-none transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-stone-300">
+            <p class="text-[11px] text-stone-400 text-center pt-1">Code expires shortly. Check your inbox or spam folder.</p>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="space-y-3 pt-2">
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-[0.98]">
+                Verify Code
+            </button>
+            <div class="flex items-center justify-between text-xs pt-2">
+                <a href="{% url 'employer-settings' %}" class="text-stone-500 hover:text-stone-800 font-semibold transition-colors">
+                    Back to Settings
+                </a>
+                <!-- Optional resend link if you have a resend route -->
+                <a href="#" class="text-stone-900 font-bold hover:underline">
+                    Resend Code
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
