@@ -1,16 +1,13 @@
+
 {% extends 'applicant-base.html' %}
-
 {% block content %}
-
 <div class="max-w-[1300px] w-full mx-auto py-6 space-y-6 text-stone-900 font-sans">
-
     <!-- Page Header -->
     <div class="flex items-center justify-between border-b border-stone-200 pb-3">
         <h2 class="text-xs font-bold uppercase tracking-wider">
             VIII. Certification &amp; Data Privacy Consent
         </h2>
     </div>
-
     <form
         method="POST"
         action="{% url 'applicant-documents' %}"
@@ -24,9 +21,7 @@
         id="applicant-documents-form"
     >
         {% csrf_token %}
-
         <div class="space-y-4">
-
             <!-- Certification -->
             <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-700 leading-relaxed space-y-2">
                 <p>
@@ -35,7 +30,6 @@
                     misrepresentation made in this form may be ground for
                     disqualification.
                 </p>
-
                 <p class="font-medium text-stone-900">
                     By submitting this profile, I grant PESO Carigara / PESO Unified
                     consent to process my personal data in accordance with the Data
@@ -43,36 +37,28 @@
                     purposes.
                 </p>
             </div>
-
             <!-- Agreement -->
             <div class="space-y-2 pt-2">
                 <label class="inline-flex items-center gap-2.5 cursor-pointer text-xs font-medium text-stone-800">
                     {{ form.certification_agree }}
-
                     <span>
                         I agree to the certification and data privacy terms above*
                     </span>
                 </label>
-
                 {% if form.certification_agree.errors %}
                     <p class="text-xs text-red-600">
                         {{ form.certification_agree.errors.0 }}
                     </p>
                 {% endif %}
             </div>
-
             <!-- Upload Fields -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
-
                 <!-- Applicant ID Picture -->
                 <div class="space-y-1.5">
-
                     <label class="block text-xs font-medium text-stone-700">
                         Upload Applicant ID Picture
                     </label>
-
                     <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-
                         <!-- Default State -->
                         <div
                             x-show="!applicantIdName"
@@ -91,16 +77,13 @@
                                     d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0H5z"
                                 />
                             </svg>
-
                             <span class="text-xs font-medium text-stone-700">
                                 Click to upload or drag &amp; drop
                             </span>
-
                             <span class="text-[11px] text-stone-400">
                                 JPG, JPEG, or PNG · Max 5MB
                             </span>
                         </div>
-
                         <!-- Newly Selected Filename -->
                         <div
                             x-show="applicantIdName"
@@ -121,18 +104,15 @@
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-
                                 <span
                                     class="truncate font-medium"
                                     x-text="applicantIdName"
                                 ></span>
                             </div>
-
                             <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                 Replace
                             </span>
                         </div>
-
                         <!-- Existing ID Picture Filename Only -->
                         {% if form.instance.applicant_id_picture %}
                             <div
@@ -153,23 +133,19 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-
                                     <span class="truncate font-medium">
                                         {{ form.instance.applicant_id_picture.name }}
                                     </span>
                                 </div>
-
                                 <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                     Current
                                 </span>
                             </div>
                         {% endif %}
-
                         <!-- Hidden Django Widget -->
                         <div class="sr-only">
                             {{ form.applicant_id_picture }}
                         </div>
-
                         <!-- Clickable Upload Area -->
                         <label
                             for="{{ form.applicant_id_picture.id_for_label }}"
@@ -177,23 +153,18 @@
                             aria-label="Choose applicant ID picture"
                         ></label>
                     </div>
-
                     {% if form.applicant_id_picture.errors %}
                         <p class="text-xs text-red-600">
                             {{ form.applicant_id_picture.errors.0 }}
                         </p>
                     {% endif %}
                 </div>
-
                 <!-- Resume -->
                 <div class="space-y-1.5">
-
                     <label class="block text-xs font-medium text-stone-700">
                         Upload Resume / CV (PDF/DOCX)*
                     </label>
-
                     <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-
                         <!-- Default State -->
                         <div
                             x-show="!resumeName"
@@ -212,16 +183,13 @@
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                                 />
                             </svg>
-
                             <span class="text-xs font-medium text-stone-700">
                                 Click to upload or drag &amp; drop
                             </span>
-
                             <span class="text-[11px] text-stone-400">
                                 PDF or DOCX · Max 5MB
                             </span>
                         </div>
-
                         <!-- Newly Selected Filename -->
                         <div
                             x-show="resumeName"
@@ -242,18 +210,15 @@
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-
                                 <span
                                     class="truncate font-medium"
                                     x-text="resumeName"
                                 ></span>
                             </div>
-
                             <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                 Replace
                             </span>
                         </div>
-
                         <!-- Existing Resume Filename Only -->
                         {% if form.instance.resume_file %}
                             <div
@@ -274,23 +239,19 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-
                                     <span class="truncate font-medium">
                                         {{ form.instance.resume_file.name }}
                                     </span>
                                 </div>
-
                                 <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                     Current
                                 </span>
                             </div>
                         {% endif %}
-
                         <!-- Hidden Django Widget -->
                         <div class="sr-only">
                             {{ form.resume_file }}
                         </div>
-
                         <!-- Clickable Upload Area -->
                         <label
                             for="{{ form.resume_file.id_for_label }}"
@@ -298,23 +259,18 @@
                             aria-label="Choose resume file"
                         ></label>
                     </div>
-
                     {% if form.resume_file.errors %}
                         <p class="text-xs text-red-600">
                             {{ form.resume_file.errors.0 }}
                         </p>
                     {% endif %}
                 </div>
-
                 <!-- Supporting Document -->
                 <div class="space-y-1.5">
-
                     <label class="block text-xs font-medium text-stone-700">
                         Supporting Certificate / ID (Optional)
                     </label>
-
                     <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-
                         <!-- Default State -->
                         <div
                             x-show="!supportingName"
@@ -333,16 +289,13 @@
                                     d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9v10a2 2 0 01-2 2z"
                                 />
                             </svg>
-
                             <span class="text-xs font-medium text-stone-700">
                                 Click to upload or drag &amp; drop
                             </span>
-
                             <span class="text-[11px] text-stone-400">
                                 PDF, JPG, or PNG · Max 5MB
                             </span>
                         </div>
-
                         <!-- Newly Selected Filename -->
                         <div
                             x-show="supportingName"
@@ -363,18 +316,15 @@
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-
                                 <span
                                     class="truncate font-medium"
                                     x-text="supportingName"
                                 ></span>
                             </div>
-
                             <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                 Replace
                             </span>
                         </div>
-
                         <!-- Existing Supporting Document Filename Only -->
                         {% if form.instance.supporting_doc %}
                             <div
@@ -395,23 +345,19 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-
                                     <span class="truncate font-medium">
                                         {{ form.instance.supporting_doc.name }}
                                     </span>
                                 </div>
-
                                 <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                     Current
                                 </span>
                             </div>
                         {% endif %}
-
                         <!-- Hidden Django Widget -->
                         <div class="sr-only">
                             {{ form.supporting_doc }}
                         </div>
-
                         <!-- Clickable Upload Area -->
                         <label
                             for="{{ form.supporting_doc.id_for_label }}"
@@ -419,17 +365,14 @@
                             aria-label="Choose supporting document"
                         ></label>
                     </div>
-
                     {% if form.supporting_doc.errors %}
                         <p class="text-xs text-red-600">
                             {{ form.supporting_doc.errors.0 }}
                         </p>
                     {% endif %}
                 </div>
-
             </div>
         </div>
-
         <!-- Navigation and Submit -->
         <div class="flex items-center justify-between pt-6 border-t border-stone-200">
             <a
@@ -438,7 +381,6 @@
             >
                 Back
             </a>
-
             <button
                 type="submit"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
@@ -446,14 +388,11 @@
                 Save Changes
             </button>
         </div>
-
     </form>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('applicant-documents-form');
-
     const fileRules = [
         {
             id: '{{ form.applicant_id_picture.id_for_label }}',
@@ -474,34 +413,26 @@ document.addEventListener('DOMContentLoaded', function () {
             label: 'Supporting document'
         }
     ];
-
     const maxSize = 5 * 1024 * 1024;
-
     fileRules.forEach(function (rule) {
         const input = document.getElementById(rule.id);
         if (!input) return;
-
         input.addEventListener('change', function () {
             const file = input.files && input.files[0];
-
             if (!file) {
                 return;
             }
-
             const extension = file.name.split('.').pop().toLowerCase();
-
             if (!rule.extensions.includes(extension)) {
                 alert(rule.label + ': unsupported file type.');
                 input.value = '';
                 return;
             }
-
             if (file.size > maxSize) {
                 alert(rule.label + ' must be 5MB or smaller.');
                 input.value = '';
                 return;
             }
-
             // Update Alpine's filename display through the supported
             // Alpine component scope when available.
             const alpineRoot = form;
@@ -515,5 +446,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 {% endblock %}
