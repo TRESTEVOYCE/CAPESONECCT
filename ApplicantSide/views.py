@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.template import context
-from django.views.generic import ListView, CreateView, TemplateView, UpdateView, DeleteView, DetailView
+from JobMatchingEngine.database import query_matching_jobs
+from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs,User
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs,OfferedJobs,User
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -160,7 +160,16 @@ class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return reverse_lazy('applicant-work-experience')
 
     def form_valid(self, form):
-        form.save()
+        profile = form.save()
+
+         # Run matching using the saved applicant profile.
+        matches = query_matching_jobs(
+            applicant=profile,
+            total_results=10
+        )
+
+        # Store matched job UUIDs in the session.
+        self.request.session['job_matches'] = matches['ids']
 
         messages.success(
             self.request,
@@ -277,6 +286,14 @@ class ApplicantSkillsView(LoginRequiredMixin, UserPassesTestMixin, View):
 
             profile.skills.set(skills)
 
+            matches = query_matching_jobs(
+                applicant=profile,
+                total_results=10
+            )
+
+            request.session['job_matches'] = matches['ids']
+
+
             messages.success(
                 request,
                 'Skills information saved successfully.'
@@ -320,17 +337,6 @@ class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         )
 
         return redirect(self.get_success_url())
-
-
-class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = ApplicantProfile
-    success_url = reverse_lazy('login')
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-
-    def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
 
 
 class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
@@ -880,15 +886,12 @@ class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
 
 
 class ViewProfileView(ApplicantRequiredMixin, UpdateView):
-    model = ApplicantProfile
+    model = User
     form_class = ProfilePictureForm
     template_name = 'view_profile.html'
 
-    def get_object(self):
-        return ApplicantProfile.objects.filter(
-            user=self.request.user
-        ).first()
-
+    def get_object(self,queryset = None):
+        return self.request.user
     def get_success_url(self):
         return reverse_lazy('view_profile')
 
@@ -902,10 +905,9 @@ class ViewProfileView(ApplicantRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        profile = self.object
 
-        context['profile'] = profile
-        context['applicant_profile'] = profile
+        context['profile'] = ApplicantProfile.objects.filter( user=self.request.user ).first()
+        context['profile_picture'] = self.request.user
 
         return context
 
@@ -995,3 +997,13 @@ class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
             'Username updated successfully.'
         )
         return super().form_valid(form) 
+
+class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ApplicantProfile
+    success_url = reverse_lazy('login')
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
+    def get_object(self, queryset=None):
+        return ApplicantProfile.objects.get(user=self.request.user)
