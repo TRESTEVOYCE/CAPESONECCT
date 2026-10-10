@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cloudinary_storage', 
     'cloudinary',
-    'AdminSide',
+    'AdminSide.apps.AdminsideConfig',
     'rest_framework',
     'MSWDAPI',
     'django_filters',

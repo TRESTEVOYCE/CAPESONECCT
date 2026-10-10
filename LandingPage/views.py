@@ -52,6 +52,7 @@ class UserApplicantAccountRegisterView(FormView):
         user.email_verification_sent_at = timezone.now()
         user.save()
 
+        info['civil_status'] = (info.get('civil_status') or '').strip() or 'single'
         applicant = ApplicantProfile.objects.create(user=user, **info)
         notify_admins(
             title='New Applicant',

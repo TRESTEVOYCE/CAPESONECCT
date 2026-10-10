@@ -340,16 +340,6 @@ class JobVacancyCreateView(LoginRequiredMixin, View):
             job = form.save(commit=False)
             job.status = 'Active'
             job.save()
-            notify_admins(
-                title='New Job Post',
-                message=f'{job.job_title} was created by {request.user.get_full_name() or request.user.username}.',
-                notification_type='NEW_JOB_POST',
-                sender=request.user,
-                target_url=reverse_lazy(
-                    'AdminSide:job_detail',
-                    kwargs={'job_uuid': job.uuid},
-                ),
-            )
             return redirect('AdminSide:job_postings_list')
 
         return render(request, self.template_name, {'form': form})
@@ -1752,15 +1742,16 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
 class NotificationHeaderApiView(LoginRequiredMixin, View):
     """
-    AJAX endpoint returning unread count and latest 5 unread notifications 
-    for real-time navbar notification bell badges and dropdowns.
+    AJAX endpoint returning the unread count and the 5 newest notifications
+    for the navbar dropdown while keeping read notifications visible.
     """
     def get(self, request, *args, **kwargs):
         user_notifications = Notification.objects.filter(recipient=request.user)
-        unread_qs = user_notifications.filter(is_read=False).order_by('-created_at')[:5]
+        latest_qs = user_notifications.order_by('-created_at')[:5]
 
         data = {
             'unread_count': user_notifications.filter(is_read=False).count(),
+            'total_count': user_notifications.count(),
             'notifications': [
                 {
                     'id': str(n.id) if hasattr(n, 'id') else str(n.uuid),
@@ -1772,7 +1763,7 @@ class NotificationHeaderApiView(LoginRequiredMixin, View):
                     'created_at': n.created_at.strftime('%b %d, %Y %I:%M %p') if hasattr(n, 'created_at') else '',
                     'is_read': n.is_read,
                 }
-                for n in unread_qs
+                for n in latest_qs
             ]
         }
         return JsonResponse(data)

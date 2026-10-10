@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
 from cloudinary_storage.storage import MediaCloudinaryStorage, RawMediaCloudinaryStorage
-
+from django.conf import settings
 
 class User(AbstractUser):
 
@@ -285,7 +285,7 @@ class ApplicantProfile(models.Model):
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, blank=True, null=True)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, default='single', blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     house_street = models.CharField(max_length=255, blank=True, null=True)
@@ -822,9 +822,9 @@ class Notification(models.Model):
         ('APPEAL_REVERIFICATION', 'Appeal for Reverification'),
     )
 
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
-    
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
+
     title = models.CharField(max_length=255)
     message = models.TextField()
     reason = models.TextField(blank=True, null=True)  # Specifically holds rejection reasons

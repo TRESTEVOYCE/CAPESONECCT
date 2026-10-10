@@ -14,7 +14,7 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Registered Applicants</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ applicant_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#161e31]">
                     <i class="fa-solid fa-users"></i>
                 </span>
             </div>
@@ -33,12 +33,12 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Registered Employers</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ employer_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-100 text-[#161e31]">
                     <i class="fa-solid fa-building"></i>
                 </span>
             </div>
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700">+{{ monthly_new_employers|default:0 }} new</span>
+                <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-[11px] font-bold text-green-700">+{{ monthly_new_employers|default:0 }} new</span>
                 <span class="text-xs text-slate-500">added this month</span>
             </div>
         </a>
@@ -50,12 +50,12 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Job Postings</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ active_job_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#161e31]">
                     <i class="fa-solid fa-briefcase"></i>
                 </span>
             </div>
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">
+                <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-[11px] font-bold text-red-700">
                     {{ urgent_job_count|default:0 }} urgent
                 </span>
                 <span class="text-xs text-slate-500">expiring in 7 days</span>
@@ -69,12 +69,12 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Referrals Issued</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ referral_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-fuchsia-50 text-fuchsia-600">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#161e31]">
                     <i class="fa-solid fa-file-signature"></i>
                 </span>
             </div>
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center rounded-full bg-fuchsia-50 px-2 py-1 text-[11px] font-bold text-fuchsia-700">+{{ weekly_referral_count|default:0 }}</span>
+                <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-[11px] font-bold text-green-700">+{{ weekly_referral_count|default:0 }}</span>
                 <span class="text-xs text-slate-500">issued this week</span>
             </div>
         </a>
@@ -86,7 +86,7 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Placements (Hired)</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ placement_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#161e31]">
                     <i class="fa-solid fa-user-check"></i>
                 </span>
             </div>
@@ -105,7 +105,7 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Near Hire Status</p>
                     <h3 class="mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">{{ near_hire_count|default:0 }}</h3>
                 </div>
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#161e31]">
                     <i class="fa-solid fa-user-clock"></i>
                 </span>
             </div>

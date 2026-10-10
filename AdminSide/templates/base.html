@@ -545,8 +545,11 @@
                             icon: 'fa-bell'
                         };
 
+                        const unreadState = n.is_read ? '' : 'bg-amber-50/80 border-l-2 border-l-amber-400';
+                        const unreadDot = n.is_read ? '' : '<span class="inline-flex items-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase tracking-wide">New</span>';
+
                         html += `
-                        <div class="p-3.5 hover:bg-amber-50/60 transition relative group border-b border-amber-100/60">
+                        <div class="p-3.5 hover:bg-amber-50/60 transition relative group border-b border-amber-100/60 ${unreadState}">
                             <div class="flex items-start gap-3">
                                 <div class="w-8 h-8 rounded-lg ${appearance.iconBackground} flex items-center justify-center shrink-0 mt-0.5">
                                     <i class="fa-solid ${appearance.icon} text-xs"></i>
@@ -554,12 +557,13 @@
                                 <div class="flex-1 pr-4">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="text-[10px] font-bold px-2 py-0.5 rounded ${appearance.badge}">${n.category_label || 'Notification'}</span>
+                                        ${unreadDot}
                                         <h4 class="text-xs font-bold text-slate-900 truncate">${n.title}</h4>
-                                        <span class="ml-auto text-[10px] font-semibold text-rose-600 flex items-center gap-1 shrink-0">
-                                            \u25CF ${n.created_at}
+                                        <span class="ml-auto text-[10px] font-semibold ${n.is_read ? 'text-slate-400' : 'text-rose-600'} flex items-center gap-1 shrink-0">
+                                            ${n.is_read ? '' : '\u25CF '}${n.created_at}
                                         </span>
                                     </div>
-                                    <a href="${n.target_url}" class="text-xs font-semibold text-slate-800 hover:text-rose-700 block line-clamp-2 leading-snug">
+                                    <a href="${n.target_url}" class="text-xs font-semibold ${n.is_read ? 'text-slate-700' : 'text-slate-900'} hover:text-rose-700 block line-clamp-2 leading-snug">
                                         ${n.message}
                                     </a>
                                     ${n.reference_code ? `<p class="text-[10px] font-bold text-rose-800 mt-1">${n.reference_code}</p>` : ''}
