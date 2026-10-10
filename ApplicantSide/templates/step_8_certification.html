@@ -1,113 +1,71 @@
+
 {% extends 'applicant-base.html' %}
-
 {% block content %}
-
 <div class="max-w-[1300px] w-full mx-auto py-6 space-y-6 text-stone-900 font-sans">
-
+    <!-- Page Header -->
     <div class="flex items-center justify-between border-b border-stone-200 pb-3">
-
-        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
-            VIII. Certification & Data Privacy Consent
+        <h2 class="text-xs font-bold uppercase tracking-wider">
+            VIII. Certification &amp; Data Privacy Consent
         </h2>
-
     </div>
-
-
     <form
         method="POST"
         action="{% url 'applicant-documents' %}"
         enctype="multipart/form-data"
         class="space-y-5"
         x-data="{
+            applicantIdName: '',
             resumeName: '',
             supportingName: ''
         }"
+        id="applicant-documents-form"
     >
-
         {% csrf_token %}
-
-
         <div class="space-y-4">
-
-
             <!-- Certification -->
-
             <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-700 leading-relaxed space-y-2">
-
                 <p>
                     I certify that all information given in this NSRP form is true,
                     correct, and complete to the best of my knowledge. Any
                     misrepresentation made in this form may be ground for
                     disqualification.
                 </p>
-
                 <p class="font-medium text-stone-900">
                     By submitting this profile, I grant PESO Carigara / PESO Unified
                     consent to process my personal data in accordance with the Data
                     Privacy Act of 2012 for employment facilitation and referral
                     purposes.
                 </p>
-
             </div>
-
-
             <!-- Agreement -->
-
-            <div class="space-y-3 pt-2">
-
+            <div class="space-y-2 pt-2">
                 <label class="inline-flex items-center gap-2.5 cursor-pointer text-xs font-medium text-stone-800">
-
                     {{ form.certification_agree }}
-
                     <span>
                         I agree to the certification and data privacy terms above*
                     </span>
-
                 </label>
-
                 {% if form.certification_agree.errors %}
                     <p class="text-xs text-red-600">
                         {{ form.certification_agree.errors.0 }}
                     </p>
                 {% endif %}
-
             </div>
-
-
-            <!-- Uploads -->
-
+            <!-- Upload Fields -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
-
-
-                <!-- Resume -->
-
-                <div
-                    class="space-y-1.5"
-                    @change="
-                        const f = $event.target.files;
-                        if (f && $event.target.name === '{{ form.resume_file.html_name }}') {
-                            resumeName = f.length ? f[0].name : '';
-                        }
-                    "
-                >
-
+                <!-- Applicant ID Picture -->
+                <div class="space-y-1.5">
                     <label class="block text-xs font-medium text-stone-700">
-                        Upload Resume / CV (PDF/DOCX)*
+                        Upload Applicant ID Picture
                     </label>
-
-
-                    <div class="relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-
-
+                    <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
                         <!-- Default State -->
-
                         <div
+                            x-show="!applicantIdName"
                             class="flex flex-col items-center text-center space-y-1.5 pointer-events-none"
-                            x-show="!resumeName"
                         >
-
                             <svg
-                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600 transition-colors"
+                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -116,31 +74,23 @@
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                     stroke-width="1.5"
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                    d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0H5z"
                                 />
                             </svg>
-
                             <span class="text-xs font-medium text-stone-700">
-                                Click to upload or drag & drop
+                                Click to upload or drag &amp; drop
                             </span>
-
                             <span class="text-[11px] text-stone-400">
-                                PDF, DOCX up to 5MB
+                                JPG, JPEG, or PNG · Max 5MB
                             </span>
-
                         </div>
-
-
-                        <!-- Selected File -->
-
+                        <!-- Newly Selected Filename -->
                         <div
-                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100/90 px-3 py-2 rounded-lg pointer-events-none z-10"
-                            x-show="resumeName"
+                            x-show="applicantIdName"
                             x-cloak
+                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10"
                         >
-
-                            <div class="flex items-center gap-2 truncate">
-
+                            <div class="flex items-center gap-2 min-w-0">
                                 <svg
                                     class="w-4 h-4 text-stone-600 shrink-0"
                                     fill="none"
@@ -154,32 +104,22 @@
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-
                                 <span
                                     class="truncate font-medium"
-                                    x-text="resumeName"
+                                    x-text="applicantIdName"
                                 ></span>
-
                             </div>
-
-                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2">
+                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                 Replace
                             </span>
-
                         </div>
-
-
-                        <!-- Existing Resume -->
-
-                        {% if form.instance.resume_file %}
-
+                        <!-- Existing ID Picture Filename Only -->
+                        {% if form.instance.applicant_id_picture %}
                             <div
-                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100/90 px-3 py-2 rounded-lg mb-2"
-                                x-show="!resumeName"
+                                x-show="!applicantIdName"
+                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg mt-2"
                             >
-
-                                <div class="flex items-center gap-2 truncate">
-
+                                <div class="flex items-center gap-2 min-w-0">
                                     <svg
                                         class="w-4 h-4 text-stone-600 shrink-0"
                                         fill="none"
@@ -190,73 +130,48 @@
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="1.5"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293 0 1 1 0 01.293 0V19a2 2 0 01-2 2z"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-
                                     <span class="truncate font-medium">
-                                        {{ form.instance.resume_file.name }}
+                                        {{ form.instance.applicant_id_picture.name }}
                                     </span>
-
                                 </div>
-
-                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2">
+                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                     Current
                                 </span>
-
                             </div>
-
                         {% endif %}
-
-
-                        <!-- File Input -->
-
-                        <div class="field-wrap [&>input]:opacity-0 [&>input]:absolute [&>input]:inset-0 [&>input]:w-full [&>input]:h-full [&>input]:cursor-pointer [&>input]:z-20">
-
-                            {{ form.resume_file }}
-
+                        <!-- Hidden Django Widget -->
+                        <div class="sr-only">
+                            {{ form.applicant_id_picture }}
                         </div>
-
+                        <!-- Clickable Upload Area -->
+                        <label
+                            for="{{ form.applicant_id_picture.id_for_label }}"
+                            class="absolute inset-0 z-20 cursor-pointer"
+                            aria-label="Choose applicant ID picture"
+                        ></label>
                     </div>
-
-                    {% if form.resume_file.errors %}
+                    {% if form.applicant_id_picture.errors %}
                         <p class="text-xs text-red-600">
-                            {{ form.resume_file.errors.0 }}
+                            {{ form.applicant_id_picture.errors.0 }}
                         </p>
                     {% endif %}
-
                 </div>
-
-
-                <!-- Supporting Document -->
-
-                <div
-                    class="space-y-1.5"
-                    @change="
-                        const f = $event.target.files;
-                        if (f && $event.target.name === '{{ form.supporting_doc.html_name }}') {
-                            supportingName = f.length ? f[0].name : '';
-                        }
-                    "
-                >
-
+                <!-- Resume -->
+                <div class="space-y-1.5">
                     <label class="block text-xs font-medium text-stone-700">
-                        Supporting Certificate / ID (Optional)
+                        Upload Resume / CV (PDF/DOCX)*
                     </label>
-
-
-                    <div class="relative flex flex-col items-center justify-center p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-
-
+                    <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
                         <!-- Default State -->
-
                         <div
+                            x-show="!resumeName"
                             class="flex flex-col items-center text-center space-y-1.5 pointer-events-none"
-                            x-show="!supportingName"
                         >
-
                             <svg
-                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600 transition-colors"
+                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -265,31 +180,23 @@
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                     stroke-width="1.5"
-                                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707 0 1 1 0 01.293 0 1 1 0 01.293 0V19a2 2 0 01-2 2z"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                                 />
                             </svg>
-
                             <span class="text-xs font-medium text-stone-700">
-                                Click to upload or drag & drop
+                                Click to upload or drag &amp; drop
                             </span>
-
                             <span class="text-[11px] text-stone-400">
-                                PDF, JPG, PNG up to 5MB
+                                PDF or DOCX · Max 5MB
                             </span>
-
                         </div>
-
-
-                        <!-- Selected File -->
-
+                        <!-- Newly Selected Filename -->
                         <div
-                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100/90 px-3 py-2 rounded-lg pointer-events-none z-10"
-                            x-show="supportingName"
+                            x-show="resumeName"
                             x-cloak
+                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10"
                         >
-
-                            <div class="flex items-center gap-2 truncate">
-
+                            <div class="flex items-center gap-2 min-w-0">
                                 <svg
                                     class="w-4 h-4 text-stone-600 shrink-0"
                                     fill="none"
@@ -300,35 +207,25 @@
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
                                         stroke-width="1.5"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012 2h5.586a1 1 0 01.707 0 1 1 0 01.293 0V19a2 2 0 01-2 2z"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-
                                 <span
                                     class="truncate font-medium"
-                                    x-text="supportingName"
+                                    x-text="resumeName"
                                 ></span>
-
                             </div>
-
-                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2">
+                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                 Replace
                             </span>
-
                         </div>
-
-
-                        <!-- Existing Supporting Document -->
-
-                        {% if form.instance.supporting_doc %}
-
+                        <!-- Existing Resume Filename Only -->
+                        {% if form.instance.resume_file %}
                             <div
-                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100/90 px-3 py-2 rounded-lg mb-2"
-                                x-show="!supportingName"
+                                x-show="!resumeName"
+                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg mt-2"
                             >
-
-                                <div class="flex items-center gap-2 truncate">
-
+                                <div class="flex items-center gap-2 min-w-0">
                                     <svg
                                         class="w-4 h-4 text-stone-600 shrink-0"
                                         fill="none"
@@ -339,73 +236,214 @@
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
                                             stroke-width="1.5"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 012-2V5a2 2 0 012-2h5.586a1 1 0 01.707 0 1 1 0 01.293 0V19a2 2 0 01-2 2z"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                         />
                                     </svg>
-
+                                    <span class="truncate font-medium">
+                                        {{ form.instance.resume_file.name }}
+                                    </span>
+                                </div>
+                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
+                                    Current
+                                </span>
+                            </div>
+                        {% endif %}
+                        <!-- Hidden Django Widget -->
+                        <div class="sr-only">
+                            {{ form.resume_file }}
+                        </div>
+                        <!-- Clickable Upload Area -->
+                        <label
+                            for="{{ form.resume_file.id_for_label }}"
+                            class="absolute inset-0 z-20 cursor-pointer"
+                            aria-label="Choose resume file"
+                        ></label>
+                    </div>
+                    {% if form.resume_file.errors %}
+                        <p class="text-xs text-red-600">
+                            {{ form.resume_file.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+                <!-- Supporting Document -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-medium text-stone-700">
+                        Supporting Certificate / ID (Optional)
+                    </label>
+                    <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
+                        <!-- Default State -->
+                        <div
+                            x-show="!supportingName"
+                            class="flex flex-col items-center text-center space-y-1.5 pointer-events-none"
+                        >
+                            <svg
+                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9v10a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                            <span class="text-xs font-medium text-stone-700">
+                                Click to upload or drag &amp; drop
+                            </span>
+                            <span class="text-[11px] text-stone-400">
+                                PDF, JPG, or PNG · Max 5MB
+                            </span>
+                        </div>
+                        <!-- Newly Selected Filename -->
+                        <div
+                            x-show="supportingName"
+                            x-cloak
+                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10"
+                        >
+                            <div class="flex items-center gap-2 min-w-0">
+                                <svg
+                                    class="w-4 h-4 text-stone-600 shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                                <span
+                                    class="truncate font-medium"
+                                    x-text="supportingName"
+                                ></span>
+                            </div>
+                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
+                                Replace
+                            </span>
+                        </div>
+                        <!-- Existing Supporting Document Filename Only -->
+                        {% if form.instance.supporting_doc %}
+                            <div
+                                x-show="!supportingName"
+                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg mt-2"
+                            >
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <svg
+                                        class="w-4 h-4 text-stone-600 shrink-0"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
+                                    </svg>
                                     <span class="truncate font-medium">
                                         {{ form.instance.supporting_doc.name }}
                                     </span>
-
                                 </div>
-
-                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2">
+                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
                                     Current
                                 </span>
-
                             </div>
-
                         {% endif %}
-
-
-                        <!-- File Input -->
-
-                        <div class="field-wrap [&>input]:opacity-0 [&>input]:absolute [&>input]:inset-0 [&>input]:w-full [&>input]:h-full [&>input]:cursor-pointer [&>input]:z-20">
-
+                        <!-- Hidden Django Widget -->
+                        <div class="sr-only">
                             {{ form.supporting_doc }}
-
                         </div>
-
+                        <!-- Clickable Upload Area -->
+                        <label
+                            for="{{ form.supporting_doc.id_for_label }}"
+                            class="absolute inset-0 z-20 cursor-pointer"
+                            aria-label="Choose supporting document"
+                        ></label>
                     </div>
-
                     {% if form.supporting_doc.errors %}
                         <p class="text-xs text-red-600">
                             {{ form.supporting_doc.errors.0 }}
                         </p>
                     {% endif %}
-
                 </div>
-
             </div>
-
         </div>
-
-
-        <!-- Navigation -->
-
-        <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
+        <!-- Navigation and Submit -->
+        <div class="flex items-center justify-between pt-6 border-t border-stone-200">
             <a
                 href="{% url 'my_profile' %}"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
             >
                 Back
             </a>
-        </div>
-
-        <div class="flex justify-end pt-6 border-t border-stone-200">
-
             <button
                 type="submit"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
             >
-                 Save Changes
+                Save Changes
             </button>
-
         </div>
-
-
     </form>
-
 </div>
-
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('applicant-documents-form');
+    const fileRules = [
+        {
+            id: '{{ form.applicant_id_picture.id_for_label }}',
+            state: 'applicantIdName',
+            extensions: ['jpg', 'jpeg', 'png'],
+            label: 'Applicant ID picture'
+        },
+        {
+            id: '{{ form.resume_file.id_for_label }}',
+            state: 'resumeName',
+            extensions: ['pdf', 'docx'],
+            label: 'Resume / CV'
+        },
+        {
+            id: '{{ form.supporting_doc.id_for_label }}',
+            state: 'supportingName',
+            extensions: ['pdf', 'jpg', 'jpeg', 'png'],
+            label: 'Supporting document'
+        }
+    ];
+    const maxSize = 5 * 1024 * 1024;
+    fileRules.forEach(function (rule) {
+        const input = document.getElementById(rule.id);
+        if (!input) return;
+        input.addEventListener('change', function () {
+            const file = input.files && input.files[0];
+            if (!file) {
+                return;
+            }
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!rule.extensions.includes(extension)) {
+                alert(rule.label + ': unsupported file type.');
+                input.value = '';
+                return;
+            }
+            if (file.size > maxSize) {
+                alert(rule.label + ' must be 5MB or smaller.');
+                input.value = '';
+                return;
+            }
+            // Update Alpine's filename display through the supported
+            // Alpine component scope when available.
+            const alpineRoot = form;
+            if (window.Alpine && alpineRoot) {
+                const data = Alpine.$data(alpineRoot);
+                if (data) {
+                    data[rule.state] = file.name;
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

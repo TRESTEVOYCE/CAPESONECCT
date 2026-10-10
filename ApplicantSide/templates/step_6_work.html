@@ -1,73 +1,38 @@
 {% extends 'applicant-base.html' %}
-
 {% block content %}
-
-<form
-    method="POST"
-    action="{% url 'applicant-work-experience' %}"
-    class="space-y-6"
->
+<form method="POST" action="{% url 'applicant-work-experience' %}" class="space-y-6">
     {% csrf_token %}
-
-    <div
-        x-data="workExperienceFormset()"
-        class="space-y-6"
-    >
-
+    <div x-data="workExperienceFormset()" class="space-y-6">
         <div>
             <h2 class="text-lg font-semibold text-stone-900">
                 Work Experience
             </h2>
-
             <p class="mt-1 text-sm text-stone-500">
                 Please provide your previous or current work experience.
             </p>
         </div>
-
-
         <!-- Django Formset Management Form -->
         {{ work_formset.management_form }}
-
-
-        <div
-            id="work-experience-container"
-            class="space-y-5"
-        >
-
+        <div id="work-experience-container" class="space-y-5">
             {% for work_form in work_formset %}
-
-                <div
-                    class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5"
-                    data-form-index="{{ forloop.counter0 }}"
-                >
-
+                <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5" data-form-index="{{ forloop.counter0 }}">
                     <div class="flex items-center justify-between mb-5">
-
                         <div>
                             <h3 class="text-sm font-semibold text-stone-900">
                                 Work Experience {{ forloop.counter }}
                             </h3>
-
                             <p class="text-xs text-stone-500 mt-1">
                                 Enter the details of your employment.
                             </p>
                         </div>
-
-
                         {% if work_form.instance.pk %}
-
                             <label class="flex items-center gap-2 text-xs text-red-600 cursor-pointer">
-
                                 {{ work_form.DELETE }}
-
                                 <span>
                                     Remove
                                 </span>
-
                             </label>
-
                         {% else %}
-
                             <button
                                 type="button"
                                 @click="removeForm($el.closest('.work-experience-item'))"
@@ -75,296 +40,178 @@
                             >
                                 Remove
                             </button>
-
                         {% endif %}
-
                     </div>
-
-
                     {{ work_form.id }}
-
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                         <!-- Company -->
-
                         <div>
-
                             <label
                                 for="{{ work_form.company.id_for_label }}"
                                 class="block mb-2 text-xs font-semibold text-stone-700"
                             >
                                 Company / Employer
                             </label>
-
                             {{ work_form.company }}
-
                             {% if work_form.company.errors %}
                                 <p class="mt-1 text-xs text-red-600">
                                     {{ work_form.company.errors.0 }}
                                 </p>
                             {% endif %}
-
                         </div>
-
-
                         <!-- Address -->
-
                         <div>
-
                             <label
                                 for="{{ work_form.address.id_for_label }}"
                                 class="block mb-2 text-xs font-semibold text-stone-700"
                             >
                                 Company Address
                             </label>
-
                             {{ work_form.address }}
-
                             {% if work_form.address.errors %}
                                 <p class="mt-1 text-xs text-red-600">
                                     {{ work_form.address.errors.0 }}
                                 </p>
                             {% endif %}
-
                         </div>
-
-
                         <!-- Position -->
-
                         <div>
-
                             <label
                                 for="{{ work_form.position.id_for_label }}"
                                 class="block mb-2 text-xs font-semibold text-stone-700"
                             >
                                 Position / Job Title
                             </label>
-
                             {{ work_form.position }}
-
                             {% if work_form.position.errors %}
                                 <p class="mt-1 text-xs text-red-600">
                                     {{ work_form.position.errors.0 }}
                                 </p>
                             {% endif %}
-
                         </div>
-
-
                         <!-- Dates -->
-
                         <div>
-
                             <label
                                 for="{{ work_form.dates.id_for_label }}"
                                 class="block mb-2 text-xs font-semibold text-stone-700"
                             >
                                 Dates of Employment
                             </label>
-
                             {{ work_form.dates }}
-
                             {% if work_form.dates.errors %}
                                 <p class="mt-1 text-xs text-red-600">
                                     {{ work_form.dates.errors.0 }}
                                 </p>
                             {% endif %}
-
                         </div>
-
-
                         <!-- Status -->
-
                         <div class="md:col-span-2">
-
                             <label
                                 for="{{ work_form.status.id_for_label }}"
                                 class="block mb-2 text-xs font-semibold text-stone-700"
                             >
                                 Employment Status
                             </label>
-
                             {{ work_form.status }}
-
                             {% if work_form.status.errors %}
                                 <p class="mt-1 text-xs text-red-600">
                                     {{ work_form.status.errors.0 }}
                                 </p>
                             {% endif %}
-
                         </div>
-
                     </div>
-
-
                     {% if work_form.non_field_errors %}
-
                         <div class="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
-
                             {% for error in work_form.non_field_errors %}
-
                                 <p class="text-xs text-red-600">
                                     {{ error }}
                                 </p>
-
                             {% endfor %}
-
                         </div>
-
                     {% endif %}
-
                 </div>
-
             {% endfor %}
-
         </div>
-
-
         <!-- Empty Form Template -->
-
         <template id="empty-work-form">
-
-            <div
-                class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5"
-            >
-
+            <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5">
                 <div class="flex items-center justify-between mb-5">
-
                     <div>
-
                         <h3 class="text-sm font-semibold text-stone-900">
                             Work Experience <span class="experience-number"></span>
                         </h3>
-
                         <p class="text-xs text-stone-500 mt-1">
                             Enter the details of your employment.
                         </p>
-
                     </div>
-
-
                     <button
                         type="button"
                         class="remove-work-form text-xs font-semibold text-red-600 hover:text-red-700"
                     >
                         Remove
                     </button>
-
                 </div>
-
-
                 {{ work_formset.empty_form.id }}
-
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                     <!-- Company -->
-
                     <div>
-
                         <label class="block mb-2 text-xs font-semibold text-stone-700">
                             Company / Employer
                         </label>
-
                         {{ work_formset.empty_form.company }}
-
                     </div>
-
-
                     <!-- Address -->
-
                     <div>
-
                         <label class="block mb-2 text-xs font-semibold text-stone-700">
                             Company Address
                         </label>
-
                         {{ work_formset.empty_form.address }}
-
                     </div>
-
-
                     <!-- Position -->
-
                     <div>
-
                         <label class="block mb-2 text-xs font-semibold text-stone-700">
                             Position / Job Title
                         </label>
-
                         {{ work_formset.empty_form.position }}
-
                     </div>
-
-
                     <!-- Dates -->
-
                     <div>
-
                         <label class="block mb-2 text-xs font-semibold text-stone-700">
                             Dates of Employment
                         </label>
-
                         {{ work_formset.empty_form.dates }}
-
                     </div>
-
-
                     <!-- Status -->
-
                     <div class="md:col-span-2">
-
                         <label class="block mb-2 text-xs font-semibold text-stone-700">
                             Employment Status
                         </label>
-
                         {{ work_formset.empty_form.status }}
-
                     </div>
-
                 </div>
-
             </div>
-
         </template>
-
-
         <!-- Add Button -->
-
         <div class="flex justify-start">
-
             <button
                 type="button"
                 @click="addForm()"
                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-sm font-semibold text-stone-700 hover:bg-stone-50 transition"
             >
-
                 <span class="text-lg leading-none">
                     +
                 </span>
-
                 Add Another Work Experience
-
             </button>
-
         </div>
-
-
         {% if work_formset.non_form_errors %}
-
             <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-
                 {% for error in work_formset.non_form_errors %}
                     <p>{{ error }}</p>
                 {% endfor %}
-
             </div>
-
         {% endif %}
-
-
-       <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
+        <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
             <a
                 href="{% url 'my_profile' %}"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
@@ -372,171 +219,97 @@
                 Back
             </a>
         </div>
-
         <div class="flex justify-end pt-6 border-t border-stone-200">
-
             <button
                 type="submit"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
             >
                  Save Changes
             </button>
-
         </div>
-
     </div>
-
 </form>
-
-
 <script>
-
 function workExperienceFormset() {
-
     return {
-
         addForm() {
-
             const container = document.getElementById(
                 'work-experience-container'
             );
-
             const totalForms = document.querySelector(
                 '[name$="-TOTAL_FORMS"]'
             );
-
             const template = document.getElementById(
                 'empty-work-form'
             );
-
             if (!container || !totalForms || !template) {
                 return;
             }
-
-
             const formIndex = parseInt(
                 totalForms.value
             );
-
-
             let html = template.innerHTML;
-
             html = html.replace(
                 /__prefix__/g,
                 formIndex
             );
-
-
             const wrapper = document.createElement('div');
-
             wrapper.innerHTML = html.trim();
-
-
             const newForm = wrapper.firstElementChild;
-
             container.appendChild(newForm);
-
-
             totalForms.value = formIndex + 1;
-
-
             this.updateNumbers();
-
         },
-
-
         removeForm(element) {
-
             if (!element) {
                 return;
             }
-
-
             const deleteInput = element.querySelector(
                 'input[name$="-DELETE"]'
             );
-
-
             if (deleteInput) {
-
                 deleteInput.checked = true;
-
                 element.classList.add(
                     'hidden'
                 );
-
             } else {
-
                 element.remove();
-
             }
-
-
             this.updateNumbers();
-
         },
-
-
         updateNumbers() {
-
             const forms = document.querySelectorAll(
                 '#work-experience-container .work-experience-item'
             );
-
-
             let number = 1;
-
-
             forms.forEach(function (form) {
-
                 if (
                     !form.classList.contains('hidden')
                 ) {
-
                     const numberElement =
                         form.querySelector(
                             '.experience-number'
                         );
-
-
                     const title =
                         form.querySelector(
                             'h3'
                         );
-
-
                     if (numberElement) {
-
                         numberElement.textContent =
                             number;
-
                     }
-
-
                     if (
                         title &&
                         !numberElement
                     ) {
-
                         title.textContent =
                             'Work Experience ' + number;
-
                     }
-
-
                     number++;
-
                 }
-
             });
-
         }
-
     };
-
 }
-
 </script>
-
-
 {% endblock %}

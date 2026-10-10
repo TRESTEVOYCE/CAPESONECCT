@@ -1,94 +1,56 @@
+
 {% extends 'applicant-base.html' %}
-
 {% block content %}
-<form
-    method="POST"
-    action="{% url 'applicant-skills' %}"
-    class="space-y-5"
->
+<form method="POST" action="{% url 'applicant-skills' %}" class="space-y-5">
     {% csrf_token %}
-
     <div>
-
         <div class="flex items-center justify-between border-b border-stone-200 pb-3">
-
             <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
                 VII. Other Skills / Competencies
             </h2>
-
         </div>
-
-
         <div class="space-y-4">
-
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_computer }} Computer Literacy / IT
                 </label>
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_driving }} Driving (Valid License)
                 </label>
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_customer_service }} Customer Service
                 </label>
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_bookkeeping }} Accounting / Bookkeeping
                 </label>
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_carpentry }} Carpentry / Construction
                 </label>
-
                 <label class="inline-flex items-center gap-2.5 p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs font-medium text-stone-700 cursor-pointer">
                     {{ form.skill_welding }} Welding
                 </label>
-
             </div>
-
-
             <!-- Custom Skills -->
-
             <div class="space-y-3 pt-2">
-
                 <label class="block text-xs font-medium text-stone-700">
                     Other / Specific Technical Skills
                 </label>
-
-
                 {{ skill_formset.management_form }}
-
-
                 <div id="skills-container" class="space-y-3">
-
                     {% for skill_form in skill_formset %}
-
                         <div class="skill-item flex items-center gap-3">
-
                             {{ skill_form.id }}
-
                             <div class="flex-1">
                                 {{ skill_form.skill_name }}
                             </div>
-
-
                             {% if skill_form.instance.pk %}
-
                                 <label class="flex items-center gap-2 text-xs text-red-600 cursor-pointer">
-
                                     {{ skill_form.DELETE }}
-
                                     <span>
                                         Remove
                                     </span>
-
                                 </label>
-
                             {% else %}
-
                                 <button
                                     type="button"
                                     @click="removeSkill($el.closest('.skill-item'))"
@@ -96,28 +58,17 @@
                                 >
                                     Remove
                                 </button>
-
                             {% endif %}
-
                         </div>
-
                     {% endfor %}
-
                 </div>
-
-
                 <!-- Empty Form Template -->
-
                 <template id="empty-skill-form">
-
                     <div class="skill-item flex items-center gap-3">
-
                         {{ skill_formset.empty_form.id }}
-
                         <div class="flex-1">
                             {{ skill_formset.empty_form.skill_name }}
                         </div>
-
                         <button
                             type="button"
                             @click="removeSkill($el.closest('.skill-item'))"
@@ -125,46 +76,28 @@
                         >
                             Remove
                         </button>
-
                     </div>
-
                 </template>
-
-
                 <!-- Add Skill -->
-
                 <button
                     type="button"
                     @click="addSkill()"
                     class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-sm font-semibold text-stone-700 hover:bg-stone-50 transition"
                 >
-
                     <span class="text-lg leading-none">
                         +
                     </span>
-
                     Add Another Skill
-
                 </button>
-
             </div>
-
         </div>
-
     </div>
-
-
     {% if form.errors or skill_formset.errors %}
         <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-
             {{ form.errors }}
-
             {{ skill_formset.errors }}
-
         </div>
     {% endif %}
-
-
     <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
             <a
                 href="{% url 'my_profile' %}"
@@ -173,97 +106,55 @@
                 Back
             </a>
         </div>
-
         <div class="flex justify-end pt-6 border-t border-stone-200">
-
             <button
                 type="submit"
                 class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
             >
                 Save Changes
             </button>
-
         </div>
-
-
 </form>
-
-
 <script>
-
 function addSkill() {
-
     const container = document.getElementById('skills-container');
-
     const totalForms = document.querySelector(
         '[name="skills-TOTAL_FORMS"]'
     );
-
     const template = document.getElementById(
         'empty-skill-form'
     );
-
-
     if (!container || !totalForms || !template) {
         return;
     }
-
-
     const formIndex = parseInt(
         totalForms.value
     );
-
-
     let html = template.innerHTML;
-
     html = html.replace(
         /__prefix__/g,
         formIndex
     );
-
-
     const wrapper = document.createElement('div');
-
     wrapper.innerHTML = html.trim();
-
-
     container.appendChild(
         wrapper.firstElementChild
     );
-
-
     totalForms.value = formIndex + 1;
-
 }
-
-
 function removeSkill(element) {
-
     if (!element) {
         return;
     }
-
-
     const deleteInput = element.querySelector(
         'input[name$="-DELETE"]'
     );
-
-
     if (deleteInput) {
-
         deleteInput.checked = true;
-
         element.classList.add('hidden');
-
     } else {
-
         element.remove();
-
     }
-
 }
-
 </script>
-
-
 {% endblock %}

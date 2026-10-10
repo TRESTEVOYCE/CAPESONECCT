@@ -1,6 +1,6 @@
 from django import forms
-from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience
-
+from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience,User
+from django.contrib.auth.forms import SetPasswordForm
 
 
 
@@ -486,15 +486,10 @@ ApplicantSkillFormSet = forms.modelformset_factory(
 
 
 class ApplicantDocumentsForm(forms.ModelForm):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        apply_tailwind_widgets(self)
-
     class Meta:
         model = ApplicantProfile
-
         fields = [
+            'applicant_id_picture',
             'certification_agree',
             'resume_file',
             'supporting_doc',
@@ -508,8 +503,32 @@ class ProfilePictureForm(forms.ModelForm):
         apply_tailwind_widgets(self)
 
     class Meta:
-        model = ApplicantProfile
+        model = User
 
         fields = [
-            'applicant_id_picture'
+            'profile_picture'
         ]
+
+class UpdateEmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email']
+
+
+class UpdatePasswordForm(SetPasswordForm):
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control'
+        })
+
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control'
+        })
+
+
+class UpdateUsernameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username']
