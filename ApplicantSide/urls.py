@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView,UpdateEmailView,UpdatePasswordView,UpdateUsernameView,SettingsView
-
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView, UpdateUsernameView,SettingsView, SettingsView, update_email_view, send_email_otp,send_password_otp_view, verify_password_otp_view, SecurePasswordChangeView, UpdateUsernameView, HelpPageView, send_applicant_support_message_api
 
 urlpatterns = [
     path('', DashBoardView.as_view(), name='applicant-dashboard'),
@@ -30,9 +29,18 @@ urlpatterns = [
     path('personal_info/edit_profile_picture/', EditProfilePictureView.as_view(), name='edit_profile_picture'),
     path('personal_info/profile/', ViewProfileView.as_view(), name='view_profile'),
 
-    #SETTINGS CONTENTS 
-    path('settings/',SettingsView.as_view(),name='settings'),
-    path('update_username/',UpdateUsernameView.as_view(),name='update-username'),
-    path('update_password/',UpdatePasswordView.as_view(),name='update-password'),
-    path('update_email/',UpdateEmailView.as_view(),name='update-email'),
+    
+    # SETTINGS & SECURITY ROUTES 
+    path('settings/', SettingsView.as_view(), name='settings'),
+    path('update_username/', UpdateUsernameView.as_view(), name='update-username'),
+    path('update_email/', update_email_view, name='update-email'),
+    path('send_email_otp/', send_email_otp, name='send-email-otp'),
+    
+    path('send_password_otp/', send_password_otp_view, name='send-password-otp'),
+    path('verify_password_otp/', verify_password_otp_view, name='verify-password-otp'),
+    path('update_password/', SecurePasswordChangeView.as_view(), name='update-password'),
+    
+    # NEED / HELP
+    path('help/', HelpPageView.as_view(), name='applicant-help'),
+    path('help/send-support-message/', send_applicant_support_message_api, name='applicant-send-support-message'),
 ]

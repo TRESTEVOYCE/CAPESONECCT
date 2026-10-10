@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en-PH" class="h-full bg-[#0b0f19]">
@@ -73,7 +72,7 @@
     <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-slate-950/70 z-40 lg:hidden" aria-hidden="true">
     </div>
     <!-- SIDEBAR -->
-    <aside id="applicant-sidebar" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-slate-800/80 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shrink-0 flex flex-col text-slate-300">
+    <aside id="applicant-sidebar" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-slate-800/80 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shrink-0 flex flex-col text-slate-300 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
         <!-- PESO BRAND -->
         <div class="p-5 border-b border-slate-800/80 flex flex-col items-center text-center space-y-1">
             <div class="w-14 h-14 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shadow-md border-2 border-white/20">
@@ -212,9 +211,10 @@
             </a>
             {% endwith %}
         </nav>
-        <!-- HELP -->
-        <div class="m-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
-            <div class="flex items-center gap-1.5 font-bold text-white">
+        
+<!-- HELP (CLICKABLE) -->
+        <a href="{% url 'applicant-help' %}" @click="sidebarOpen = false" class="block m-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1.5 hover:bg-slate-800/80 hover:border-amber-400/50 transition-all cursor-pointer group">
+            <div class="flex items-center gap-1.5 font-bold text-white group-hover:text-amber-400 transition-colors">
                 <svg class="w-3.5 h-3.5 text-amber-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2
                              2.21 0 4 1.343 4 3
@@ -222,12 +222,13 @@
                              -.542.104-.994.54-.994 1.093
                              m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Need Help?
+                <span>Need Help?</span>
             </div>
             <p class="text-slate-400 leading-relaxed text-[10px]">
-                If you need assistance, please contact PESO Carigara.
+                Click here for FAQs, guides, and support.
             </p>
-        </div>
+        </a>
+
     </aside>
     <!-- MAIN CONTENT AREA -->
     <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#faf8f5]">
@@ -289,10 +290,17 @@
                     </div>
                 </div>
                 <!-- USER PROFILE -->
+<!-- USER PROFILE -->
                 <a href="{% url 'personal_info' %}" class="flex items-center gap-2 bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 rounded-full pl-1.5 pr-3 py-1 transition-all group" aria-label="View personal profile">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
-                        {{ request.user.first_name|default:"T"|slice:":1" }}{{ request.user.last_name|default:"S"|slice:":1" }}
-                    </div>
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full object-cover border border-amber-400/40">
+                    {% elif applicant_profile and applicant_profile.applicant_id_picture %}
+                        <img src="{{ applicant_profile.applicant_id_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full object-cover border border-amber-400/40">
+                    {% else %}
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
+                            {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
                     <div class="text-left hidden md:block leading-tight">
                         <div class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
                             {{ request.user.username|default:"Job Seeker" }}
