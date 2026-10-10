@@ -19,6 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.environ.get('DEBUG') == 'True'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Host & Origin Settings
 ALLOWED_HOSTS = [
     host.strip()

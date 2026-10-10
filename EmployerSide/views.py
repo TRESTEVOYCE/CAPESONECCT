@@ -12,7 +12,6 @@ from django.contrib import messages
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.contrib import messages
-
 import random
 from django.core.mail import send_mail
 from django.http import JsonResponse
@@ -23,6 +22,37 @@ from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Q
+
+import json
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def send_support_message_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            subject = data.get('subject', 'CAPESONNECT Employer Support')
+            user_message = data.get('message', '')
+            
+            user_email = getattr(request.user, 'email', None) or 'Not provided'
+            sender_info = f"Employer Username: {request.user.username}\nEmail: {user_email}\n\n"
+            full_message = sender_info + "Message:\n" + user_message
+            
+            send_mail(
+                subject=subject,
+                message=full_message,
+                from_email=None,
+                recipient_list=['pesocarigaraadmin@gmail.com'],
+                fail_silently=False,
+            )
+            
+            return JsonResponse({'status': 'success', 'message': 'Message sent successfully!'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 
 #home or the dashboard view for the employer
 class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):

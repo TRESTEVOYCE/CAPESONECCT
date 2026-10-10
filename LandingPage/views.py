@@ -45,6 +45,14 @@ class UserApplicantAccountRegisterView(FormView):
         if not info:
             return redirect('register_jobseeker')
 
+        email = form.cleaned_data.get('email')
+
+        # Securely handle existing email without revealing database presence
+        if User.objects.filter(email=email).exists():
+            if 'applicant_info' in self.request.session:
+                del self.request.session['applicant_info']
+            return redirect('verify-email')
+
         user = form.save(commit=False)
         user.role = 'applicant'
         user.email_verified = False
@@ -110,6 +118,14 @@ class UserEmployerAccountRegisterView(FormView):
         if not info:
             return redirect('register_employer')
 
+        email = form.cleaned_data.get('email')
+
+        # Securely handle existing email without revealing database presence
+        if User.objects.filter(email=email).exists():
+            if 'employer_info' in self.request.session:
+                del self.request.session['employer_info']
+            return redirect('verify-email')
+
         user = form.save(commit=False)
         user.role = 'employer'
         user.email_verified = False
@@ -155,7 +171,7 @@ CAPESCONNECT
         )
 
         return redirect('verify-email')
-
+    
 
 class VerifyEmailView(TemplateView):
     template_name = 'LandingPage/verify_email.html'

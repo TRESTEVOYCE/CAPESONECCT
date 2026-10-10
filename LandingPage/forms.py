@@ -4,12 +4,28 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm,PasswordResetForm, SetPasswordForm
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.core.exceptions import ValidationError
 
 class UserRegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
+        error_messages = {
+            'username': {
+                'unique': "Invalid Username or Password.",
+            },
+        }
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise ValidationError("Invalid Username or Password")
+        return email
+
+    def clean(self):
+        # Keeps your form validation clean without suppressing email uniqueness errors completely
+        return super().clean()
+    
 class BasicApplicantInformationForms(ModelForm):
     class Meta:
         model = ApplicantProfile
@@ -72,3 +88,5 @@ class ForgotPasswordForm(PasswordResetForm):
 
 class PasswordResetConfirmForm(SetPasswordForm):
     pass
+
+
