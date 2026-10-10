@@ -1,33 +1,42 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f19] overflow-y-scroll">
+<html lang="en" class="h-full bg-[#0b0f19]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CAPESONNECT — Employer Portal{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/PESO_LOGO.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        [x-cloak] { display: none !important; }
+        html { scroll-behavior: smooth; }
+        button, a, input { -webkit-tap-highlight-color: transparent; }
+        :focus-visible { outline: 2px solid #fbbf24; outline-offset: 3px; }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full font-sans flex flex-col overflow-hidden antialiased text-slate-800 bg-[#faf8f5]" x-data="{ sidebarOpen: false }">
+<body class="h-full font-sans antialiased text-slate-800 bg-[#faf8f5]" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
 <div class="h-screen flex flex-col lg:flex-row w-full text-base sm:text-lg overflow-hidden">
 
     <!-- MOBILE HEADER -->
-    <div class="lg:hidden flex items-center justify-between bg-[#111827] px-5 py-4 border-b border-slate-800 sticky top-0 z-45 text-white shrink-0">
+    <header class="lg:hidden flex items-center justify-between bg-[#111827] px-5 py-3.5 border-b border-slate-800 sticky top-0 z-40 text-white shrink-0">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shadow-md border border-white/20">
                 <img src="{% static 'images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
             </div>
-            <span class="font-bold tracking-wide text-base">CAPESONNECT <span class="text-xs text-slate-400">— Employer</span></span>
+            <span class="font-bold tracking-wide text-base">
+                CAPESONNECT <span class="text-xs text-amber-400 font-semibold">— Employer</span>
+            </span>
         </div>
-        <button @click="sidebarOpen = true" class="p-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors" aria-label="Open menu">
+        <button type="button" @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors" aria-label="Toggle navigation menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-    </div>
+    </header>
 
     <!-- SIDEBAR BACKDROP -->
-    <div x-show="sidebarOpen" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden" @click="sidebarOpen = false" x-cloak></div>
+    <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden"></div>
 
     <!-- FIXED SIDEBAR -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#111827] border-r border-slate-800/80 transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col text-slate-300 select-none justify-between text-base h-full shrink-0 overflow-y-auto">
@@ -43,22 +52,20 @@
                 <span class="text-xs text-slate-400 font-medium">Employer Portal</span>
             </div>
 
-
-
-            <!--NEED TO EDIT not working ACCOUNT STATUS -->
+            <!-- ACCOUNT STATUS -->
             {% if request.user.employer_profile %}
                 {% if request.user.employer_profile.verification_status == 'approved' %}
-                    <div class="mx-3 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5 text-xs">
+                    <div class="mx-1 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5 text-xs">
                         <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         <div class="leading-tight">
                             <span class="font-bold text-emerald-200 block mb-0.5 text-sm">Account Approved</span>
-                            Your account has been verified by PESO Admin. You can now fully post and publish jobs.
+                            Your account has been verified by PESO Admin. You can now post and manage jobs.
                         </div>
                     </div>
                 {% elif request.user.employer_profile.verification_status == 'rejected' %}
-                    <div class="mx-3 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5 text-xs">
+                    <div class="mx-1 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5 text-xs">
                         <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -68,9 +75,9 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="mx-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5 text-xs">
+                    <div class="mx-1 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5 text-xs">
                         <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732-3z"/>
                         </svg>
                         <div class="leading-tight">
                             <span class="font-bold text-amber-200 block mb-0.5 text-sm">Account Pending</span>
@@ -79,7 +86,7 @@
                     </div>
                 {% endif %}
             {% else %}
-                <div class="mx-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5 text-xs">
+                <div class="mx-1 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5 text-xs">
                     <div class="leading-tight">
                         <span class="font-bold text-amber-200 block mb-0.5 text-sm">Profile Incomplete</span>
                         Please complete your company profile to start posting jobs.
@@ -87,34 +94,32 @@
                 </div>
             {% endif %}
 
-
-
             <!-- NAVIGATION -->
             <div>
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase px-3 mb-3">NAVIGATION</p>
                 <nav class="space-y-1.5 text-sm font-semibold">
 
-                    <a href="{% url 'employer-home' %}" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'employer-home' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                    <a href="{% url 'employer-home' %}" @click="sidebarOpen = false" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'employer-home' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
                         <i class="fa-solid fa-briefcase w-5 text-center"></i>
                         <span>Dashboard</span>
                     </a>
 
-                    <a href="{% url 'employer-job_list' %}" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'employer-job_list' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                    <a href="{% url 'employer-job_list' %}" @click="sidebarOpen = false" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'job_list' or request.resolver_match.url_name == 'employer-job_list' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
                         <i class="fa-solid fa-rectangle-list w-5 text-center"></i>
                         <span>Jobs Posted</span>
                     </a>
 
-                    <a href="{% url 'applicants-list' %}" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'applicants_list' or request.resolver_match.url_name == 'applicant_detail' or request.resolver_match.url_name == 'applicants-list' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                    <a href="{% url 'applicants-list' %}" @click="sidebarOpen = false" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'applicants_list' or request.resolver_match.url_name == 'applicant_detail' or request.resolver_match.url_name == 'applicants-list' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
                         <i class="fa-solid fa-user-group w-5 text-center"></i>
                         <span>Applicants</span>
                     </a>
 
-                    <a href="{% url 'company_profile_view' %}" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_profile_view' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                    <a href="{% url 'company_profile_view' %}" @click="sidebarOpen = false" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'company_profile' or request.resolver_match.url_name == 'company_profile_view' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
                         <i class="fa-solid fa-building w-5 text-center"></i>
                         <span>Company Profile</span>
                     </a>
 
-                    <a href="{% url 'employer-settings' %}" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'employer-settings' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                    <a href="{% url 'employer-settings' %}" @click="sidebarOpen = false" class="flex items-center space-x-3.5 px-4 py-3 rounded-xl transition-all {% if request.resolver_match.url_name == 'employer-settings' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
                         <i class="fa-solid fa-gear w-5 text-center"></i>
                         <span>Settings</span>
                     </a>
@@ -123,19 +128,15 @@
             </div>
         </div>
 
-        <!-- Help Widget -->
-        <div class="p-4 m-4 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs text-slate-300 space-y-1.5 shrink-0">
-            
-            <a href="{% url 'employer-help' %}" class="block p-4 m-4 bg-slate-900/90 hover:bg-slate-855 border border-slate-800 hover:border-amber-400/50 rounded-2xl text-xs text-slate-300 space-y-1.5 shrink-0 transition-all group">
-            <div class="flex items-center gap-1.5 font-bold text-white group-hover:text-amber-400 transition-colors">
-                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Need Help?
-            </div>
-
-            <p class="text-slate-400 leading-relaxed text-[11px] group-hover:text-slate-300 transition-colors">Click here to view app guides, FAQs, and contact developers.</p>
-
+        <!-- HELP WIDGET -->
+        <div class="px-4 pb-4 mt-auto">
+            <a href="{% url 'employer-help' %}" @click="sidebarOpen = false" class="block p-3.5 bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-400/50 rounded-2xl text-xs text-slate-300 space-y-1.5 transition-all group shadow-sm">
+                <div class="flex items-center gap-1.5 font-bold text-white group-hover:text-amber-400 transition-colors">
+                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Need Help?</span>
+                </div>
+                <p class="text-slate-400 leading-relaxed text-[11px] group-hover:text-slate-300 transition-colors">Click here to view app guides, FAQs, and contact developers.</p>
             </a>
-
         </div>
     </aside>
 
@@ -145,10 +146,10 @@
         <!-- TOP NAVIGATION BAR -->
         <header class="h-20 bg-[#161e31]/90 backdrop-blur-md border-b border-slate-800/80 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs shrink-0">
             
-           <!-- DYNAMIC UNIVERSAL SEARCH BAR -->
+            <!-- DYNAMIC UNIVERSAL SEARCH BAR -->
             <form method="GET" action="{% if 'jobs' in request.path %}{% url 'employer-job_list' %}{% elif 'applicants' in request.path %}{% url 'applicants-list' %}{% else %}{{ request.path }}{% endif %}" class="relative w-full max-w-md hidden sm:block">
                 <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search applicants, jobs..." autocomplete="off" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-full pl-11 pr-10 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all shadow-inner">
-                <button type="submit" class="absolute left-4 top-3 text-slate-400 hover:text-amber-400 transition-colors" aria-label="Search">
+                <button type="submit" class="absolute left-4 top-3 text-slate-400 hover:text-amber-400 transition-colors" aria-label="Submit Search">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </button>
                 {% if request.GET.q %}
@@ -158,13 +159,20 @@
 
             <div class="flex items-center space-x-4 ml-auto">
                 <!-- CLICKABLE PROFILE BADGE -->
-                <a href="{% url 'company_profile_view' %}" class="flex items-center space-x-3 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-500 py-2 px-4 rounded-full transition-all group">
-                    <span class="bg-slate-700 group-hover:bg-amber-400 group-hover:text-slate-950 text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full text-white transition-colors">
-                        {{ request.user.employer_profile.business_name|slice:":1"|upper|default:"A" }}
-                    </span>
-                    <span class="text-sm font-medium pr-1 text-white group-hover:text-amber-300 transition-colors">{{ request.user.employer_profile.business_name|default:request.user.username }}</span>
+                <a href="{% url 'company_profile_view' %}" class="flex items-center space-x-3 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-500 py-1.5 px-3 rounded-full transition-all group">
+                    {% if employer_profile and employer_profile.company_logo %}
+                        <img src="{{ employer_profile.company_logo.url }}" alt="Company Logo" class="w-7 h-7 rounded-full object-cover border border-amber-400/40">
+                    {% elif request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="w-7 h-7 rounded-full object-cover border border-amber-400/40">
+                    {% else %}
+                        <span class="bg-slate-700 group-hover:bg-amber-400 group-hover:text-slate-950 text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full text-white transition-colors">
+                            {{ employer_profile.business_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
+                        </span>
+                    {% endif %}
+                    <span class="text-sm font-medium pr-1 text-white group-hover:text-amber-300 transition-colors">{{ employer_profile.business_name|default:request.user.username }}</span>
                 </a>
 
+                <!-- LOGOUT BUTTON -->
                 <form method="post" action="{% url 'employer-logout' %}" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors" title="Logout">
@@ -176,7 +184,19 @@
         </header>
 
         <!-- PAGE CONTENT CONTAINER -->
-        <div class="w-full flex-1 p-6 sm:p-10">
+        <div class="w-full flex-1 p-6 sm:p-10 space-y-6">
+
+            <!-- MESSAGES FEEDBACK -->
+            {% if messages %}
+            <div class="space-y-2" aria-live="polite">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl text-xs font-semibold {% if 'error' in message.tags %}bg-rose-500/10 text-rose-700 border border-rose-500/30{% elif 'warning' in message.tags %}bg-amber-500/10 text-amber-800 border border-amber-500/30{% else %}bg-emerald-500/10 text-emerald-800 border border-emerald-500/30{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             {% block content %}
             {% endblock %}
         </div>

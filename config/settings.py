@@ -120,6 +120,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'AdminSide.context_processor.applicant_profile', 
                 'ApplicantSide.context_processors.applicant_context',
+                'EmployerSide.context_processors.employer_context',
             ],
         },
     },
