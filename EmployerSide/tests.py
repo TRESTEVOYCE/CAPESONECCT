@@ -65,6 +65,49 @@ class EmployerNotificationTests(TestCase):
         self.assertIn('Test Applicant', notification.message)
         self.assertIn('/employer/applicants/', notification.target_url)
 
+    def test_employer_application_status_change_notifies_applicant_once(self):
+        job = Jobs.objects.create(
+            employer=self.employer,
+            job_title='Status Test Job',
+            job_description='A test role',
+            place_of_work='Carigara',
+            salary=10000,
+            job_posting_expiry=timezone.localdate() + timedelta(days=30),
+        )
+        application = AppliedJobs.objects.create(
+            employer=self.employer,
+            applicant=self.applicant,
+            applied_job=job,
+        )
+
+        application.status = 'for interview'
+        application.save(update_fields=['status'])
+
+        notification = Notification.objects.get(
+            recipient=self.applicant_user,
+            notification_type='APPLICATION_STATUS',
+        )
+        self.assertEqual(notification.sender, self.employer_user)
+        self.assertIn('For Interview', notification.message)
+        self.assertEqual(notification.target_url, reverse('applied_jobs'))
+
+        application.is_hired = True
+        application.save(update_fields=['is_hired'])
+        self.assertEqual(
+            Notification.objects.filter(
+                recipient=self.applicant_user,
+                notification_type='APPLICATION_STATUS',
+            ).count(),
+            1,
+        )
+
+        self.client.force_login(self.applicant_user)
+        header = self.client.get(reverse('applicant-notifications-header'))
+        self.assertTrue(any(
+            item['notification_type'] == 'APPLICATION_STATUS'
+            for item in header.json()['notifications']
+        ))
+
     def test_admin_registration_notifications_use_admin_side_routes(self):
         admin = User.objects.create_superuser(
             username='notification-route-admin',

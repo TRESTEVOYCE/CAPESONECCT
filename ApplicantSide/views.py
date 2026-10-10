@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import JsonResponse
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from .forms import ProfilePictureForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
@@ -23,6 +24,137 @@ from .forms import (
     ProfilePictureForm,
 )
 from AdminSide.utils import notify_admins
+
+
+APPLICANT_NOTIFICATION_TYPES = (
+    'APPLICATION_STATUS',
+    'VERIFICATION_APPROVED',
+    'VERIFICATION_REJECTED',
+)
+
+
+class ApplicantNotificationAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'applicant'
+
+
+class ApplicantNotificationListView(ApplicantNotificationAccessMixin, ListView):
+    model = Notification
+    template_name = 'applicant_notification.html'
+    context_object_name = 'notifications'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        self.status_filter = self.request.GET.get('status', 'all').lower()
+        if self.status_filter == 'unread':
+            queryset = queryset.filter(is_read=False)
+        elif self.status_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+        else:
+            self.status_filter = 'all'
+        return queryset.order_by('-created_at', '-pk')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        context.update({
+            'applicant_profile': ApplicantProfile.objects.filter(user=self.request.user).first(),
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'selected_status': self.status_filter,
+        })
+        return context
+
+
+class ApplicantNotificationHeaderApiView(ApplicantNotificationAccessMixin, View):
+    def get(self, request, *args, **kwargs):
+        notifications = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        latest_notifications = notifications.order_by('-created_at', '-pk')[:5]
+        return JsonResponse({
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'notifications': [
+                {
+                    'id': notification.id,
+                    'title': notification.title,
+                    'message': notification.message,
+                    'reason': notification.reason,
+                    'notification_type': notification.notification_type,
+                    'target_url': notification.target_url or '#',
+                    'created_at': notification.created_at.strftime('%b %d, %Y %I:%M %p'),
+                    'is_read': notification.is_read,
+                    'read_url': reverse('applicant-notification-read', args=[notification.id]),
+                }
+                for notification in latest_notifications
+            ],
+        })
+
+
+class ApplicantMarkNotificationReadView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        unread_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).count()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        return redirect(notification.target_url or 'applicant-notifications')
+
+
+class ApplicantMarkAllNotificationsReadView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).update(is_read=True)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'updated_count': updated_count,
+                'unread_count': 0,
+            })
+        messages.success(request, f'Marked {updated_count} notification(s) as read.')
+        return redirect('applicant-notifications')
+
+
+class ApplicantDeleteNotificationView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        notification.delete()
+        unread_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).count()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        messages.success(request, 'Notification deleted.')
+        return redirect('applicant-notifications')
 
 
 class ApplicantProfileRequiredMixin:

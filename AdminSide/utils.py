@@ -33,6 +33,17 @@ def notify_employer_verified(employer, sender):
     )
 
 
+def notify_applicant_verified(applicant, sender):
+    return send_notification(
+        recipient=applicant.user,
+        sender=sender,
+        title='Applicant Account Verified',
+        message='Your applicant account has been verified. You can now apply for available job opportunities.',
+        notification_type='VERIFICATION_APPROVED',
+        target_url=reverse('my_profile'),
+    )
+
+
 def notify_admins(title, message, notification_type, sender=None, reason=None, target_url=None):
     return [
         send_notification(

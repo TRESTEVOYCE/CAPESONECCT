@@ -197,6 +197,70 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, f'{reverse("AdminSide:referrals_list")}?status=near_hire')
 
 
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    DEFAULT_FROM_EMAIL='CAPESONNECT System <system@example.com>',
+)
+class ApplicantVerificationEmailTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='applicant-verify-email-admin',
+            email='applicant-verify-email-admin@example.com',
+            password='test-password',
+        )
+        self.applicant_user = User.objects.create_user(
+            username='applicant-verify-email-user',
+            email='applicant-verify-email@example.com',
+            password='test-password',
+            role='applicant',
+        )
+        self.applicant = ApplicantProfile.objects.create(
+            user=self.applicant_user,
+            first_name='Email',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+        )
+        self.client.force_login(self.admin)
+
+    def test_verifying_applicant_sends_account_verified_email_once(self):
+        url = reverse(
+            'AdminSide:applicant_verification',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        response = self.client.post(url, {'action': 'verify'})
+
+        self.assertRedirects(response, url)
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'approved')
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.to, [self.applicant_user.email])
+        self.assertEqual(
+            sent_email.subject,
+            'Your CAPESONNECT account has been verified',
+        )
+        self.assertIn('account has been verified', sent_email.body)
+        self.assertIn('apply for available job opportunities', sent_email.body)
+
+        self.client.post(url, {'action': 'verify'})
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_applicant_approval_from_registry_sends_verified_email(self):
+        response = self.client.post(
+            reverse('AdminSide:applicants_list'),
+            {
+                'applicant_uuid': str(self.applicant.uuid),
+                'status': 'approved',
+            },
+        )
+
+        self.assertRedirects(response, reverse('AdminSide:applicants_list'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.applicant_user.email])
+
+
 class JobVacancyCreateViewTests(TestCase):
     def test_post_creates_active_vacancy_for_verified_employer(self):
         admin = User.objects.create_user(

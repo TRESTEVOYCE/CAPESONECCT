@@ -1,5 +1,5 @@
 # signals.py
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
 from .models import AppliedJobs, EmployerProfile, Jobs
@@ -46,14 +46,26 @@ def notify_employer_on_new_applicant(sender, instance, created, **kwargs):
             target_url="/employer/applicants/"
         )
 
+@receiver(pre_save, sender=AppliedJobs)
+def remember_application_status(sender, instance, **kwargs):
+    if instance.pk:
+        instance._previous_status = sender.objects.filter(pk=instance.pk).values_list(
+            'status',
+            flat=True,
+        ).first()
+    else:
+        instance._previous_status = None
+
+
 @receiver(post_save, sender=AppliedJobs)
 def notify_applicant_on_status_update(sender, instance, created, **kwargs):
-    if not created:
+    previous_status = getattr(instance, '_previous_status', None)
+    if not created and previous_status != instance.status and instance.applicant and instance.applied_job:
         send_notification(
             recipient=instance.applicant.user,
             sender=instance.employer.user if instance.employer else None,
             title="Application Status Update",
             message=f"Your status for '{instance.applied_job.job_title}' has been updated to: {instance.get_status_display()}.",
             notification_type='APPLICATION_STATUS',
-            target_url=f"/applicant/applications/{instance.uuid}/"
+            target_url=reverse('applied_jobs'),
         )

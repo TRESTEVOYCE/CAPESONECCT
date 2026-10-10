@@ -4,6 +4,7 @@ import random
 import logging
 from smtplib import SMTPException
 from datetime import datetime, timedelta
+from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
@@ -49,9 +50,53 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
 from .models import Notification
-from .utils import notify_admins, notify_employer_verified, send_notification
+from .utils import (
+    notify_admins,
+    notify_applicant_verified,
+    notify_employer_verified,
+    send_notification,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def send_applicant_verified_email(applicant):
+    if not applicant.user.email:
+        logger.error(
+            'Applicant verification email was not sent because user %s has no email address.',
+            applicant.user_id,
+        )
+        return False
+
+    applicant_name = f'{applicant.first_name} {applicant.last_name}'.strip()
+    try:
+        sent_count = send_mail(
+            subject='Your CAPESONNECT account has been verified',
+            message=(
+                f'Hello {applicant_name or applicant.user.username},\n\n'
+                'Your CAPESONNECT applicant account has been verified by PESO Carigara. '
+                'You can now sign in and apply for available job opportunities.\n\n'
+                'Thank you,\nPESO Carigara'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[applicant.user.email],
+            fail_silently=False,
+        )
+    except (OSError, SMTPException):
+        logger.exception(
+            'Failed to send applicant verification email to user %s.',
+            applicant.user_id,
+        )
+        return False
+
+    if sent_count != 1:
+        logger.error(
+            'Applicant verification email was not accepted for user %s.',
+            applicant.user_id,
+        )
+        return False
+    return True
+
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
@@ -483,6 +528,15 @@ class ApplicantListView(LoginRequiredMixin, ListView):
         
         if applicant_uuid and new_status in ['approved', 'rejected', 'pending']:
             applicant = get_object_or_404(ApplicantProfile, uuid=applicant_uuid)
+            rejection_reason = request.POST.get('reason', '').strip()
+            if new_status == 'rejected' and (
+                not rejection_reason or len(rejection_reason) > 2000
+            ):
+                messages.error(request, 'Provide a rejection reason (up to 2,000 characters).')
+                return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
+
+            was_rejected = applicant.status == 'rejected'
+            was_approved = applicant.status == 'approved'
             applicant.status = new_status
             
             # Record who verified the account for audit logging
@@ -490,16 +544,39 @@ class ApplicantListView(LoginRequiredMixin, ListView):
                 applicant.verified_by = request.user
                 
             applicant.save()
+            if new_status == 'approved' and not was_approved:
+                notify_applicant_verified(applicant, request.user)
+                if send_applicant_verified_email(applicant):
+                    messages.success(
+                        request,
+                        f'Applicant {applicant.first_name} {applicant.last_name} was verified and emailed.',
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        f'Applicant {applicant.first_name} {applicant.last_name} was verified, '
+                        'but the confirmation email could not be sent. Check the email configuration and logs.',
+                    )
+            if new_status == 'rejected' and not was_rejected:
+                send_notification(
+                    recipient=applicant.user,
+                    sender=request.user,
+                    title='Applicant Verification Rejected',
+                    message='Your applicant account verification was rejected.',
+                    reason=rejection_reason,
+                    notification_type='VERIFICATION_REJECTED',
+                    target_url=reverse('my_profile'),
+                )
             
             if new_status != 'approved':
                 messages.success(
                     request,
                     f"Applicant {applicant.first_name} {applicant.last_name} status updated to '{new_status.title()}'."
                 )
-            return redirect('applicant_registry')
+            return redirect('AdminSide:applicants_list')
 
         messages.error(request, "Invalid request parameters.")
-        return redirect('applicant_registry')
+        return redirect('AdminSide:applicants_list')
 
 class ApplicantVerificationView(LoginRequiredMixin, DetailView):
     model = ApplicantProfile
@@ -513,16 +590,43 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
         action = request.POST.get('action')
         
         if action == 'verify':
+            was_approved = applicant.status == 'approved'
             applicant.status = 'approved'
             # Optional: Record which PESO officer verified the account
             if hasattr(applicant, 'verified_by'):
                 applicant.verified_by = request.user
             applicant.save()
+            if not was_approved:
+                notify_applicant_verified(applicant, request.user)
+                if send_applicant_verified_email(applicant):
+                    messages.success(request, 'Applicant account verified and confirmation email sent.')
+                else:
+                    messages.warning(
+                        request,
+                        'Applicant account verified, but the confirmation email could not be sent. '
+                        'Check the email configuration and logs.',
+                    )
             return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
             
         elif action == 'reject':
+            reason = request.POST.get('reason', '').strip()
+            if not reason or len(reason) > 2000:
+                messages.error(request, 'Provide a rejection reason (up to 2,000 characters).')
+                return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
+
+            was_rejected = applicant.status == 'rejected'
             applicant.status = 'rejected'
             applicant.save()
+            if not was_rejected:
+                send_notification(
+                    recipient=applicant.user,
+                    sender=request.user,
+                    title='Applicant Verification Rejected',
+                    message='Your applicant account verification was rejected.',
+                    reason=reason,
+                    notification_type='VERIFICATION_REJECTED',
+                    target_url=reverse('my_profile'),
+                )
             return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
         return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)

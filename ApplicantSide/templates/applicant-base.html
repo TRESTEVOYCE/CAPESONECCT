@@ -6,6 +6,7 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Applicant Portal - CAPESCONNECT PESO Carigara{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config={theme:{extend:{colors:{darkbg:'#0b0f19',darkcard:'#161e31',accent:'#4f46e5'}}}}
     </script>
@@ -198,87 +199,26 @@
             <div class="flex items-center gap-4 ml-auto">
 
                 <!-- NOTIFICATIONS -->
-                <div class="relative" x-data="{ notifOpen: false }">
-                    <button @click="notifOpen = !notifOpen" @click.away="notifOpen = false" class="relative p-2 rounded-full bg-slate-800/80 text-slate-300 hover:text-white transition-colors" aria-label="Notifications">
+                <div class="relative" id="applicantNotifWrapper">
+                    <button id="applicantNotifBell" type="button" aria-label="Open notifications" aria-expanded="false" class="relative p-2 rounded-full bg-slate-800/80 text-slate-300 hover:text-white transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span id="applicantNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] rounded-full bg-amber-400 px-1.5 py-0.5 text-center text-[10px] font-extrabold text-slate-950">0</span>
                     </button>
 
-                    <!-- NOTIFICATION DROPDOWN -->
-                    <div x-show="notifOpen" x-transition.origin.top.right x-cloak class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#111827] border border-slate-800 shadow-2xl py-3 z-50 text-slate-200">
-
-                        <div class="px-4 pb-2.5 border-b border-slate-800/80 flex items-center justify-between">
-                            <span class="text-xs font-bold text-white tracking-wide">Lifecycle Notifications</span>
-                            <span class="text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">Updates</span>
+                    <div id="applicantNotifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 text-slate-800 overflow-hidden">
+                        <div class="px-4 py-3 bg-[#161e31] border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-white tracking-wide">Notifications</span>
+                                <span id="applicantNotifNewPill" class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-[#161e31]">0 new</span>
+                            </div>
+                            <button id="applicantNotifMarkAll" type="button" class="text-[11px] font-semibold text-slate-300 hover:text-white">Mark all read</button>
                         </div>
-
-                        <div class="max-h-80 overflow-y-auto divide-y divide-slate-800/50 text-xs">
-
-                            <!-- OFFER -->
-                            <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3 bg-emerald-500/5">
-                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-emerald-300 text-[11px] uppercase tracking-wider">Offer / Onboarding</span>
-                                        <span class="text-[10px] text-slate-500">10m ago</span>
-                                    </div>
-                                    <p class="text-slate-300 leading-snug">Employment offer extended for <strong>Administrative Assistant II</strong> pending signature.</p>
-                                </div>
-                            </div>
-
-                            <!-- ACTION REQUIRED -->
-                            <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3 bg-amber-500/5">
-                                <div class="w-2.5 h-2.5 rounded-full bg-amber-400 mt-1 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-amber-300 text-[11px] uppercase tracking-wider">Action Required</span>
-                                        <span class="text-[10px] text-slate-500">2h ago</span>
-                                    </div>
-                                    <p class="text-slate-300 leading-snug">Book your interview slot for <strong>Administrative Assistant II</strong> at PESO Carigara.</p>
-                                </div>
-                            </div>
-
-                            <!-- STAGE -->
-                            <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
-                                <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 mt-1 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-indigo-300 text-[11px] uppercase tracking-wider">Stage Progression</span>
-                                        <span class="text-[10px] text-slate-500">1d ago</span>
-                                    </div>
-                                    <p class="text-slate-300 leading-snug">Application moved from <em>Under Review</em> to <strong>Shortlisted</strong>.</p>
-                                </div>
-                            </div>
-
-                            <!-- RECEIVED -->
-                            <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
-                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-emerald-300 text-[11px] uppercase tracking-wider">Received / Confirmed</span>
-                                        <span class="text-[10px] text-slate-500">3d ago</span>
-                                    </div>
-                                    <p class="text-slate-300 leading-snug">System safely logged your profile and document submission.</p>
-                                </div>
-                            </div>
-
-                            <!-- CLOSED -->
-                            <div class="px-4 py-3 hover:bg-slate-800/40 transition-colors flex items-start gap-3">
-                                <div class="w-2.5 h-2.5 rounded-full bg-slate-500 mt-1 shrink-0"></div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Status Closed</span>
-                                        <span class="text-[10px] text-slate-500">5d ago</span>
-                                    </div>
-                                    <p class="text-slate-400 leading-snug">Thank you for applying. Organization decided to move forward with other candidates.</p>
-                                </div>
-                            </div>
-
+                        <div id="applicantNotifList" class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                            <div class="p-6 text-center text-xs text-slate-400">Loading notifications...</div>
                         </div>
-
-                        <!-- VIEW APPLICATIONS -->
-                        <div class="px-4 pt-2.5 border-t border-slate-800/80 text-center">
-                            <a href="{% url 'applied_jobs' %}" class="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition-colors">View Application Status &rarr;</a>
+                        <div class="px-4 py-2.5 bg-blue-50 border-t border-blue-100 flex items-center justify-between text-[11px] text-slate-600">
+                            <span id="applicantNotifCounts">0 total • 0 unread</span>
+                            <a href="{% url 'applicant-notifications' %}" class="font-bold text-[#161e31] hover:underline">See all</a>
                         </div>
                     </div>
                 </div>
@@ -325,5 +265,138 @@
         </div>
     </main>
 </div>
+<script>
+(() => {
+    const wrapper = document.getElementById('applicantNotifWrapper');
+    const bell = document.getElementById('applicantNotifBell');
+    const dropdown = document.getElementById('applicantNotifDropdown');
+    const badge = document.getElementById('applicantNotifBadge');
+    const newPill = document.getElementById('applicantNotifNewPill');
+    const list = document.getElementById('applicantNotifList');
+    const counts = document.getElementById('applicantNotifCounts');
+    const markAll = document.getElementById('applicantNotifMarkAll');
+    if (!wrapper || !bell || !dropdown || !list) return;
+
+    const apiUrl = "{% url 'applicant-notifications-header' %}";
+    const markAllUrl = "{% url 'applicant-notifications-read-all' %}";
+    const readAllCsrfToken = "{{ csrf_token }}";
+
+    function getCookie(name) {
+        const cookie = document.cookie.split('; ').find(item => item.startsWith(`${name}=`));
+        return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
+    }
+
+    async function markRead(url) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken') || readAllCsrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        if (!response.ok) throw new Error('Could not mark applicant notification as read.');
+    }
+
+    async function fetchNotifications() {
+        try {
+            const response = await fetch(apiUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Could not load applicant notifications.');
+            const data = await response.json();
+            badge.textContent = data.unread_count;
+            badge.classList.toggle('hidden', data.unread_count === 0);
+            newPill.textContent = `${data.unread_count} new`;
+            counts.textContent = `${data.total_count} total • ${data.unread_count} unread`;
+
+            if (!data.notifications.length) {
+                list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">No notifications yet.</div>';
+                return;
+            }
+
+            list.innerHTML = data.notifications.map(notification => {
+                const rejected = notification.notification_type === 'VERIFICATION_REJECTED';
+                const verified = notification.notification_type === 'VERIFICATION_APPROVED';
+                const target = typeof notification.target_url === 'string'
+                    && notification.target_url.startsWith('/')
+                    && !notification.target_url.startsWith('//')
+                    ? notification.target_url : '#';
+                return `
+                    <article class="p-3.5 ${notification.is_read ? '' : 'bg-blue-50/70 border-l-2 border-l-[#161e31]'} hover:bg-slate-50">
+                        <div class="flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-blue-100 text-[#161e31] flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${rejected ? 'fa-circle-exclamation' : verified ? 'fa-circle-check' : 'fa-briefcase'} text-xs"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="truncate text-xs font-bold text-slate-900">${escapeHtml(notification.title)}</h3>
+                                    ${notification.is_read ? '' : '<span class="text-[9px] font-bold uppercase text-[#161e31]">New</span>'}
+                                    <time class="ml-auto shrink-0 text-[10px] text-slate-400">${escapeHtml(notification.created_at)}</time>
+                                </div>
+                                <a href="${escapeHtml(target)}" data-notification-read-url="${escapeHtml(notification.read_url)}" class="mt-1 block text-xs ${notification.is_read ? 'text-slate-600' : 'font-semibold text-slate-800'} hover:text-[#161e31]">${escapeHtml(notification.message)}</a>
+                                ${notification.reason ? `<p class="mt-1 text-[11px] text-rose-700"><span class="font-semibold">Reason:</span> ${escapeHtml(notification.reason)}</p>` : ''}
+                            </div>
+                            ${notification.is_read ? '' : `<button type="button" data-read-url="${escapeHtml(notification.read_url)}" aria-label="Mark as read" class="p-1 text-slate-400 hover:text-[#161e31]"><i class="fa-solid fa-check text-xs"></i></button>`}
+                        </div>
+                    </article>`;
+            }).join('');
+        } catch (error) {
+            console.error('Failed to load applicant notifications:', error);
+        }
+    }
+
+    bell.addEventListener('click', event => {
+        event.stopPropagation();
+        dropdown.classList.toggle('hidden');
+        bell.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
+    });
+    document.addEventListener('click', event => {
+        if (!wrapper.contains(event.target)) {
+            dropdown.classList.add('hidden');
+            bell.setAttribute('aria-expanded', 'false');
+        }
+    });
+    list.addEventListener('click', async event => {
+        const link = event.target.closest('[data-notification-read-url]');
+        const button = event.target.closest('[data-read-url]');
+        try {
+            if (link) {
+                event.preventDefault();
+                await markRead(link.dataset.notificationReadUrl);
+                window.location.assign(link.href);
+            } else if (button) {
+                await markRead(button.dataset.readUrl);
+                await fetchNotifications();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    });
+    markAll.addEventListener('click', async () => {
+        try {
+            const response = await fetch(markAllUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken') || readAllCsrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!response.ok) throw new Error('Could not mark applicant notifications as read.');
+            await fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    fetchNotifications();
+    window.setInterval(fetchNotifications, 10000);
+})();
+</script>
 </body>
 </html>

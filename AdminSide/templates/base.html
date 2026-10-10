@@ -520,33 +520,27 @@
                     data.notifications.forEach(n => {
                         const appearance = {
                             NEW_APPLICANT: {
-                                badge: 'bg-indigo-100 text-indigo-700',
-                                iconBackground: 'bg-indigo-100/70 text-indigo-600',
+                                iconBackground: 'bg-blue-100 text-[#161e31]',
                                 icon: 'fa-user-plus'
                             },
                             NEW_EMPLOYER: {
-                                badge: 'bg-emerald-100 text-emerald-700',
-                                iconBackground: 'bg-emerald-100/70 text-emerald-600',
+                                iconBackground: 'bg-blue-100 text-[#161e31]',
                                 icon: 'fa-building'
                             },
                             NEW_JOB_POST: {
-                                badge: 'bg-purple-100 text-purple-700',
-                                iconBackground: 'bg-purple-100/70 text-purple-600',
+                                iconBackground: 'bg-blue-100 text-[#161e31]',
                                 icon: 'fa-briefcase'
                             },
                             APPEAL_REVERIFICATION: {
-                                badge: 'bg-amber-100 text-amber-700',
-                                iconBackground: 'bg-amber-100/70 text-amber-600',
+                                iconBackground: 'bg-blue-100 text-[#161e31]',
                                 icon: 'fa-rotate'
                             },
                             VERIFICATION_REJECTED: {
-                                badge: 'bg-rose-100 text-rose-700',
-                                iconBackground: 'bg-rose-100/70 text-rose-600',
+                                iconBackground: 'bg-blue-100 text-[#161e31]',
                                 icon: 'fa-circle-exclamation'
                             }
                         }[n.notification_type] || {
-                            badge: 'bg-slate-100 text-slate-700',
-                            iconBackground: 'bg-slate-100 text-slate-600',
+                            iconBackground: 'bg-blue-100 text-[#161e31]',
                             icon: 'fa-bell'
                         };
 
@@ -561,7 +555,6 @@
                                 </div>
                                 <div class="flex-1 pr-4">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${appearance.badge}">${n.category_label || 'Notification'}</span>
                                         ${unreadDot}
                                         <h4 class="text-xs font-bold text-slate-900 truncate">${n.title}</h4>
                                         <span class="ml-auto text-[10px] font-semibold ${n.is_read ? 'text-slate-400' : 'text-rose-600'} flex items-center gap-1 shrink-0">

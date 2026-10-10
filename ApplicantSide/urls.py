@@ -1,8 +1,13 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, ApplicantReverificationAppealView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, ApplicantReverificationAppealView, ApplicantMarkAllNotificationsReadView, ApplicantMarkNotificationReadView, ApplicantDeleteNotificationView, ApplicantNotificationHeaderApiView, ApplicantNotificationListView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView
 
 
 urlpatterns = [
+    path('notifications/', ApplicantNotificationListView.as_view(), name='applicant-notifications'),
+    path('notifications/api/header/', ApplicantNotificationHeaderApiView.as_view(), name='applicant-notifications-header'),
+    path('notifications/<int:notification_id>/read/', ApplicantMarkNotificationReadView.as_view(), name='applicant-notification-read'),
+    path('notifications/read-all/', ApplicantMarkAllNotificationsReadView.as_view(), name='applicant-notifications-read-all'),
+    path('notifications/<int:notification_id>/delete/', ApplicantDeleteNotificationView.as_view(), name='applicant-notification-delete'),
     path('', DashBoardView.as_view(), name='applicant-dashboard'),
     path('my_profile/', MyProfileView.as_view(), name='my_profile'),
     path('personal_info/', ApplicantPersonalInfoView.as_view(), name='personal_info'),
