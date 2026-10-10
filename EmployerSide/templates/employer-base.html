@@ -20,9 +20,32 @@
         </div>
 
         <div class="flex items-center space-x-5">
-            <div class="relative cursor-pointer">
-                <i class="fa-regular fa-bell text-xl text-slate-300 hover:text-white"></i>
-                <span class="absolute -top-1 -right-1 bg-amber-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+            <div class="relative" id="employerNotifWrapper">
+                <button id="employerNotifBell" type="button" aria-label="Open notifications" aria-expanded="false" class="relative w-10 h-10 flex items-center justify-center rounded-full text-slate-300 hover:bg-slate-700 hover:text-white transition focus:outline-none focus:ring-2 focus:ring-slate-400">
+                    <i class="fa-regular fa-bell text-xl"></i>
+                    <span id="employerNotifBadge" class="hidden absolute -top-1 -right-1 bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">0</span>
+                </button>
+                <div id="employerNotifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 overflow-hidden">
+                    <div class="px-4 py-3 bg-[#1e293b] text-white flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-bold">Notifications</h2>
+                            <span id="employerNotifNewPill" class="rounded-full bg-amber-400/20 text-amber-300 px-2 py-0.5 text-[10px] font-bold">0 new</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button id="employerMarkAllRead" type="button" class="text-xs font-semibold text-slate-300 hover:text-white">Mark all read</button>
+                            <button id="employerNotifClose" type="button" aria-label="Close notifications" class="text-slate-300 hover:text-white">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="employerNotifList" class="max-h-80 overflow-y-auto divide-y divide-slate-100 text-slate-800">
+                        <div class="p-6 text-center text-slate-400 text-xs">Loading notifications...</div>
+                    </div>
+                    <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                        <span id="employerNotifCounts">0 total &bull; 0 unread</span>
+                        <a href="{% url 'employer-notifications' %}" class="font-bold text-[#1e293b] hover:underline">See all</a>
+                    </div>
+                </div>
             </div>
 
             <div class="flex items-center space-x-2 bg-slate-800 py-1.5 px-3 rounded-full border border-slate-700">
@@ -119,5 +142,156 @@
 
     </div>
 
+    <script>
+        (() => {
+            const wrapper = document.getElementById('employerNotifWrapper');
+            const bell = document.getElementById('employerNotifBell');
+            const dropdown = document.getElementById('employerNotifDropdown');
+            const closeButton = document.getElementById('employerNotifClose');
+            const markAllButton = document.getElementById('employerMarkAllRead');
+            const badge = document.getElementById('employerNotifBadge');
+            const newPill = document.getElementById('employerNotifNewPill');
+            const list = document.getElementById('employerNotifList');
+            const counts = document.getElementById('employerNotifCounts');
+            if (!wrapper || !bell || !dropdown || !list) return;
+
+            const apiUrl = "{% url 'employer-notifications-header' %}";
+            const markAllUrl = "{% url 'employer-notifications-read-all' %}";
+
+            function getCookie(name) {
+                const cookie = document.cookie.split('; ').find(item => item.startsWith(`${name}=`));
+                return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, character => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                })[character]);
+            }
+
+            async function markRead(url) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!response.ok) throw new Error('Could not mark notification as read.');
+                await fetchNotifications();
+            }
+
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch(apiUrl, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) throw new Error('Could not load notifications.');
+                    const data = await response.json();
+
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                    newPill.textContent = `${data.unread_count} new`;
+                    counts.textContent = `${data.total_count} total • ${data.unread_count} unread`;
+
+                    if (!data.notifications.length) {
+                        list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">No notifications yet.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = data.notifications.map(notification => {
+                        const isRejected = notification.notification_type === 'VERIFICATION_REJECTED';
+                        const isApproved = notification.notification_type === 'VERIFICATION_APPROVED';
+                        const unreadStyle = notification.is_read ? '' : 'bg-blue-50/70 border-l-2 border-l-[#1e293b]';
+                        const target = typeof notification.target_url === 'string' && notification.target_url.startsWith('/') && !notification.target_url.startsWith('//')
+                            ? notification.target_url
+                            : '#';
+                        return `
+                            <article class="p-3.5 ${unreadStyle} hover:bg-slate-50 transition">
+                                <div class="flex items-start gap-3">
+                                    <span class="w-8 h-8 rounded-lg ${isRejected ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-800'} flex items-center justify-center shrink-0">
+                                        <i class="fa-solid ${isRejected ? 'fa-circle-exclamation' : isApproved ? 'fa-circle-check' : 'fa-user-plus'} text-xs"></i>
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${isRejected ? 'bg-rose-100 text-rose-800' : isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">${escapeHtml(notification.category_label)}</span>
+                                            ${notification.is_read ? '' : '<span class="text-[9px] font-bold uppercase tracking-wide text-[#1e293b]">New</span>'}
+                                            <time class="ml-auto text-[10px] text-slate-400 shrink-0">${escapeHtml(notification.created_at)}</time>
+                                        </div>
+                                        <h3 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(notification.title)}</h3>
+                                        <a href="${escapeHtml(target)}" data-notification-read-url="${escapeHtml(notification.read_url)}" class="mt-1 block text-xs ${notification.is_read ? 'text-slate-600' : 'font-semibold text-slate-800'} hover:text-[#1e293b]">
+                                            ${escapeHtml(notification.message)}
+                                        </a>
+                                        ${notification.reason ? `<p class="mt-1 text-[11px] text-slate-500"><span class="font-semibold">Reason:</span> ${escapeHtml(notification.reason)}</p>` : ''}
+                                    </div>
+                                    ${notification.is_read ? '' : `<button type="button" data-read-url="${escapeHtml(notification.read_url)}" aria-label="Mark as read" title="Mark as read" class="p-1 text-slate-400 hover:text-[#1e293b]"><i class="fa-solid fa-check text-xs"></i></button>`}
+                                </div>
+                            </article>`;
+                    }).join('');
+                } catch (error) {
+                    console.error('Failed to load employer notifications:', error);
+                }
+            }
+
+            bell.addEventListener('click', event => {
+                event.stopPropagation();
+                const isOpening = dropdown.classList.contains('hidden');
+                dropdown.classList.toggle('hidden');
+                bell.setAttribute('aria-expanded', String(isOpening));
+            });
+            closeButton.addEventListener('click', () => {
+                dropdown.classList.add('hidden');
+                bell.setAttribute('aria-expanded', 'false');
+            });
+            document.addEventListener('click', event => {
+                if (!wrapper.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                    bell.setAttribute('aria-expanded', 'false');
+                }
+            });
+            list.addEventListener('click', async event => {
+                const link = event.target.closest('[data-notification-read-url]');
+                if (link) {
+                    event.preventDefault();
+                    try {
+                        await markRead(link.dataset.notificationReadUrl);
+                        window.location.assign(link.href);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    return;
+                }
+                const button = event.target.closest('[data-read-url]');
+                if (!button) return;
+                try {
+                    await markRead(button.dataset.readUrl);
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+            markAllButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(markAllUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken') || '',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) throw new Error('Could not mark notifications as read.');
+                    await fetchNotifications();
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+            fetchNotifications();
+            window.setInterval(fetchNotifications, 10000);
+        })();
+    </script>
 </body>
 </html>

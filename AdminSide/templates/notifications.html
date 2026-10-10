@@ -84,10 +84,13 @@
 
                 {% if notification.target_url and notification.target_url != '#' %}
                 <div class="mt-2.5">
-                    <a href="{{ notification.target_url }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 hover:text-rose-800 hover:underline">
-                        <span>View Details</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                    </a>
+                    <form method="POST" action="{% url 'AdminSide:mark_notification_read' notification.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 hover:text-rose-800 hover:underline">
+                            <span>View Details</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </form>
                 </div>
                 {% endif %}
             </div>

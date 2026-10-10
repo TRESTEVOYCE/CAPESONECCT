@@ -538,6 +538,11 @@
                                 badge: 'bg-amber-100 text-amber-700',
                                 iconBackground: 'bg-amber-100/70 text-amber-600',
                                 icon: 'fa-rotate'
+                            },
+                            VERIFICATION_REJECTED: {
+                                badge: 'bg-rose-100 text-rose-700',
+                                iconBackground: 'bg-rose-100/70 text-rose-600',
+                                icon: 'fa-circle-exclamation'
                             }
                         }[n.notification_type] || {
                             badge: 'bg-slate-100 text-slate-700',
@@ -563,12 +568,12 @@
                                             ${n.is_read ? '' : '\u25CF '}${n.created_at}
                                         </span>
                                     </div>
-                                    <a href="${n.target_url}" class="text-xs font-semibold ${n.is_read ? 'text-slate-700' : 'text-slate-900'} hover:text-rose-700 block line-clamp-2 leading-snug">
+                                    <a href="${n.target_url}" data-notification-read-url="${n.read_url}" class="text-xs font-semibold ${n.is_read ? 'text-slate-700' : 'text-slate-900'} hover:text-rose-700 block line-clamp-2 leading-snug">
                                         ${n.message}
                                     </a>
                                     ${n.reference_code ? `<p class="text-[10px] font-bold text-rose-800 mt-1">${n.reference_code}</p>` : ''}
                                 </div>
-                                <button onclick="markNotificationRead('${n.id}', event)" class="text-slate-300 hover:text-slate-500 text-xs p-1 focus:outline-none" title="Mark as read">
+                                <button onclick="markNotificationRead('${n.read_url}', event)" class="text-slate-300 hover:text-slate-500 text-xs p-1 focus:outline-none" title="Mark as read">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
@@ -582,10 +587,10 @@
             }
 
             // Window level function for inline click handling
-            window.markNotificationRead = async function(notifId, event) {
+            window.markNotificationRead = async function(readUrl, event) {
                 if(event) event.stopPropagation();
                 try {
-                    const response = await fetch(`/notifications/${notifId}/read/`, {
+                    const response = await fetch(readUrl, {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': getCookie('csrftoken'),
@@ -597,6 +602,25 @@
                     console.error(e);
                 }
             };
+
+            notifListContainer.addEventListener('click', async event => {
+                const link = event.target.closest('[data-notification-read-url]');
+                if (!link) return;
+                event.preventDefault();
+                try {
+                    const response = await fetch(link.dataset.notificationReadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) throw new Error('Could not mark notification as read.');
+                    window.location.assign(link.href);
+                } catch (error) {
+                    console.error(error);
+                }
+            });
 
             // Toggle Notification Dropdown
             if(notifBellBtn && notifDropdown){

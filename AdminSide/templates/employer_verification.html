@@ -38,19 +38,26 @@
                 </div>
             </div>
 
-            <form method="POST" action="" class="flex items-center gap-2 flex-shrink-0">
-                {% csrf_token %}
+            <div class="flex flex-col sm:flex-row sm:items-end gap-3 flex-shrink-0">
                 {% if employer.verification_status != 'verified' %}
-                    <button type="submit" name="action" value="approve" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
-                        Verify Employer
-                    </button>
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                            Verify Employer
+                        </button>
+                    </form>
                 {% endif %}
                 {% if employer.verification_status != 'rejected' %}
-                    <button type="submit" name="action" value="reject" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
-                         Reject
-                    </button>
+                    <form method="POST" action="" class="flex flex-col gap-1.5">
+                        {% csrf_token %}
+                        <label for="verificationRejectionReason" class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Reason for rejection</label>
+                        <textarea id="verificationRejectionReason" name="remarks" rows="2" maxlength="2000" required placeholder="Explain why verification was rejected" class="w-64 rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-800 placeholder:text-slate-400"></textarea>
+                        <button type="submit" name="action" value="reject" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                            Reject
+                        </button>
+                    </form>
                 {% endif %}
-            </form>
+            </div>
         </div>
     </div>
 

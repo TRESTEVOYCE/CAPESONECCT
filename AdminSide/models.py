@@ -1,10 +1,21 @@
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.utils import timezone
 import uuid
 from cloudinary_storage.storage import MediaCloudinaryStorage, RawMediaCloudinaryStorage
 from django.conf import settings
+
+class AdminUserManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields['role'] = 'admin'
+        return super().create_superuser(
+            username,
+            email=email,
+            password=password,
+            **extra_fields,
+        )
+
 
 class User(AbstractUser):
 
@@ -27,6 +38,8 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pictures/', storage=MediaCloudinaryStorage(), null=True, blank=True)
     email_verified = models.BooleanField(default=False)
     email_verification_sent_at = models.DateTimeField(null=True,blank=True)
+
+    objects = AdminUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]

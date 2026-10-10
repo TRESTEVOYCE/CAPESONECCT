@@ -1,8 +1,13 @@
 from django import urls
 from django.urls import path
-from .views import EmployerProfileCreateView, EmployerReverificationAppealView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView
+from .views import EmployerProfileCreateView, EmployerReverificationAppealView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView,EmployerNotificationListView,EmployerNotificationHeaderApiView,EmployerMarkNotificationReadView,EmployerMarkAllNotificationsReadView,EmployerDeleteNotificationView
 
 urlpatterns = [
+    path('notifications/', EmployerNotificationListView.as_view(), name='employer-notifications'),
+    path('notifications/api/header/', EmployerNotificationHeaderApiView.as_view(), name='employer-notifications-header'),
+    path('notifications/<int:notification_id>/read/', EmployerMarkNotificationReadView.as_view(), name='employer-notification-read'),
+    path('notifications/read-all/', EmployerMarkAllNotificationsReadView.as_view(), name='employer-notifications-read-all'),
+    path('notifications/<int:notification_id>/delete/', EmployerDeleteNotificationView.as_view(), name='employer-notification-delete'),
     path('company_profile/',CompanyProfileView.as_view(),name='company_profile_view'),
     path('employer-profile/create/', EmployerProfileCreateView.as_view(), name='employer-profile-create'),
     path('employer-profile/appeal/', EmployerReverificationAppealView.as_view(), name='employer-reverification-appeal'),

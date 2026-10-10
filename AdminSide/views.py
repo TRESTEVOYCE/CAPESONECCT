@@ -14,7 +14,7 @@ from django.contrib.messages import get_messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, TemplateView, ListView
 from django.contrib.auth.forms import PasswordChangeForm
@@ -49,7 +49,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from openpyxl import Workbook
 from .models import Notification
-from .utils import notify_admins
+from .utils import notify_admins, notify_employer_verified, send_notification
 
 logger = logging.getLogger(__name__)
 
@@ -539,8 +539,11 @@ class EmployerListView(LoginRequiredMixin, ListView):
         if employer_id:
             employer = get_object_or_404(EmployerProfile, id=employer_id)
             if action == 'approve':
+                was_verified = employer.verification_status == 'verified'
                 employer.verification_status = 'verified'
                 employer.save()
+                if not was_verified:
+                    notify_employer_verified(employer, request.user)
             elif action == 'reject':
                 employer.verification_status = 'rejected'
                 employer.save()
@@ -621,11 +624,29 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
         remarks = request.POST.get('remarks', '').strip()
 
         if action == 'approve':
+            was_verified = employer.verification_status == 'verified'
             employer.verification_status = 'verified'
             employer.save()
+            if not was_verified:
+                notify_employer_verified(employer, request.user)
         elif action == 'reject':
+            if not remarks:
+                messages.error(request, 'Provide a reason before rejecting this employer verification.')
+                return redirect('AdminSide:employer_verification', uuid=employer.uuid)
+
+            was_rejected = employer.verification_status == 'rejected'
             employer.verification_status = 'rejected'
             employer.save()
+            if not was_rejected:
+                send_notification(
+                    recipient=employer.user,
+                    sender=request.user,
+                    title='Employer Verification Rejected',
+                    message=f'Your employer verification was rejected. Reason: {remarks}',
+                    reason=remarks,
+                    notification_type='VERIFICATION_REJECTED',
+                    target_url=reverse('company_profile_view'),
+                )
 
         return redirect('AdminSide:employer_verification', uuid=employer.uuid)
     
@@ -1719,7 +1740,9 @@ class NotificationListView(LoginRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        queryset = Notification.objects.filter(recipient=self.request.user)
+        queryset = Notification.objects.filter(
+            recipient=self.request.user,
+        ).exclude(notification_type='VERIFICATION_REJECTED')
         status_filter = self.request.GET.get('status', 'all').lower()
 
         if status_filter == 'unread':
@@ -1731,7 +1754,9 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_notifications = Notification.objects.filter(recipient=self.request.user)
+        user_notifications = Notification.objects.filter(
+            recipient=self.request.user,
+        ).exclude(notification_type='VERIFICATION_REJECTED')
         
         context.update({
             'unread_count': user_notifications.filter(is_read=False).count(),
@@ -1746,8 +1771,10 @@ class NotificationHeaderApiView(LoginRequiredMixin, View):
     for the navbar dropdown while keeping read notifications visible.
     """
     def get(self, request, *args, **kwargs):
-        user_notifications = Notification.objects.filter(recipient=request.user)
-        latest_qs = user_notifications.order_by('-created_at')[:5]
+        user_notifications = Notification.objects.filter(
+            recipient=request.user,
+        ).exclude(notification_type='VERIFICATION_REJECTED')
+        latest_qs = user_notifications.order_by('-created_at', '-pk')[:5]
 
         data = {
             'unread_count': user_notifications.filter(is_read=False).count(),
@@ -1760,6 +1787,7 @@ class NotificationHeaderApiView(LoginRequiredMixin, View):
                     'notification_type': getattr(n, 'notification_type', 'info'),
                     'category_label': n.get_notification_type_display(),
                     'target_url': getattr(n, 'target_url', '#'),
+                    'read_url': reverse('AdminSide:mark_notification_read', args=[n.id]),
                     'created_at': n.created_at.strftime('%b %d, %Y %I:%M %p') if hasattr(n, 'created_at') else '',
                     'is_read': n.is_read,
                 }
@@ -1777,8 +1805,12 @@ class MarkNotificationAsReadView(LoginRequiredMixin, View):
         notification.is_read = True
         notification.save(update_fields=['is_read'])
 
+        unread_notifications = Notification.objects.filter(
+            recipient=request.user,
+            is_read=False,
+        ).exclude(notification_type='VERIFICATION_REJECTED')
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+            return JsonResponse({'status': 'success', 'unread_count': unread_notifications.count()})
 
         # Redirect to target_url if present, otherwise default to inbox
         redirect_url = getattr(notification, 'target_url', None) or request.META.get('HTTP_REFERER', 'AdminSide:notifications_list')
@@ -1792,7 +1824,7 @@ class MarkAllNotificationsAsReadView(LoginRequiredMixin, View):
         updated_count = Notification.objects.filter(
             recipient=request.user, 
             is_read=False
-        ).update(is_read=True)
+        ).exclude(notification_type='VERIFICATION_REJECTED').update(is_read=True)
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'status': 'success', 'updated_count': updated_count, 'unread_count': 0})

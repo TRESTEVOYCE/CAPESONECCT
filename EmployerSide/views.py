@@ -1,15 +1,147 @@
 
-from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile,User
+from AdminSide.models import EmployerProfile,Jobs,AppliedJobs,ApplicantProfile,User,Notification
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, DetailView,TemplateView
 from django.views import View
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.http import JsonResponse
 from .forms import EmployerProfileForm,JobsForm,ProfilePictureForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.views import LogoutView
 from JobMatchingEngine.database import upsert_job_vector
-from AdminSide.utils import notify_admins
+from AdminSide.utils import get_admin_users, notify_admins
+
+EMPLOYER_NOTIFICATION_TYPES = (
+    'NEW_APPLICANT',
+    'VERIFICATION_APPROVED',
+    'VERIFICATION_REJECTED',
+)
+
+
+class EmployerNotificationAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'employer'
+
+
+class EmployerNotificationListView(EmployerNotificationAccessMixin, ListView):
+    model = Notification
+    template_name = 'employer_notification.html'
+    context_object_name = 'notifications'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+        )
+        self.status_filter = self.request.GET.get('status', 'all').lower()
+        if self.status_filter == 'unread':
+            queryset = queryset.filter(is_read=False)
+        elif self.status_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+        else:
+            self.status_filter = 'all'
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+        )
+        context.update({
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'selected_status': getattr(self, 'status_filter', 'all'),
+        })
+        return context
+
+
+class EmployerNotificationHeaderApiView(EmployerNotificationAccessMixin, View):
+    def get(self, request, *args, **kwargs):
+        notifications = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+        )
+        latest_notifications = notifications.order_by('-created_at')[:5]
+        return JsonResponse({
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'notifications': [
+                {
+                    'id': notification.id,
+                    'title': notification.title,
+                    'message': notification.message,
+                    'reason': notification.reason,
+                    'notification_type': notification.notification_type,
+                    'category_label': notification.get_notification_type_display(),
+                    'target_url': notification.target_url or '#',
+                    'created_at': notification.created_at.strftime('%b %d, %Y %I:%M %p'),
+                    'is_read': notification.is_read,
+                    'read_url': reverse('employer-notification-read', args=[notification.id]),
+                }
+                for notification in latest_notifications
+            ],
+        })
+
+
+class EmployerMarkNotificationReadView(EmployerNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+        )
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        unread_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+            is_read=False,
+        ).count()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        return redirect(notification.target_url or 'employer-notifications')
+
+
+class EmployerMarkAllNotificationsReadView(EmployerNotificationAccessMixin, View):
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+            is_read=False,
+        ).update(is_read=True)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'updated_count': updated_count,
+                'unread_count': 0,
+            })
+        messages.success(request, f'Marked {updated_count} notification(s) as read.')
+        return redirect('employer-notifications')
+
+
+class EmployerDeleteNotificationView(EmployerNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+        )
+        notification.delete()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            unread_count = Notification.objects.filter(
+                recipient=request.user,
+                notification_type__in=EMPLOYER_NOTIFICATION_TYPES,
+                is_read=False,
+            ).count()
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        messages.success(request, 'Notification deleted.')
+        return redirect('employer-notifications')
+
 
 #home or the dashboard view for the employer
 class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -99,20 +231,34 @@ class EmployerReverificationAppealView(LoginRequiredMixin, UserPassesTestMixin, 
             messages.error(request, 'Enter an appeal reason (up to 2,000 characters).')
             return redirect('employer-home')
 
+        if not get_admin_users().exists():
+            messages.error(request, 'Your appeal could not be sent because no administrator recipients are configured.')
+            return redirect('employer-home')
+
+        target_url = reverse(
+            'AdminSide:employer_verification',
+            kwargs={'uuid': profile.uuid},
+        )
+        title = 'Appeal for Reverification'
+        message = (
+            f'{profile.business_name or request.user.username} requested employer profile '
+            f'reverification. Reason: {reason}'
+        )
         profile.verification_status = 'pending'
         profile.save(update_fields=['verification_status', 'updated_at'])
-        notify_admins(
-            title='Appeal for Reverification',
-            message=f'{profile.business_name or request.user.username} requested employer profile reverification. Reason: {reason}',
+        notifications = notify_admins(
+            title=title,
+            message=message,
             notification_type='APPEAL_REVERIFICATION',
             sender=request.user,
             reason=reason,
-            target_url=reverse_lazy(
-                'AdminSide:employer_verification',
-                kwargs={'uuid': profile.uuid},
-            ),
+            target_url=target_url,
         )
-        messages.success(request, 'Your appeal was submitted. Your profile is pending review.')
+        if not notifications:
+            messages.error(request, 'Your appeal could not be sent because no administrator recipients are configured.')
+            return redirect('employer-home')
+
+        messages.success(request, 'Your appeal was submitted. Administrators were notified.')
         return redirect('employer-home')
 
 
@@ -174,7 +320,7 @@ class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 class ApplicantJobStatusView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = AppliedJobs
     fields = ['status']
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
 
     #to ensure that the employer can only update their own job postings
     def get_queryset(self):
@@ -230,7 +376,7 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Jobs
     form_class = JobsForm
     template_name = 'job_form.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
     raise_exception = True
 
     def test_func(self):
@@ -303,7 +449,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = EmployerProfile
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('employer-home')
 
     #to ensure that only authenticated employers can access this view
     def test_func(self):
