@@ -4,7 +4,6 @@
 
 <div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
 
-
     <!-- Header Card -->
     <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -48,10 +47,103 @@
         <p class="text-xs text-stone-700 leading-relaxed whitespace-pre-line bg-stone-50 p-4 rounded-xl border border-stone-200/60">{{ job.job_description }}</p>
     </div>
 
-    <!-- Bottom Actions (Aligned to the Right) -->
-    <div class="flex items-center justify-end gap-3 pb-8">
+    <!-- Manage Applicants Section with Embedded List -->
+    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-stone-100 pb-4">
+            <div>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Manage Applicants</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Filter and review candidates who applied to this position.</p>
+            </div>
+            <div class="text-sm font-semibold text-stone-600">
+                Showing: <span class="text-stone-900 font-bold uppercase">{{ selected_status|default:"Pending" }}</span> ({{ applicants.count }})
+            </div>
+        </div>
+
+        <!-- Filter Buttons with Live Counts -->
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+            <a href="?status=pending" class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all shadow-2xs flex items-center gap-2.5 {% if selected_status == 'pending' %}border-amber-400 bg-amber-100 text-amber-900 font-bold ring-2 ring-amber-400/20{% else %}border-stone-200 bg-amber-50/50 hover:bg-amber-100/60 text-amber-800{% endif %}">
+                <span>Pending</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-amber-200/70 text-amber-900 font-bold">{{ pending_count }}</span>
+            </a>
+            <a href="?status=reviewed" class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all shadow-2xs flex items-center gap-2.5 {% if selected_status == 'reviewed' %}border-blue-400 bg-blue-100 text-blue-900 font-bold ring-2 ring-blue-400/20{% else %}border-stone-200 bg-blue-50/50 hover:bg-blue-100/60 text-blue-800{% endif %}">
+                <span>Reviewed</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-blue-200/70 text-blue-900 font-bold">{{ reviewed_count }}</span>
+            </a>
+            <a href="?status=for+interview" class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all shadow-2xs flex items-center gap-2.5 {% if selected_status == 'for interview' or selected_status == 'for_interview' %}border-purple-400 bg-purple-100 text-purple-900 font-bold ring-2 ring-purple-400/20{% else %}border-stone-200 bg-purple-50/50 hover:bg-purple-100/60 text-purple-800{% endif %}">
+                <span>For Interview</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-purple-200/70 text-purple-900 font-bold">{{ interview_count }}</span>
+            </a>
+            <a href="?status=hired" class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all shadow-2xs flex items-center gap-2.5 {% if selected_status == 'hired' %}border-emerald-400 bg-emerald-100 text-emerald-900 font-bold ring-2 ring-emerald-400/20{% else %}border-stone-200 bg-emerald-50/50 hover:bg-emerald-100/60 text-emerald-800{% endif %}">
+                <span>Hired</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-200/70 text-emerald-900 font-bold">{{ hired_count }}</span>
+            </a>
+            <a href="?status=rejected" class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all shadow-2xs flex items-center gap-2.5 {% if selected_status == 'rejected' %}border-rose-400 bg-rose-100 text-rose-900 font-bold ring-2 ring-rose-400/20{% else %}border-stone-200 bg-rose-50/50 hover:bg-rose-100/60 text-rose-800{% endif %}">
+                <span>Rejected</span>
+                <span class="px-2 py-0.5 text-xs rounded-full bg-rose-200/70 text-rose-900 font-bold">{{ rejected_count }}</span>
+            </a>
+        </div>
+
+        <!-- Applicant List Table -->
+        <div class="pt-2">
+            {% if not applicants %}
+                <div class="p-10 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200">
+                    <p class="text-sm font-bold text-stone-600 uppercase tracking-wider">No applicants in "{{ selected_status|default:'pending' }}" stage</p>
+                    <p class="text-sm text-stone-400 mt-1">Newly applied candidates automatically land under Pending.</p>
+                </div>
+            {% else %}
+                <div class="overflow-x-auto rounded-xl border border-stone-200/80">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-stone-50/80 border-b border-stone-200/80 text-xs font-bold uppercase text-stone-600 tracking-wider">
+                                <th class="px-6 py-4">Applicant Name</th>
+                                <th class="px-6 py-4">Applied Date</th>
+                                <th class="px-6 py-4">Current Status</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-100 text-sm font-medium">
+                            {% for application in applicants %}
+                                <tr class="hover:bg-stone-50/60 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-stone-900 text-base">
+                                        {% if application.applicant.get_full_name %}
+                                            {{ application.applicant.get_full_name }}
+                                        {% else %}
+                                            {{ application.applicant.first_name }} {{ application.applicant.last_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-stone-600">
+                                        {{ application.application_date|date:"M d, Y"|default:"—" }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                                            {% if application.status == 'hired' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                            {% elif application.status == 'for interview' or application.status == 'for_interview' %}bg-purple-50 text-purple-700 border border-purple-200
+                                            {% elif application.status == 'reviewed' %}bg-blue-50 text-blue-700 border border-blue-200
+                                            {% elif application.status == 'rejected' %}bg-rose-50 text-rose-700 border border-rose-200
+                                            {% else %}bg-amber-50 text-amber-800 border border-amber-200{% endif %}">
+                                            {{ application.status|default:"pending"|title }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <a href="{% url 'applicant-detail' application.pk %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl text-xs shadow-2xs transition-all">
+                                            <span>View Profile</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="flex items-center justify-end gap-3 pb-8 pt-2">
         <a href="{% url 'employer-job_list' %}" class="px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors">Back to Job List</a>
         <a href="{% url 'job-update' pk=job.pk %}" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold shadow-md transition-all active:scale-[0.98]">Edit Job</a>
     </div>
+
 </div>
 {% endblock %}
