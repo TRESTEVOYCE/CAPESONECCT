@@ -1,7 +1,7 @@
 from django import urls
 from django.urls import path
 from EmployerSide import views
-from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView, SettingsView, EmployerPasswordChangeView, employer_email_change_view 
+from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView, SettingsView, EmployerPasswordChangeView, employer_email_change_view , HelpPageView
 
 urlpatterns = [
     path('company_profile/',CompanyProfileView.as_view(),name='company_profile_view'),
@@ -26,4 +26,9 @@ urlpatterns = [
     path('account/password/request-otp/', views.send_password_otp_view, name='send-password-otp'),
     path('account/password/verify-otp/', views.verify_password_otp_view, name='verify-password-otp'),
     path('account/password/', views.SecurePasswordChangeView.as_view(), name='employer-password-change'),
+    
+    # NEED/help
+    path('help/', HelpPageView.as_view(), name='employer-help'),
+    
+    
 ]

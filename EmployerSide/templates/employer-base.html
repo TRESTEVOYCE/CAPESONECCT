@@ -19,7 +19,7 @@
             <div class="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shadow-md border border-white/20">
                 <img src="{% static 'images/PESO_LOGO.png' %}" alt="PESO Logo" class="w-full h-full object-cover">
             </div>
-            <span class="font-bold tracking-wide text-base">CAPESONCONNECT <span class="text-xs text-slate-400">— Employer</span></span>
+            <span class="font-bold tracking-wide text-base">CAPESONNECT <span class="text-xs text-slate-400">— Employer</span></span>
         </div>
         <button @click="sidebarOpen = true" class="p-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors" aria-label="Open menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -39,11 +39,13 @@
                     <img src="{% static 'images/PESO_LOGO.png' %}" alt="PESO Carigara Seal" class="w-full h-full object-cover">
                 </div>
                 <div class="text-[10px] font-bold tracking-widest text-amber-400 uppercase mt-1">Public Employment Service Office</div>
-                <span class="font-bold tracking-wide text-white text-lg block">CAPESONCONNECT</span>
+                <span class="font-bold tracking-wide text-white text-lg block">CAPESONNECT</span>
                 <span class="text-xs text-slate-400 font-medium">Employer Portal</span>
             </div>
 
-            <!-- ACCOUNT STATUS -->
+
+
+            <!--NEED TO EDIT not working ACCOUNT STATUS -->
             {% if request.user.employer_profile %}
                 {% if request.user.employer_profile.verification_status == 'approved' %}
                     <div class="mx-3 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5 text-xs">
@@ -85,6 +87,8 @@
                 </div>
             {% endif %}
 
+
+
             <!-- NAVIGATION -->
             <div>
                 <p class="text-xs font-bold tracking-widest text-slate-400 uppercase px-3 mb-3">NAVIGATION</p>
@@ -121,11 +125,17 @@
 
         <!-- Help Widget -->
         <div class="p-4 m-4 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs text-slate-300 space-y-1.5 shrink-0">
-            <div class="flex items-center gap-1.5 font-bold text-white">
+            
+            <a href="{% url 'employer-help' %}" class="block p-4 m-4 bg-slate-900/90 hover:bg-slate-855 border border-slate-800 hover:border-amber-400/50 rounded-2xl text-xs text-slate-300 space-y-1.5 shrink-0 transition-all group">
+            <div class="flex items-center gap-1.5 font-bold text-white group-hover:text-amber-400 transition-colors">
                 <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Need Help?
             </div>
-            <p class="text-slate-400 leading-relaxed text-[11px]">If you need assistance, please contact PESO Carigara.</p>
+
+            <p class="text-slate-400 leading-relaxed text-[11px] group-hover:text-slate-300 transition-colors">Click here to view app guides, FAQs, and contact developers.</p>
+
+            </a>
+
         </div>
     </aside>
 

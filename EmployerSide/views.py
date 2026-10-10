@@ -503,3 +503,10 @@ class SecurePasswordChangeView(PasswordChangeView):
         request.session.pop('otp_verified', None)
         messages.success(request, "Your password has been changed successfully.")
         return super().form_valid(form)
+    
+    
+class HelpPageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'employer_help.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'employer'

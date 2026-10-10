@@ -1,0 +1,374 @@
+{% extends 'employer-base.html' %}
+{% load static %}
+
+{% block title %}Help & Support — CAPESONCONNECT Employer Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-8">
+
+    <!-- Header & Hero Search Section -->
+    <div class="bg-[#111827] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+        <div class="relative z-10 max-w-3xl mx-auto text-center space-y-4">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">How can we help you today?</h1>
+            <p class="text-slate-400 text-sm">Find answers regarding job postings, applicant management, account verification, and security.</p>
+            
+            <!-- Search Bar Wrapper -->
+            <div class="pt-4 max-w-2xl mx-auto">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="helpSearchInput" onkeyup="filterHelpTopics()" placeholder="Search help articles (e.g., 'pending verification', 'edit job', 'OTP', 'matching')..." class="w-full pl-11 pr-4 py-3.5 text-stone-900 bg-white border border-stone-200 rounded-xl shadow-md focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition text-base placeholder-stone-400">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Category Hub -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <button type="button" onclick="showCategory('getting-started')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-stone-200 shadow-xs hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
+            <h3 class="font-bold text-stone-900 text-base">Portal Overview</h3>
+            <p class="text-xs text-stone-500 mt-1">Understanding employer roles, verification statuses, and vector matching.</p>
+        </button>
+
+        <button type="button" onclick="showCategory('job-management')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-stone-200 shadow-xs hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
+            <h3 class="font-bold text-stone-900 text-base">Jobs & Applicants</h3>
+            <p class="text-xs text-stone-500 mt-1">Posting vacancies, updating status, and reviewing applicants.</p>
+        </button>
+
+        <button type="button" onclick="showCategory('account-security')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-stone-200 shadow-xs hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
+            <h3 class="font-bold text-stone-900 text-base">Security & OTP</h3>
+            <p class="text-xs text-stone-500 mt-1">Step-by-step guides for updating your email and changing passwords.</p>
+        </button>
+
+        <button type="button" onclick="showCategory('bug-report')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-stone-200 shadow-xs hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
+            <h3 class="font-bold text-stone-900 text-base">Contact Developers</h3>
+            <p class="text-xs text-stone-500 mt-1">Report bugs, layout glitches, or submit technical support requests.</p>
+        </button>
+    </div>
+
+    <!-- Back to FAQs Navigation Button -->
+    <div id="backToFaqContainer" class="hidden -mt-4 mb-2">
+        <button type="button" onclick="resetToFaq()" class="inline-flex items-center gap-2 text-xs font-bold text-stone-500 hover:text-stone-800 transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to FAQs
+        </button>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Main Interactive Content Container -->
+        <div id="mainContentContainer" class="lg:col-span-2 space-y-4 transition-all duration-300">
+            
+            <!-- Default Visible View: Frequently Asked Questions (FAQ) -->
+            <section id="faq-overview" class="help-category-section bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-5">
+                <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+                    <div>
+                        <h2 class="text-lg font-bold text-stone-900">Frequently Asked Questions (FAQs)</h2>
+                        <p class="text-xs text-stone-500">Quick answers to common employer questions and portal workflows</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 text-xs" id="faqAccordion">
+                    <!-- FAQ 1 -->
+                    <div class="help-article border border-stone-200 rounded-xl overflow-hidden">
+                        <button type="button" onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left font-semibold text-stone-800 bg-stone-50 hover:bg-stone-100 flex justify-between items-center transition">
+                            <span>Why is my account status showing as "Account Pending"?</span>
+                            <svg class="w-4 h-4 transform transition-transform text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="hidden px-4 py-3 text-stone-600 bg-white border-t border-stone-200 leading-relaxed">
+                            Your business credentials are under review by the PESO Carigara administrator. You can create drafts and post vacancies, but jobs cannot be fully published until your account is approved.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="help-article border border-stone-200 rounded-xl overflow-hidden">
+                        <button type="button" onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left font-semibold text-stone-800 bg-stone-50 hover:bg-stone-100 flex justify-between items-center transition">
+                            <span>How do automatic job closures work?</span>
+                            <svg class="w-4 h-4 transform transition-transform text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="hidden px-4 py-3 text-stone-600 bg-white border-t border-stone-200 leading-relaxed">
+                            Jobs automatically transition from Active to Closed when their expiry date is reached or when applications hit your designated candidate quota limit.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="help-article border border-stone-200 rounded-xl overflow-hidden">
+                        <button type="button" onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left font-semibold text-stone-800 bg-stone-50 hover:bg-stone-100 flex justify-between items-center transition">
+                            <span>What happens if an OTP verification code expires?</span>
+                            <svg class="w-4 h-4 transform transition-transform text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="hidden px-4 py-3 text-stone-600 bg-white border-t border-stone-200 leading-relaxed">
+                            If an OTP expires or fails validation, request a new verification code from the settings page. A fresh 6-digit security code will be sent to your registered email immediately.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 4 -->
+                    <div class="help-article border border-stone-200 rounded-xl overflow-hidden">
+                        <button type="button" onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left font-semibold text-stone-800 bg-stone-50 hover:bg-stone-100 flex justify-between items-center transition">
+                            <span>How does the smart candidate matching engine work?</span>
+                            <svg class="w-4 h-4 transform transition-transform text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="hidden px-4 py-3 text-stone-600 bg-white border-t border-stone-200 leading-relaxed">
+                            The platform uses automated vector embedding technology to compare applicant skills and qualifications against your job postings, recommending the best-fit candidates.
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 1: Portal Overview -->
+            <section id="getting-started" class="help-category-section hidden bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div class="pb-3 border-b border-stone-100">
+                    <h2 class="text-lg font-bold text-stone-900">Portal Overview & Ecosystem</h2>
+                    <p class="text-xs text-stone-500">Understanding CAPESONNECT for Employers in Carigara, Leyte</p>
+                </div>
+
+                <div class="space-y-4 text-xs text-stone-600 leading-relaxed">
+                    <article class="help-article p-4 bg-stone-50 rounded-xl space-y-1.5 border border-stone-200/60">
+                        <h4 class="font-bold text-stone-900 text-sm">What is CAPESONNECT Employer Portal?</h4>
+                        <p>It is the official digital recruitment platform managed by the Public Employment Service Office (PESO) in Carigara, Leyte, connecting local establishments directly with qualified jobseekers.</p>
+                    </article>
+
+                    <article class="help-article p-4 bg-stone-50 rounded-xl space-y-1.5 border border-stone-200/60">
+                        <h4 class="font-bold text-stone-900 text-sm">Employer Verification Requirements</h4>
+                        <p>To maintain platform security, employers must provide valid business documentation (such as DTI/SEC registration, business permits, or BIR COR 2303). Once reviewed and approved by PESO Admin, full publishing rights are unlocked.</p>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Section 2: Jobs & Applicants Management -->
+            <section id="job-management" class="help-category-section hidden bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div class="pb-3 border-b border-stone-100">
+                    <h2 class="text-lg font-bold text-stone-900">Managing Jobs and Applicants</h2>
+                    <p class="text-xs text-stone-500">Step-by-step instructions for your daily workflow</p>
+                </div>
+
+                <div class="space-y-4 text-xs text-stone-600 leading-relaxed">
+                    <article class="help-article p-4 bg-stone-50 rounded-xl space-y-1.5 border border-stone-200/60">
+                        <h4 class="font-bold text-stone-900 text-sm">How to Post and Update Job Vacancies</h4>
+                        <ol class="list-decimal list-inside space-y-1 pl-1">
+                            <li>Click on <strong class="text-stone-900">Jobs Posted</strong> in the sidebar navigation.</li>
+                            <li>Click <strong class="text-stone-900">Post New Job</strong> and fill out position details, salary, and requirements.</li>
+                            <li>To edit an existing listing, click the job title and select <strong class="text-stone-900">Edit Job</strong> to alter its status (Active, Filled, or Closed).</li>
+                        </ol>
+                    </article>
+
+                    <article class="help-article p-4 bg-stone-50 rounded-xl space-y-1.5 border border-stone-200/60">
+                        <h4 class="font-bold text-stone-900 text-sm">Reviewing Applicants</h4>
+                        <p>Navigate to the <strong class="text-stone-900">Applicants</strong> tab to view candidate submissions. Click on any applicant to review their resume, background profile, and update their recruitment stage.</p>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Section 3: Security & OTP -->
+            <section id="account-security" class="help-category-section hidden bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div class="pb-3 border-b border-stone-100">
+                    <h2 class="text-lg font-bold text-stone-900">Account Security & Credentials</h2>
+                    <p class="text-xs text-stone-500">Secure OTP verification workflows</p>
+                </div>
+
+                <div class="space-y-4 text-xs text-stone-600 leading-relaxed">
+                    <article class="help-article p-4 bg-stone-50 rounded-xl space-y-2 border border-stone-200/60">
+                        <h4 class="font-bold text-stone-900 text-sm">Changing Your Email with OTP</h4>
+                        <ol class="list-decimal list-inside space-y-1 pl-1">
+                            <li>Go to <strong class="text-stone-900">Settings</strong> from your sidebar.</li>
+                            <li>Enter your new email address and click <strong class="text-stone-900">Request Verification Code</strong>.</li>
+                            <li>Enter the 6-digit OTP code sent to your inbox in the verification prompt to complete the update.</li>
+                        </ol>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Section 4: Contact Developers & Report Bugs -->
+            <section id="bug-report" class="help-category-section hidden bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div class="pb-3 border-b border-stone-100">
+                    <h2 class="text-lg font-bold text-stone-900">Contact Developers & Report Bugs</h2>
+                    <p class="text-xs text-stone-500">Encountered an error or layout issue? Send details directly to our team.</p>
+                </div>
+
+                <form method="POST" action="" class="space-y-4 text-xs">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="font-semibold text-stone-700">Business / Username</label>
+                            <input type="text" value="{{ request.user.username }}" disabled class="w-full bg-stone-100 border border-stone-200 rounded-xl px-4 py-2 text-stone-500 cursor-not-allowed">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-semibold text-stone-700">Issue Category</label>
+                            <select name="issue_category" class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2 text-stone-800 focus:outline-none focus:border-amber-500">
+                                <option value="bug">System Bug / Error</option>
+                                <option value="ui">UI / Layout Issue</option>
+                                <option value="verification">Account Verification</option>
+                                <option value="other">Other Concern</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="font-semibold text-stone-700">Describe the Issue</label>
+                        <textarea name="bug_description" rows="4" placeholder="Describe what happened or steps to reproduce..." required class="w-full bg-white border border-stone-300 rounded-xl p-3 text-stone-800 focus:outline-none focus:border-amber-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold transition-all shadow-sm">
+                            Submit Report to Developers
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Right Column: Support & System Health -->
+        <div id="sideSupportContainer" class="space-y-6">
+<!-- Escalation & Direct Support -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <h3 class="font-bold text-stone-900 text-sm uppercase tracking-wider">PESO Technical Support</h3>
+                <p class="text-xs text-stone-500 leading-relaxed">For assistance with employer verification or portal inquiries, contact PESO Carigara.</p>
+                
+                <div class="space-y-2 text-xs text-stone-600">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-envelope text-amber-500 w-4"></i>
+                        <span id="pesoEmailText" class="font-medium text-stone-800">pesocarigaraadmin@gmail.com</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-location-dot text-amber-500 w-4"></i>
+                        <span>Municipal Hall, Carigara, Leyte</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-clock text-amber-500 w-4"></i>
+                        <span>Mon - Fri, 8:00 AM - 5:00 PM</span>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="space-y-2 pt-1">
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=pesocarigaraadmin@gmail.com&su=CAPESONNECT%20Employer%20Support" target="_blank" class="block w-full text-center py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs transition">
+                        Open in Gmail
+                    </a>
+                    <button type="button" onclick="copyEmailToClipboard()" class="block w-full text-center py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-xl text-xs transition border border-stone-200">
+                        <i class="fa-solid fa-copy mr-1"></i> Copy Email Address
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- System Changelog -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-3">
+                <h3 class="font-bold text-stone-400 text-xs uppercase tracking-wider">System Changelog</h3>
+                <div class="space-y-3 text-xs text-stone-600">
+                    <div class="border-l-2 border-amber-500 pl-3 space-y-0.5">
+                        <div class="font-bold text-stone-800">OTP Security Flow</div>
+                        <p class="text-stone-500">Secure verification added for password and email changes.</p>
+                        <span class="text-[10px] text-stone-400 font-mono">2026</span>
+                    </div>
+                    <div class="border-l-2 border-stone-400 pl-3 space-y-0.5">
+                        <div class="font-bold text-stone-800">Amber/Stone UI Update</div>
+                        <p class="text-stone-500">Refined layout stability and responsive dashboard design.</p>
+                        <span class="text-[10px] text-stone-400 font-mono">2026</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Tab & Search JavaScript -->
+<script>
+    function showCategory(categoryId) {
+        const sections = document.querySelectorAll('.help-category-section');
+        sections.forEach(sec => sec.classList.add('hidden'));
+
+        const targetSection = document.getElementById(categoryId);
+        if (targetSection) {
+            targetSection.classList.remove('hidden');
+        }
+
+        const mainContainer = document.getElementById('mainContentContainer');
+        const sideSupport = document.getElementById('sideSupportContainer');
+        if (mainContainer && sideSupport) {
+            mainContainer.classList.remove('lg:col-span-2');
+            mainContainer.classList.add('lg:col-span-3');
+            sideSupport.classList.add('hidden');
+        }
+
+        const backBtnContainer = document.getElementById('backToFaqContainer');
+        if (backBtnContainer) {
+            backBtnContainer.classList.remove('hidden');
+        }
+    }
+
+    function resetToFaq() {
+        const sections = document.querySelectorAll('.help-category-section');
+        sections.forEach(sec => sec.classList.add('hidden'));
+
+        const faqSection = document.getElementById('faq-overview');
+        if (faqSection) {
+            faqSection.classList.remove('hidden');
+        }
+
+        const mainContainer = document.getElementById('mainContentContainer');
+        const sideSupport = document.getElementById('sideSupportContainer');
+        if (mainContainer && sideSupport) {
+            mainContainer.classList.remove('lg:col-span-3');
+            mainContainer.classList.add('lg:col-span-2');
+            sideSupport.classList.remove('hidden');
+        }
+
+        const backBtnContainer = document.getElementById('backToFaqContainer');
+        if (backBtnContainer) {
+            backBtnContainer.classList.add('hidden');
+        }
+
+        const searchInput = document.getElementById('helpSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            filterHelpTopics();
+        }
+    }
+
+    function toggleFaq(button) {
+        const content = button.nextElementSibling;
+        const icon = button.querySelector('svg');
+        content.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+    }
+
+    function filterHelpTopics() {
+        const input = document.getElementById('helpSearchInput').value.toLowerCase().trim();
+        const articles = document.querySelectorAll('.help-article');
+        const sections = document.querySelectorAll('.help-category-section');
+
+        if (input.length > 0) {
+            sections.forEach(sec => sec.classList.remove('hidden'));
+            
+            articles.forEach(article => {
+                const text = article.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    article.style.display = 'block';
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+        } else {
+            articles.forEach(article => article.style.display = 'block');
+        }
+    }
+
+
+function copyEmailToClipboard() {
+        const email = "pesocarigaraadmin@gmail.com";
+        navigator.clipboard.writeText(email).then(() => {
+            alert("PESO Support email address copied to clipboard: " + email);
+        }).catch(err => {
+            console.error('Failed to copy email: ', err);
+        });
+    }
+
+
+</script>
+
+
+{% endblock %}
