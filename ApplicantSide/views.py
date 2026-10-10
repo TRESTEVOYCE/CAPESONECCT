@@ -4,11 +4,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text, query_matching_jobs
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, OfferedJobs, User
-from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
+from django.http import JsonResponse
+from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User
+from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from .forms import ProfilePictureForm
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.http import JsonResponse
 from django.core.mail import send_mail
@@ -21,7 +24,146 @@ from .forms import (
     ProfilePictureForm, UpdateEmailForm, UpdatePasswordForm, UpdateUsernameForm,
 )
 from django.contrib.auth import update_session_auth_hash
+from AdminSide.utils import notify_admins
+from JobMatchingEngine.database import query_matching_jobs
 
+
+
+APPLICANT_NOTIFICATION_TYPES = (
+    'APPLICATION_STATUS',
+    'VERIFICATION_APPROVED',
+    'VERIFICATION_REJECTED',
+)
+
+
+class ApplicantNotificationAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'applicant'
+
+class ApplicantNotificationListView(ApplicantNotificationAccessMixin, ListView):
+    model = Notification
+    template_name = 'applicant_notification.html'
+    context_object_name = 'notifications'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        self.status_filter = self.request.GET.get('status', 'all').lower()
+        if self.status_filter == 'unread':
+            queryset = queryset.filter(is_read=False)
+        elif self.status_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+        else:
+            self.status_filter = 'all'
+        return queryset.order_by('-created_at', '-pk')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        notifications = Notification.objects.filter(
+            recipient=self.request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        context.update({
+            'applicant_profile': ApplicantProfile.objects.filter(user=self.request.user).first(),
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'selected_status': self.status_filter,
+        })
+        return context
+
+class ApplicantNotificationHeaderApiView(ApplicantNotificationAccessMixin, View):
+    def get(self, request, *args, **kwargs):
+        notifications = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        latest_notifications = notifications.order_by('-created_at', '-pk')[:5]
+        return JsonResponse({
+            'unread_count': notifications.filter(is_read=False).count(),
+            'total_count': notifications.count(),
+            'notifications': [
+                {
+                    'id': notification.id,
+                    'title': notification.title,
+                    'message': notification.message,
+                    'reason': notification.reason,
+                    'notification_type': notification.notification_type,
+                    'target_url': notification.target_url or '#',
+                    'created_at': notification.created_at.strftime('%b %d, %Y %I:%M %p'),
+                    'is_read': notification.is_read,
+                    'read_url': reverse('applicant-notification-read', args=[notification.id]),
+                }
+                for notification in latest_notifications
+            ],
+        })
+
+class ApplicantMarkNotificationReadView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        unread_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).count()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        return redirect(notification.target_url or 'applicant-notifications')
+
+class ApplicantMarkAllNotificationsReadView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, *args, **kwargs):
+        updated_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).update(is_read=True)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'updated_count': updated_count,
+                'unread_count': 0,
+            })
+        messages.success(request, f'Marked {updated_count} notification(s) as read.')
+        return redirect('applicant-notifications')
+
+class ApplicantDeleteNotificationView(ApplicantNotificationAccessMixin, View):
+    def post(self, request, notification_id, *args, **kwargs):
+        notification = get_object_or_404(
+            Notification,
+            id=notification_id,
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+        )
+        notification.delete()
+        unread_count = Notification.objects.filter(
+            recipient=request.user,
+            notification_type__in=APPLICANT_NOTIFICATION_TYPES,
+            is_read=False,
+        ).count()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
+        messages.success(request, 'Notification deleted.')
+        return redirect('applicant-notifications')
+
+class ApplicantProfileRequiredMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.role == 'applicant'
+            and not ApplicantProfile.objects.filter(user=request.user).exists()
+        ):
+            messages.info(request, 'Complete your personal information before continuing your profile.')
+            return redirect('personal_info')
+        return super().dispatch(request, *args, **kwargs)
 
 class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
@@ -32,19 +174,25 @@ class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
+        profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        if profile is None:
+            profile = ApplicantProfile(
+                user=self.request.user,
+                first_name=self.request.user.first_name,
+                last_name=self.request.user.last_name,
+            )
         return profile
 
     def get_success_url(self):
         return reverse_lazy('applicant-address')
 
     def form_valid(self, form):
+        form.instance.user = self.request.user
         self.object = form.save()
         messages.success(self.request, 'Personal information saved successfully.')
         return redirect(self.get_success_url())
 
-
-class ApplicantAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantAddressView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantAddressForm
     template_name = 'step_2_address.html'
@@ -64,8 +212,7 @@ class ApplicantAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         messages.success(self.request, 'Address information saved successfully.')
         return redirect(self.get_success_url())
 
-
-class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantEducationForm
     template_name = 'step_3_education.html'
@@ -74,8 +221,7 @@ class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-training')
@@ -85,8 +231,7 @@ class ApplicantEducationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         messages.success(self.request, 'Educational information saved successfully.')
         return redirect(self.get_success_url())
 
-
-class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantTrainingForm
     template_name = 'step_4_training.html'
@@ -95,8 +240,7 @@ class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-preferred-job')
@@ -106,8 +250,7 @@ class ApplicantTrainingView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         messages.success(self.request, 'Training information saved successfully.')
         return redirect(self.get_success_url())
 
-
-class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
     template_name = 'step_5_job_pref.html'
@@ -116,8 +259,7 @@ class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-work-experience')
@@ -129,16 +271,14 @@ class ApplicantPreferredJobView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         messages.success(self.request, 'Job preferences saved successfully.')
         return redirect(self.get_success_url())
 
-
-class ApplicantWorkExperienceView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'step_6_work.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -155,15 +295,14 @@ class ApplicantWorkExperienceView(LoginRequiredMixin, UserPassesTestMixin, View)
         return render(request, self.template_name, {'work_formset': work_formset})
 
 
-class ApplicantSkillsView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'step_7_skills.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -187,8 +326,7 @@ class ApplicantSkillsView(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('applicant-documents')
         return render(request, self.template_name, {'form': form, 'skill_formset': skill_formset})
 
-
-class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantDocumentsForm
     template_name = 'step_8_certification.html'
@@ -197,8 +335,7 @@ class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        profile, created = ApplicantProfile.objects.get_or_create(user=self.request.user)
-        return profile
+        return ApplicantProfile.objects.get(user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-dashboard')
@@ -208,14 +345,53 @@ class ApplicantDocumentsView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         messages.success(self.request, 'Documents submitted successfully.')
         return redirect(self.get_success_url())
 
+class ApplicantReverificationAppealView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.role == 'applicant'
+
+    def post(self, request, *args, **kwargs):
+        profile = get_object_or_404(ApplicantProfile, user=request.user)
+        if profile.status != 'rejected':
+            messages.error(request, 'An appeal can only be submitted for a rejected account.')
+            return redirect('applicant-dashboard')
+
+        reason = request.POST.get('reason', '').strip()
+        if not reason or len(reason) > 2000:
+            messages.error(request, 'Enter an appeal reason (up to 2,000 characters).')
+            return redirect('applicant-dashboard')
+
+        profile.status = 'pending'
+        profile.save(update_fields=['status', 'updated_at'])
+        notify_admins(
+            title='Appeal for Reverification',
+            message=f'{profile.first_name} {profile.last_name} requested applicant account reverification. Reason: {reason}',
+            notification_type='APPEAL_REVERIFICATION',
+            sender=request.user,
+            reason=reason,
+            target_url=reverse_lazy(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+        messages.success(request, 'Your appeal was submitted. Your account is pending review.')
+        return redirect('applicant-dashboard')
+
+class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ApplicantProfile
+    success_url = reverse_lazy('login')
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
+    def get_object(self, queryset=None):
+        return ApplicantProfile.objects.get(user=self.request.user)
 
 class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
     success_url = reverse_lazy('landing_page')
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-
-
+    
 class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html'
@@ -354,7 +530,6 @@ class JobDetailsView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
-
 class SortJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     context_object_name = 'matching_jobs'
@@ -370,7 +545,6 @@ class SortJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             return Jobs.objects.all().order_by('-salary')
         else:
             return Jobs.objects.all()
-
 
 class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = AppliedJobs
@@ -397,7 +571,6 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context['hired_count'] = applications.filter(status='hired').count()
         return context
 
-
 class SavedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = SavedJobs
     template_name = 'saved_jobs.html'
@@ -411,7 +584,6 @@ class SavedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         if applicant_profile:
             return applicant_profile.saved_jobs.all()
         return SavedJobs.objects.none()
-
 
 class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
@@ -446,6 +618,8 @@ class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['selected_job_types'] = self.request.GET.getlist('job_type')
         return context
+
+###class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -530,7 +704,6 @@ class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
         messages.success(self.request, 'Profile picture updated successfully.')
         return super().form_valid(form)
 
-
 class ViewProfileView(ApplicantRequiredMixin, UpdateView):
     model = User
     form_class = ProfilePictureForm
@@ -561,214 +734,5 @@ class MyProfileView(ApplicantRequiredMixin, TemplateView):
         profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         context['profile'] = profile
         context['applicant_profile'] = profile
+        context['account_email'] = self.request.user.email
         return context
-
-    def get_object(self):
-        return ApplicantProfile.objects.filter(user=self.request.user).first()
-
-
-# ==========================================
-# SETTINGS & SECURE ACCOUNT MANAGEMENT VIEWS
-# ==========================================
-
-class SettingsView(ApplicantRequiredMixin, TemplateView):
-    template_name = 'settings.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['profile'] = ApplicantProfile.objects.filter(user=self.request.user).first()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        full_name = request.POST.get('full_name')
-        if full_name:
-            user = request.user
-            user.first_name = full_name.strip()
-            user.save()
-            
-            applicant_profile = ApplicantProfile.objects.filter(user=user).first()
-            if applicant_profile and hasattr(applicant_profile, 'full_name'):
-                applicant_profile.full_name = full_name.strip()
-                applicant_profile.save()
-
-            messages.success(request, "Your name has been updated successfully.")
-
-        messages.success(request, "Your settings preferences have been saved.")
-        return redirect('settings')
-
-
-@login_required
-def send_email_otp(request):
-    if request.method == "POST":
-        new_email = request.POST.get("email")
-        if not new_email:
-            return JsonResponse({"status": "error", "message": "Email is required."}, status=400)
-        
-        if User.objects.filter(email=new_email).exclude(pk=request.user.pk).exists():
-            return JsonResponse({"status": "error", "message": "This email address is already in use."}, status=400)
-        
-        otp_code = str(random.randint(100000, 999999))
-        
-        request.session['pending_new_email'] = new_email
-        request.session['email_otp_code'] = otp_code
-        
-        try:
-            send_mail(
-                subject="Your CAPESONNECT Verification Code",
-                message=f"Your One-Time Password (OTP) to change your email is: {otp_code}. Valid for 10 minutes.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[new_email],
-                fail_silently=False,
-            )
-            return JsonResponse({"status": "success", "message": "OTP sent successfully."})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
-            
-    return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
-
-
-@login_required
-def update_email_view(request):
-    if getattr(request.user, 'role', '') != 'applicant':
-        return redirect('applicant-dashboard')
-        
-    if request.method == "POST":
-        entered_otp = request.POST.get("otp_code", "").strip()
-        session_email = request.session.get('pending_new_email')
-        session_otp = request.session.get('email_otp_code')
-        
-        if not session_otp or not session_email:
-            messages.error(request, "Please request a verification code first.")
-        elif entered_otp != session_otp:
-            messages.error(request, "Invalid verification code. Please try again.")
-        elif User.objects.filter(email=session_email).exclude(pk=request.user.pk).exists():
-            messages.error(request, "This email address is already registered to another account.")
-        else:
-            user = request.user
-            user.email = session_email
-            if hasattr(user, 'username') and user.username == user.email:
-                user.username = session_email
-            user.save()
-            
-            request.session.pop('pending_new_email', None)
-            request.session.pop('email_otp_code', None)
-            
-            messages.success(request, "Your email address has been successfully updated.")
-            return redirect('settings')
-            
-    return render(request, 'change_email.html')
-
-
-@login_required
-def send_password_otp_view(request):
-    otp = str(random.randint(100000, 999999))
-    
-    request.session['password_otp'] = otp
-    request.session['otp_verified'] = False
-
-    send_mail(
-        subject='Password Change Verification Code — CAPESONNECT',
-        message=f'Your security verification code to change your password is: {otp}. This code expires shortly.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[request.user.email],
-        fail_silently=False,
-    )
-    
-    return redirect('verify-password-otp')
-
-
-@login_required
-def verify_password_otp_view(request):
-    if request.method == 'POST':
-        user_otp = request.POST.get('otp')
-        if user_otp == request.session.get('password_otp'):
-            request.session['otp_verified'] = True
-            return redirect('update-password')
-        else:
-            messages.error(request, "Invalid OTP code. Please try again.")
-            
-    return render(request, 'verify_otp.html')
-
-
-class SecurePasswordChangeView(PasswordChangeView):
-    template_name = 'change_password.html'
-    success_url = reverse_lazy('settings')
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.session.get('otp_verified', False):
-            messages.warning(request, "Please verify your email with an OTP first.")
-            return redirect('send-password-otp')
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        request = self.request
-        request.session.pop('password_otp', None)
-        request.session.pop('otp_verified', None)
-        
-        update_session_auth_hash(request, request.user)
-        
-        messages.success(request, "Your password has been changed successfully.")
-        return super().form_valid(form)
-
-
-class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
-    model = User
-    form_class = UpdateUsernameForm
-    template_name = 'update_username.html'
-    success_url = reverse_lazy('my_profile')
-
-    def get_object(self, queryset=None):
-        return self.request.user
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Username updated successfully.')
-        return super().form_valid(form)
-
-
-class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = ApplicantProfile
-    success_url = reverse_lazy('login')
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-
-    def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
-
-
-# ==========================================
-# HELP & SUPPORT API / VIEW
-# ==========================================
-
-@login_required
-def send_applicant_support_message_api(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            subject = data.get('subject', 'CAPESONNECT Applicant Support')
-            user_message = data.get('message', '')
-            
-            user_email = getattr(request.user, 'email', None) or 'Not provided'
-            sender_info = f"Applicant Username: {request.user.username}\nEmail: {user_email}\n\n"
-            full_message = sender_info + "Message:\n" + user_message
-            
-            send_mail(
-                subject=subject,
-                message=full_message,
-                from_email=None,
-                recipient_list=['pesocarigaraadmin@gmail.com'],
-                fail_silently=False,
-            )
-            
-            return JsonResponse({'status': 'success', 'message': 'Message sent successfully!'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-            
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
-
-
-class HelpPageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = 'applicant_help.html'
-
-    def test_func(self):
-        return self.request.user.is_authenticated and getattr(self.request.user, 'role', '') == 'applicant'

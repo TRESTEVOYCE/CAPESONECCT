@@ -27,9 +27,14 @@ class UserRegisterForm(UserCreationForm):
         return super().clean()
     
 class BasicApplicantInformationForms(ModelForm):
+    civil_status = forms.ChoiceField(
+        choices=[('', 'Select civil status')] + list(ApplicantProfile.CIVIL_STATUS_CHOICES),
+        required=False,
+    )
+
     class Meta:
         model = ApplicantProfile
-        fields = ['first_name','middle_name','last_name','sex','date_of_birth','phone_number']
+        fields = ['first_name','middle_name','last_name','sex','date_of_birth','phone_number','civil_status']
 
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),

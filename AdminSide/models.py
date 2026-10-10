@@ -1,9 +1,20 @@
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.utils import timezone
 import uuid
-from cloudinary_storage.storage import RawMediaCloudinaryStorage
+from cloudinary_storage.storage import MediaCloudinaryStorage, RawMediaCloudinaryStorage
+from django.conf import settings
+
+class AdminUserManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields['role'] = 'admin'
+        return super().create_superuser(
+            username,
+            email=email,
+            password=password,
+            **extra_fields,
+        )
 
 
 class User(AbstractUser):
@@ -24,9 +35,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/',null=True,blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', storage=MediaCloudinaryStorage(), null=True, blank=True)
     email_verified = models.BooleanField(default=False)
     email_verification_sent_at = models.DateTimeField(null=True,blank=True)
+
+    objects = AdminUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -101,13 +114,13 @@ class EmployerProfile(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     # Verification Document Attachments for Private Sector
-    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of COR 2303")
-    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
-    business_permit = models.FileField(upload_to='employer_docs/business_permits/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+    certificate_of_registration = models.FileField(upload_to='employer_docs/private_sector/cor_2303/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/private_sector/dti_sec/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/private_sector/business_permits/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of Latest Business Permit")
 
     # Verification Document Attachments for Public Sector
     public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
-    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/',storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Uploaded verification document for public agency")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_sector/verification_documents/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Uploaded verification document for public agency")
 
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -285,13 +298,13 @@ class ApplicantProfile(models.Model):
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
-    phone_number = models.CharField(max_length=20)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, default='single', blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     house_street = models.CharField(max_length=255, blank=True, null=True)
-    barangay = models.CharField(max_length=100)
-    municipality = models.CharField(max_length=100)
-    province = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100, blank=True, null=True)
+    municipality = models.CharField(max_length=100, blank=True, null=True)
+    province = models.CharField(max_length=100, blank=True, null=True)
     region = models.CharField(max_length=100, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
 
@@ -304,16 +317,16 @@ class ApplicantProfile(models.Model):
     is_ofw = models.BooleanField(default=False)
     expected_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES, blank=True, null=True)
     school_name = models.CharField(max_length=255, blank=True, null=True)
     course_program = models.CharField(max_length=255, blank=True, null=True)
     year_graduated = models.CharField(max_length=10, blank=True, null=True)
     skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    resume = models.FileField(upload_to='resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
-    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    resume = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='applicant_docs/curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -360,8 +373,8 @@ class ApplicantProfile(models.Model):
     other_skills = models.CharField(max_length=500, blank=True, null=True)
     
     certification_agree = models.BooleanField(default=False)
-    resume_file = models.FileField(upload_to='resumes/',storage=RawMediaCloudinaryStorage(), blank=True, null=True)
-    supporting_doc = models.FileField(upload_to='supporting_docs/',storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc = models.FileField(upload_to='applicant_docs/supporting_docs/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
     
 
     training_title_1 = models.CharField(max_length=255, blank=True, null=True)
@@ -816,11 +829,15 @@ class Notification(models.Model):
         ('APPLICATION_STATUS', 'Application Status Update'),
         ('NEW_REGISTRATION', 'New Registration Pending Verification'),
         ('RESUBMISSION', 'Account Re-submitted for Verification'),
+        ('NEW_APPLICANT', 'New Applicant'),
+        ('NEW_EMPLOYER', 'New Employer'),
+        ('NEW_JOB_POST', 'New Job Post'),
+        ('APPEAL_REVERIFICATION', 'Appeal for Reverification'),
     )
 
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
-    
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
+
     title = models.CharField(max_length=255)
     message = models.TextField()
     reason = models.TextField(blank=True, null=True)  # Specifically holds rejection reasons

@@ -1,21 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'employer-base.html' %}
 
-{% block title %}Notifications Inbox - CAPESONNECT{% endblock %}
-
-{% block page_header %}
-<div class="flex items-center gap-3">
-    <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Notification Center</h1>
-</div>
-{% endblock %}
+{% block title %}Notifications - CAPESONCONNECT Employer Portal{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto space-y-6">
+    <div>
+        <h1 class="text-2xl font-extrabold text-slate-900">Notifications</h1>
+        <p class="mt-1 text-sm text-slate-500">Applicant activity and employer verification updates.</p>
+    </div>
 
-    <!-- Top Action Toolbar -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        
-        <!-- Status Filter Tabs -->
-        <div class="flex items-center bg-slate-100 p-1 rounded-xl">
+        <nav aria-label="Filter notifications" class="flex items-center bg-slate-100 p-1 rounded-xl">
             <a href="?status=all" class="px-4 py-1.5 rounded-lg text-xs font-bold transition {% if selected_status == 'all' %}bg-white text-slate-900 shadow-sm{% else %}text-slate-500 hover:text-slate-800{% endif %}">
                 All ({{ total_count }})
             </a>
@@ -25,55 +20,44 @@
             <a href="?status=read" class="px-4 py-1.5 rounded-lg text-xs font-bold transition {% if selected_status == 'read' %}bg-white text-slate-900 shadow-sm{% else %}text-slate-500 hover:text-slate-800{% endif %}">
                 Read
             </a>
-        </div>
+        </nav>
 
-        <!-- Mark All as Read Button -->
-        {% if unread_count > 0 %}
-        <form method="POST" action="{% url 'AdminSide:mark_all_notifications_read' %}">
+        {% if unread_count %}
+        <form method="POST" action="{% url 'employer-notifications-read-all' %}">
             {% csrf_token %}
-            <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-check-double text-amber-400"></i> Mark All as Read
+            <button type="submit" class="px-4 py-2 rounded-xl bg-[#1e293b] hover:bg-[#121c2d] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-check-double text-amber-300"></i> Mark All as Read
             </button>
         </form>
         {% endif %}
     </div>
 
-    <!-- Notifications List (Ordered Newest to Oldest) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
         {% for notification in notifications %}
-        <div class="p-4 sm:p-5 hover:bg-slate-50/80 transition flex items-start gap-4 relative {% if not notification.is_read %}bg-amber-50/30{% endif %}">
-            
-            <!-- Type Icon -->
+        <article class="p-4 sm:p-5 hover:bg-slate-50/80 transition flex items-start gap-4 relative {% if not notification.is_read %}bg-blue-50/50{% endif %}">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 bg-blue-100 text-[#161e31]">
-                <i class="fa-solid
-                    {% if notification.notification_type == 'NEW_APPLICANT' or notification.notification_type == 'NEW_REGISTRATION' %}fa-user-plus
-                    {% elif notification.notification_type == 'NEW_EMPLOYER' %}fa-building
-                    {% elif notification.notification_type == 'NEW_JOB_POST' or notification.notification_type == 'job' %}fa-briefcase
-                    {% elif notification.notification_type == 'APPEAL_REVERIFICATION' %}fa-rotate
-                    {% else %}fa-bell{% endif %} text-sm"></i>
+                <i class="fa-solid {% if notification.notification_type == 'VERIFICATION_REJECTED' %}fa-circle-exclamation{% elif notification.notification_type == 'VERIFICATION_APPROVED' %}fa-circle-check{% else %}fa-user-plus{% endif %} text-sm"></i>
             </div>
 
-            <!-- Content Area -->
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 class="text-sm font-extrabold text-slate-900">{{ notification.title }}</h3>
+                    <h2 class="text-sm font-extrabold text-slate-900">{{ notification.title }}</h2>
                     {% if not notification.is_read %}
-                    <span class="inline-block w-2 h-2 rounded-full bg-rose-600"></span>
+                    <span class="rounded-full bg-[#1e293b] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">New</span>
                     {% endif %}
-                    <span class="ml-auto text-xs font-medium text-slate-400">
-                        {{ notification.created_at|date:"M d, Y • h:i A" }}
-                    </span>
+                    <time class="ml-auto text-xs font-medium text-slate-400">{{ notification.created_at|date:"M d, Y • h:i A" }}</time>
                 </div>
-
-                <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                    {{ notification.message }}
+                <p class="text-xs text-slate-600 leading-relaxed font-medium">{{ notification.message }}</p>
+                {% if notification.reason %}
+                <p class="mt-2 rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs text-rose-900">
+                    <span class="font-bold">Reason:</span> {{ notification.reason }}
                 </p>
-
+                {% endif %}
                 {% if notification.target_url and notification.target_url != '#' %}
                 <div class="mt-2.5">
-                    <form method="POST" action="{% url 'AdminSide:mark_notification_read' notification.id %}">
+                    <form method="POST" action="{% url 'employer-notification-read' notification.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 hover:text-rose-800 hover:underline">
+                        <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1e293b] hover:underline">
                             <span>View Details</span>
                             <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </button>
@@ -82,41 +66,37 @@
                 {% endif %}
             </div>
 
-            <!-- Action Form -->
             <div class="flex items-center gap-2 shrink-0">
                 {% if not notification.is_read %}
-                <form method="POST" action="{% url 'AdminSide:mark_notification_read' notification.id %}">
+                <form method="POST" action="{% url 'employer-notification-read' notification.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition" title="Mark as read">
+                    <button type="submit" class="p-2 text-slate-400 hover:text-[#1e293b] rounded-lg hover:bg-blue-50 transition" title="Mark as read" aria-label="Mark as read">
                         <i class="fa-solid fa-check text-xs"></i>
                     </button>
                 </form>
                 {% endif %}
-                <form method="POST" action="{% url 'AdminSide:delete_notification' notification.id %}">
+                <form method="POST" action="{% url 'employer-notification-delete' notification.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Delete notification">
+                    <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Delete notification" aria-label="Delete notification">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
                 </form>
             </div>
-        </div>
+        </article>
         {% empty %}
         <div class="p-12 text-center">
             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                 <i class="fa-regular fa-bell-slash text-lg"></i>
             </div>
-            <h4 class="text-sm font-bold text-slate-800">No Notifications Found</h4>
-            <p class="text-xs text-slate-500 mt-1">You are all caught up! There are no notifications to display right now.</p>
+            <h2 class="text-sm font-bold text-slate-800">No Notifications Found</h2>
+            <p class="text-xs text-slate-500 mt-1">There are no notifications to display for this filter.</p>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Pagination Controls -->
     {% if is_paginated %}
     <div class="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-slate-200 text-xs font-medium text-slate-600">
-        <div>
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </div>
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         <div class="flex items-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-bold">Previous</a>
@@ -127,6 +107,5 @@
         </div>
     </div>
     {% endif %}
-
 </div>
 {% endblock %}

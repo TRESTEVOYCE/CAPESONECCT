@@ -11,6 +11,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.decorators import method_decorator
 from honeypot.decorators import check_honeypot
 from AdminSide.models import ApplicantProfile, EmployerProfile, User
+from AdminSide.utils import notify_admins
 from AdminSide.tokens import account_activation_token
 from .forms import UserRegisterForm,SignInForm,BasicApplicantInformationForms,BasicEmployerInformationForms,ForgotPasswordForm,PasswordResetConfirmForm
 from django.contrib.auth.views import PasswordResetView,PasswordResetDoneView,PasswordResetConfirmView,PasswordResetCompleteView
@@ -59,7 +60,15 @@ class UserApplicantAccountRegisterView(FormView):
         user.email_verification_sent_at = timezone.now()
         user.save()
 
-        ApplicantProfile.objects.create(user=user, **info)
+        info['civil_status'] = (info.get('civil_status') or '').strip() or 'single'
+        applicant = ApplicantProfile.objects.create(user=user, **info)
+        notify_admins(
+            title='New Applicant',
+            message=f'{applicant.first_name} {applicant.last_name} completed applicant registration.',
+            notification_type='NEW_APPLICANT',
+            sender=user,
+            target_url=reverse('AdminSide:applicant_verification', kwargs={'uuid': applicant.uuid}),
+        )
         del self.request.session['applicant_info']
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -132,9 +141,16 @@ class UserEmployerAccountRegisterView(FormView):
         user.email_verification_sent_at = timezone.now()
         user.save()
 
-        EmployerProfile.objects.update_or_create(
+        employer, _ = EmployerProfile.objects.update_or_create(
             user=user,
             defaults=info
+        )
+        notify_admins(
+            title='New Employer',
+            message=f'{employer.business_name or user.username} submitted an employer profile for verification.',
+            notification_type='NEW_EMPLOYER',
+            sender=user,
+            target_url=reverse('AdminSide:employer_verification', kwargs={'uuid': employer.uuid}),
         )
         del self.request.session['employer_info']
 

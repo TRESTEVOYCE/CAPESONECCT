@@ -1,7 +1,14 @@
 from django.urls import path
-from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView, UpdateUsernameView,SettingsView, SettingsView, update_email_view, send_email_otp,send_password_otp_view, verify_password_otp_view, SecurePasswordChangeView, UpdateUsernameView, HelpPageView, send_applicant_support_message_api
+from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEducationView, ApplicantTrainingView, ApplicantPreferredJobView, ApplicantWorkExperienceView, ApplicantSkillsView, ApplicantDocumentsView, ApplicantProfileDeleteView, ApplicantReverificationAppealView, ApplicantMarkAllNotificationsReadView, ApplicantMarkNotificationReadView, ApplicantDeleteNotificationView, ApplicantNotificationHeaderApiView, ApplicantNotificationListView, LogoutView, DashBoardView, JobListView, JobDetailsView, SortJobView, AppliedJobsListView, SavedJobsListView, SearchJobView, ApplyJobView, SaveJobView, EditProfilePictureView, UnsaveJobView, ViewProfileView,MyProfileView, UpdateUsernameView,SettingsView, SettingsView, update_email_view, send_email_otp,send_password_otp_view, verify_password_otp_view, SecurePasswordChangeView, UpdateUsernameView, HelpPageView, send_applicant_support_message_api
+
+
 
 urlpatterns = [
+    path('notifications/', ApplicantNotificationListView.as_view(), name='applicant-notifications'),
+    path('notifications/api/header/', ApplicantNotificationHeaderApiView.as_view(), name='applicant-notifications-header'),
+    path('notifications/<int:notification_id>/read/', ApplicantMarkNotificationReadView.as_view(), name='applicant-notification-read'),
+    path('notifications/read-all/', ApplicantMarkAllNotificationsReadView.as_view(), name='applicant-notifications-read-all'),
+    path('notifications/<int:notification_id>/delete/', ApplicantDeleteNotificationView.as_view(), name='applicant-notification-delete'),
     path('', DashBoardView.as_view(), name='applicant-dashboard'),
     path('my_profile/', MyProfileView.as_view(), name='my_profile'),
     path('personal_info/', ApplicantPersonalInfoView.as_view(), name='personal_info'),
@@ -12,6 +19,7 @@ urlpatterns = [
     path('work_experience/', ApplicantWorkExperienceView.as_view(), name='applicant-work-experience'),
     path('skills/', ApplicantSkillsView.as_view(), name='applicant-skills'),
     path('documents/', ApplicantDocumentsView.as_view(), name='applicant-documents'),
+    path('appeal/reverification/', ApplicantReverificationAppealView.as_view(), name='applicant-reverification-appeal'),
 
     path('profile/delete/', ApplicantProfileDeleteView.as_view(), name='profile_delete'),
     path('logout/', LogoutView.as_view(), name='logout'),

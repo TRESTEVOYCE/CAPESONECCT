@@ -1,13 +1,20 @@
 from django import urls
 from django.urls import path
 from EmployerSide import views
-from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView, SettingsView, EmployerPasswordChangeView, employer_email_change_view , HelpPageView
+from .views import EmployerProfileCreateView, HomeView, ApplicantsListView, ApplicantDetailView, JobCreationView, JobUpdateView, JobDeleteView,JobDetailView, AccountDeleteView,ApplicantJobStatusView,ApplicantJobStatusView,LogoutView,JobListView,CompanyProfileView,EmployerProfilePictureView, SettingsView, EmployerPasswordChangeView, employer_email_change_view , HelpPageView, EmployerNotificationListView, EmployerReverificationAppealView, EmployerNotificationHeaderApiView,EmployerMarkNotificationReadView,EmployerMarkAllNotificationsReadView,EmployerDeleteNotificationView
 from .views import send_support_message_api
 from . import views
 
+
 urlpatterns = [
+    path('notifications/', EmployerNotificationListView.as_view(), name='employer-notifications'),
+    path('notifications/api/header/', EmployerNotificationHeaderApiView.as_view(), name='employer-notifications-header'),
+    path('notifications/<int:notification_id>/read/', EmployerMarkNotificationReadView.as_view(), name='employer-notification-read'),
+    path('notifications/read-all/', EmployerMarkAllNotificationsReadView.as_view(), name='employer-notifications-read-all'),
+    path('notifications/<int:notification_id>/delete/', EmployerDeleteNotificationView.as_view(), name='employer-notification-delete'),
     path('company_profile/',CompanyProfileView.as_view(),name='company_profile_view'),
     path('employer-profile/create/', EmployerProfileCreateView.as_view(), name='employer-profile-create'),
+    path('employer-profile/appeal/', EmployerReverificationAppealView.as_view(), name='employer-reverification-appeal'),
     path('home/', HomeView.as_view(), name='employer-home'),
     path('applicants/', ApplicantsListView.as_view(), name='applicants-list'),
     path('applicants/<int:pk>/', ApplicantDetailView.as_view(), name='applicant-detail'),

@@ -6,6 +6,18 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-8">
 
+    {% if messages %}
+        <div class="space-y-2" role="status">
+            {% for message in messages %}
+                <div data-auto-dismiss="{{ message.tags }}" class="p-4 rounded-xl text-sm font-semibold border
+                    {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-200
+                    {% else %}bg-rose-50 text-rose-800 border-rose-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <!-- Header & Hero Search Section -->
     <div class="bg-[#0b1329] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
         <div class="relative z-10 max-w-3xl mx-auto text-center space-y-4">
@@ -30,22 +42,22 @@
 
     <!-- Quick Navigation Category Hub (Interactive Tab Filter Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <button type="button" onclick="showCategory('getting-started')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 transition cursor-pointer group">
+        <button type="button" onclick="showCategory('getting-started')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#161e31] transition cursor-pointer group">
             <h3 class="font-bold text-gray-900 text-lg">Getting Started</h3>
             <p class="text-sm text-gray-500 mt-1">CAPESONNECT system architecture, ecosystem roles, and rule-based matching.</p>
         </button>
 
-        <button type="button" onclick="showCategory('applicant-management')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-emerald-400 transition cursor-pointer group">
+        <button type="button" onclick="showCategory('applicant-management')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#161e31] transition cursor-pointer group">
             <h3 class="font-bold text-gray-900 text-lg">Applicants & Employers</h3>
             <p class="text-sm text-gray-500 mt-1">Verification workflows, document approvals, and candidate matching.</p>
         </button>
 
-        <button type="button" onclick="showCategory('special-programs')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-purple-400 transition cursor-pointer group">
+        <button type="button" onclick="showCategory('special-programs')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#161e31] transition cursor-pointer group">
             <h3 class="font-bold text-gray-900 text-lg">Special Programs</h3>
             <p class="text-sm text-gray-500 mt-1">Enrolling and tracking SPES, GIP, TUPAD, DILP, and Career Guidance.</p>
         </button>
 
-        <button type="button" onclick="showCategory('account-security')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-amber-400 transition cursor-pointer group">
+        <button type="button" onclick="showCategory('account-security')" class="category-tab-card text-left p-5 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#161e31] transition cursor-pointer group">
             <h3 class="font-bold text-gray-900 text-lg">Account & Security</h3>
             <p class="text-sm text-gray-500 mt-1">Step-by-step OTP process for updating email and changing password.</p>
         </button>
@@ -260,7 +272,7 @@
                 <div class="space-y-2.5 text-sm text-gray-600">
                     <div class="flex items-center space-x-2">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        <span>pesocarigaraadmin@gmail.com</span>
+                        <span>capessonect650@gmail.com</span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -272,7 +284,7 @@
                     </div>
                 </div>
 
-                <a href="mailto:pesocarigaraadmin@gmail.com" class="block w-full text-center py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition">Email Tech Support</a>
+                <button type="button" onclick="document.getElementById('supportEmailModal').showModal()" class="block w-full text-center py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition">Email Tech Support</button>
             </div>
 
             <!-- Release Notes / System Updates -->
@@ -295,6 +307,42 @@
         </div>
     </div>
 </div>
+
+<dialog id="supportEmailModal" class="w-full max-w-lg rounded-2xl border-0 p-0 shadow-2xl backdrop:bg-slate-900/60">
+    <form method="POST" action="{% url 'AdminSide:account_help' %}" class="space-y-5 p-6">
+        {% csrf_token %}
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">Email Tech Support</h2>
+                <p class="mt-1 text-sm text-gray-500">Describe the issue and the technical team will follow up.</p>
+            </div>
+            <button type="button" onclick="document.getElementById('supportEmailModal').close()" aria-label="Close support form" class="text-gray-400 hover:text-gray-700">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="rounded-xl bg-gray-50 p-3 text-sm text-gray-600">
+            <div><span class="font-semibold text-gray-800">To:</span> capessonect650@gmail.com</div>
+            <div><span class="font-semibold text-gray-800">From:</span> {{ request.user.email }}</div>
+        </div>
+
+        <div>
+            <label for="supportSubject" class="mb-1 block text-sm font-semibold text-gray-800">Subject</label>
+            <input id="supportSubject" name="subject" type="text" maxlength="150" required value="{{ support_subject|default:'' }}" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+        </div>
+
+        <div>
+            <label for="supportMessage" class="mb-1 block text-sm font-semibold text-gray-800">What do you need help with?</label>
+            <textarea id="supportMessage" name="message" rows="6" maxlength="5000" required class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">{{ support_message|default:'' }}</textarea>
+            <p class="mt-1 text-xs text-gray-500">Up to 5,000 characters.</p>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="document.getElementById('supportEmailModal').close()" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button type="submit" class="rounded-xl bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">Send report</button>
+        </div>
+    </form>
+</dialog>
 
 <!-- Interactive Tab & Search JavaScript -->
 <script>
@@ -388,5 +436,13 @@
             articles.forEach(article => article.style.display = 'block');
         }
     }
+
+    {% if support_modal_open %}
+    document.getElementById('supportEmailModal').showModal();
+    {% endif %}
+
+    document.querySelectorAll('[data-auto-dismiss="success"]').forEach(message => {
+        window.setTimeout(() => message.remove(), 5000);
+    });
 </script>
 {% endblock %}
