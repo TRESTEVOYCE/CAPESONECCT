@@ -1,0 +1,70 @@
+
+{% extends "SuperAdmin/base.html" %}
+
+{% block title %}Dashboard | Super Admin{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="mb-8">
+    <h2 class="text-lg font-bold text-slate-800">
+        Welcome to your dashboard
+    </h2>
+    <p class="mt-1 text-sm text-slate-500">
+        Manage system users and monitor authentication activity.
+    </p>
+</div>
+
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+
+    <!-- User management card -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl text-blue-700">
+            ♙
+        </div>
+
+        <h3 class="mt-5 text-lg font-bold text-slate-800">
+            User Management
+        </h3>
+        <p class="mt-2 text-sm leading-6 text-slate-500">
+            View registered applicants and employers in your system.
+        </p>
+
+        <a href="{% url 'superadmin-users' %}"
+           class="mt-5 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+            Manage Users <span class="ml-2">→</span>
+        </a>
+    </div>
+
+    <!-- System logs card -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-2xl text-emerald-700">
+            ≡
+        </div>
+
+        <h3 class="mt-5 text-lg font-bold text-slate-800">
+            System Logs
+        </h3>
+        <p class="mt-2 text-sm leading-6 text-slate-500">
+            Review authentication attempts recorded by Django Axes.
+        </p>
+
+        <a href="{% url 'superadmin-system-logs' %}"
+           class="mt-5 inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            View Logs <span class="ml-2">→</span>
+        </a>
+    </div>
+
+</div>
+
+<div class="mt-8 rounded-2xl border border-blue-100 bg-blue-50 p-6">
+    <h3 class="font-bold text-blue-900">
+        Administration Overview
+    </h3>
+    <p class="mt-2 text-sm leading-6 text-blue-800">
+        Use the navigation menu to manage user accounts and review system
+        authentication records.
+    </p>
+</div>
+
+{% endblock %}

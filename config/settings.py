@@ -8,7 +8,6 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
-from datetime import timedelta
 
 load_dotenv()
 
@@ -16,15 +15,11 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings
-SECRET_KEY = os.environ["SECRET_KEY"]
-DEBUG = os.environ.get('DEBUG') == 'True'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key')
+DEBUG = True
 
 # Host & Origin Settings
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.254.114").split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 CSRF_TRUSTED_ORIGINS = []
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
@@ -61,6 +56,7 @@ INSTALLED_APPS = [
     'LandingPage',
     'axes',
     'honeypot',
+    'SuperAdmin',
 ]
 
 MIDDLEWARE = [
@@ -116,7 +112,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'AdminSide.context_processor.applicant_profile', 
             ],
         },
     },
@@ -179,7 +174,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = timedelta(seconds = 30)
+AXES_COOLOFF_TIME = 1 
 AXES_RESET_ON_SUCCESS = True
 
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
@@ -188,30 +183,9 @@ SESSION_COOKIE_AGE = 1800  # 30 mins
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-if DEBUG == False:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 HONEYPOT_FIELD_NAME = "bisan_ano"
 HONEYPOT_VALUE = ""
-
-# settings.py
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
