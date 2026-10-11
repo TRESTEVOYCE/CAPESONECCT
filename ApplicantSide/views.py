@@ -666,7 +666,7 @@ class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
         AuditLog.objects.create(
             user=request.user,
             action='Job Application Submitted',
-            description=f"{request.user.email} applied for the job '{job.title}'."
+            description=f"{request.user.email} applied for the job '{job.job_title}'."
         )
 
         messages.success(request, 'Your application has been submitted successfully.')
