@@ -57,58 +57,58 @@
         </div>
 
         <!-- ACCOUNT STATUS -->
-        <div class="px-3 pt-3">
-            {% if request.user.employer_profile %}
-                {% if request.user.employer_profile.verification_status == 'approved' %}
-                    <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <div class="text-[11px] leading-tight">
-                            <span class="font-bold text-emerald-200 block mb-0.5">Account Approved</span>
-                            Your account has been verified. You can post and manage jobs.
-                        </div>
-                    </div>
-                {% elif request.user.employer_profile.verification_status == 'rejected' %}
-                    <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex flex-col gap-2.5">
-                        <div class="flex items-start gap-2.5">
-                            <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <div class="px-3 pt-3">
+                {% if request.user.employer_profile %}
+                    {% if request.user.employer_profile.verification_status == 'approved' or request.user.employer_profile.status == 'approved' or request.user.employer_profile.is_verified %}
+                        <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
                             <div class="text-[11px] leading-tight">
-                                <span class="font-bold text-rose-200 block mb-0.5">Account Rejected</span>
-                                Verification rejected. Submit an appeal for review.
+                                <span class="font-bold text-emerald-200 block mb-0.5">Account Approved</span>
+                                Your account has been verified. You can post and manage jobs.
                             </div>
                         </div>
-                        <form method="post" action="{% url 'employer-reverification-appeal' %}" class="w-full">
-                            {% csrf_token %}
-                            <label for="employerAppealReason" class="sr-only">Reason for appeal</label>
-                            <textarea id="employerAppealReason" name="reason" rows="2" maxlength="2000" required placeholder="Reason for appeal..." class="w-full rounded-lg border border-rose-400/30 bg-slate-900/50 p-2 text-[11px] text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-400"></textarea>
-                            <button type="submit" class="mt-2 w-full rounded-lg bg-rose-500/20 px-3 py-2 text-[11px] font-bold text-rose-100 hover:bg-rose-500/30 transition-colors">
-                                Appeal for Reverification
-                            </button>
-                        </form>
-                    </div>
+                    {% elif request.user.employer_profile.verification_status == 'rejected' or request.user.employer_profile.status == 'rejected' %}
+                        <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex flex-col gap-2.5">
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                <div class="text-[11px] leading-tight">
+                                    <span class="font-bold text-rose-200 block mb-0.5">Account Rejected</span>
+                                    Verification rejected. Submit an appeal for review.
+                                </div>
+                            </div>
+                            <form method="post" action="{% url 'employer-reverification-appeal' %}" class="w-full">
+                                {% csrf_token %}
+                                <label for="employerAppealReason" class="sr-only">Reason for appeal</label>
+                                <textarea id="employerAppealReason" name="reason" rows="2" maxlength="2000" required placeholder="Reason for appeal..." class="w-full rounded-lg border border-rose-400/30 bg-slate-900/50 p-2 text-[11px] text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-400"></textarea>
+                                <button type="submit" class="mt-2 w-full rounded-lg bg-rose-500/20 px-3 py-2 text-[11px] font-bold text-rose-100 hover:bg-rose-500/30 transition-colors">
+                                    Appeal for Reverification
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
+                            </svg>
+                            <div class="text-[11px] leading-tight">
+                                <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
+                                PESO Admin is reviewing your company credentials.
+                            </div>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
-                        </svg>
                         <div class="text-[11px] leading-tight">
-                            <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
-                            PESO Admin is reviewing your company credentials.
+                            <span class="font-bold text-amber-200 block mb-0.5">Profile Incomplete</span>
+                            Complete your company profile to start posting.
                         </div>
                     </div>
                 {% endif %}
-            {% else %}
-                <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-                    <div class="text-[11px] leading-tight">
-                        <span class="font-bold text-amber-200 block mb-0.5">Profile Incomplete</span>
-                        Complete your company profile to start posting.
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+            </div>
 
         <!-- NAVIGATION -->
         <div class="px-5 pt-5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navigation</div>
