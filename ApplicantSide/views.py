@@ -4,10 +4,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse
-from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User
+from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text,query_matching_jobs
+from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User,AuditLog
 from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
+from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from .forms import ProfilePictureForm
@@ -27,6 +27,14 @@ from django.contrib.auth import update_session_auth_hash
 from AdminSide.utils import notify_admins
 from JobMatchingEngine.database import query_matching_jobs
 
+class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    login_url = reverse_lazy('signin')
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
+    def handle_no_permission(self):
+        return redirect('signin')
 
 
 APPLICANT_NOTIFICATION_TYPES = (
@@ -391,7 +399,16 @@ class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
 
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-    
+
+    def post(self, request, *args, **kwargs):
+        AuditLog.objects.create(
+            user=request.user,
+            action='Logout',
+            description=f"Applicant {request.user.email} logged out."
+        )
+        return super().post(request, *args, **kwargs)
+
+
 class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html'
@@ -645,6 +662,13 @@ class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
             employer=job.employer, applicant=applicant_profile,
             applied_job=job, status='pending'
         )
+
+        AuditLog.objects.create(
+            user=request.user,
+            action='Job Application Submitted',
+            description=f"{request.user.email} applied for the job '{job.title}'."
+        )
+
         messages.success(request, 'Your application has been submitted successfully.')
         return redirect('applied_jobs')
 
@@ -670,16 +694,6 @@ class SaveJobView(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.info(request, 'You have already saved this job.')
 
         return redirect('job_details', pk=job.pk)
-
-
-class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    login_url = reverse_lazy('signin')
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-
-    def handle_no_permission(self):
-        return redirect('signin')
 
 
 class UnsaveJobView(ApplicantRequiredMixin, View):
