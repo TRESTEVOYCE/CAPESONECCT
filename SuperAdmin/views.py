@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from axes.models import AccessAttempt
-from .forms import LoginForm
+from .forms import LoginForm,MSWDOAccountCreationForm
 
 
 # ==========================================
@@ -83,6 +83,7 @@ class SuperAdminDashboard(SuperUserAdmin, TemplateView):
 # SUPER ADMIN SYSTEM LOGS - DJANGO AXES
 # ==========================================
 
+
 class SuperAdminSystemLogs(SuperUserAdmin, ListView):
     model = AccessAttempt
     template_name = 'SuperAdmin/SuperAdminSystemLogs.html'
@@ -90,7 +91,16 @@ class SuperAdminSystemLogs(SuperUserAdmin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        return AccessAttempt.objects.order_by('-attempt_time')
+        return AccessAttempt.objects.order_by('-pk')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_logs'] = AccessAttempt.objects.count()
+        context['axes_fields'] = [
+            field.name for field in AccessAttempt._meta.fields
+        ]
+        return context
+
 
 
 class SuperAdminUsers(SuperUserAdmin, ListView):
@@ -103,6 +113,31 @@ class SuperAdminUsers(SuperUserAdmin, ListView):
         return User.objects.filter(
             role__in=['applicant', 'employer']
         ).order_by('role', 'email')
+
+# ==========================================
+# CREATE MSWDO ACCOUNT
+# ==========================================
+
+class MSWDOAccountCreateView(SuperUserAdmin, FormView):
+    form_class = MSWDOAccountCreationForm
+    template_name = 'SuperAdmin/create_mswdo_account.html'
+    success_url = reverse_lazy('create_mswdo_account')
+
+    def form_valid(self, form):
+        mswdo_user = form.save()
+
+        AuditLog.objects.create(
+            user=self.request.user,
+            action=f"Created MSWDO account: {mswdo_user.email}",
+        )
+
+        from django.contrib import messages
+        messages.success(
+            self.request,
+            f'MSWDO account for {mswdo_user.email} created successfully.'
+        )
+
+        return super().form_valid(form)
 
 
 

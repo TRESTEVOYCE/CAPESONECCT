@@ -1,832 +1,342 @@
+
 import random
-import uuid
-from io import BytesIO
-from urllib.request import Request, urlopen
-from django.utils import timezone
-from django.core.files.base import ContentFile
+from datetime import date, time, timedelta
+from decimal import Decimal
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from faker import Faker
+from django.utils import timezone
 
 from AdminSide.models import (
     User,
-    EmployerProfile,
-    Jobs,
-    ApplicantSkills,
-    ApplicantProfile,
-    AppliedJobs,
-    OfferedJobs,
+    SpecialProgramForEmploymentOfStudents,
+    GovernmentInternshipProgram,
+    TupadBeneficiary,
+    DisplacedInformalLaborProgram,
+    CareerGuidanceBeneficiary,
+    PESOActivities,
 )
 
 
-class Command(BaseCommand):
+FIRST_NAMES = [
+    "Juan", "Maria", "Jose", "Ana", "Mark", "Angel",
+    "Carlo", "Sofia", "Miguel", "Grace", "Paolo",
+    "Angela", "Rafael", "Nicole", "Daniel", "Andrea",
+    "Christian", "Patricia", "Joshua", "Camille",
+]
 
-    help = "Generate sample applicants, employers, jobs, applications, and offers."
+LAST_NAMES = [
+    "Santos", "Reyes", "Cruz", "Garcia", "Mendoza",
+    "Ramos", "Flores", "Castillo", "Dela Cruz", "Bautista",
+    "Villanueva", "Aquino", "Gonzales", "Fernandez",
+    "Rivera", "Torres", "Navarro", "Perez",
+]
+
+MIDDLE_NAMES = [
+    "Lopez", "Garcia", "Reyes", "Dizon", "Ramos",
+    "Santiago", "Morales", "Aquino", "Rivera",
+]
+
+BARANGAYS = [
+    "Poblacion", "San Isidro", "San Roque", "Santa Cruz",
+    "San Miguel", "San Antonio", "Bagong Silang",
+    "Maligaya", " Mabini", "Del Pilar",
+]
+
+MUNICIPALITIES = [
+    "Cebu City", "Talisay City", "Minglanilla",
+    "Naga City", "Carcar City", "Consolacion",
+    "Liloan", "Compostela", "Cordova",
+]
+
+PROVINCE = "Cebu"
+REGION = "Central Visayas"
+
+SCHOOLS = [
+    "Cebu National High School",
+    "University of Cebu",
+    "Cebu Technological University",
+    "University of the Visayas",
+    "Southwestern University PHINMA",
+    "Cebu Institute of Technology - University",
+]
+
+COLLEGE_PROGRAMS = [
+    "Information Technology",
+    "Computer Science",
+    "Business Administration",
+    "Education",
+    "Accountancy",
+    "Hospitality Management",
+    "Criminology",
+    "Engineering",
+]
+
+AGENCIES = [
+    "City Government Office",
+    "Municipal Planning Office",
+    "Public Employment Service Office",
+    "Municipal Agriculture Office",
+    "Community Development Office",
+]
+
+ACTIVITIES = [
+    (
+        "Career Guidance Seminar",
+        "Career planning and employment preparation seminar.",
+    ),
+    (
+        "Labor Market Information Orientation",
+        "Orientation on current labor market trends and opportunities.",
+    ),
+    (
+        "Job Readiness Workshop",
+        "Workshop covering resumes, interviews, and workplace readiness.",
+    ),
+    (
+        "Employment Coaching Session",
+        "Career coaching and employment counseling for participants.",
+    ),
+    (
+        "Pre-Employment Seminar",
+        "Seminar on workplace expectations and pre-employment requirements.",
+    ),
+]
+
+
+def random_date(start, end):
+    """Return a random date between start and end, inclusive."""
+    days = (end - start).days
+    return start + timedelta(days=random.randint(0, max(days, 0)))
+
+
+def random_phone():
+    return f"09{random.randint(100000000, 999999999)}"
+
+
+def random_address():
+    return {
+        "barangay": random.choice(BARANGAYS).strip(),
+        "municipality": random.choice(MUNICIPALITIES),
+        "province": PROVINCE,
+        "region": REGION,
+        "zip_code": str(random.choice([6000, 6014, 6035, 6037, 6045])),
+    }
+
+
+class Command(BaseCommand):
+    help = "Seed development data for beneficiary programs and PESO activities."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "count",
+            "--count",
             type=int,
-            help="Number of applicants and employers to create.",
+            default=20,
+            help="Number of records to create for each beneficiary program.",
         )
-
         parser.add_argument(
-            "--with-images",
-            action="store_true",
-            help="Download DiceBear avatars for generated users.",
+            "--activities",
+            type=int,
+            default=10,
+            help="Number of PESO activities to create.",
+        )
+        parser.add_argument(
+            "--seed",
+            type=int,
+            default=None,
+            help="Optional random seed for reproducible data.",
         )
 
     @transaction.atomic
     def handle(self, *args, **options):
-
         count = options["count"]
-        with_images = options["with_images"]
+        activity_count = options["activities"]
 
-        if count <= 0:
-            self.stdout.write(
-                self.style.ERROR(
-                    "Count must be greater than 0."
-                )
+        if count < 0 or activity_count < 0:
+            self.stderr.write(
+                self.style.ERROR("Counts must be zero or greater.")
             )
             return
 
-        fake = Faker("en_PH")
+        if options["seed"] is not None:
+            random.seed(options["seed"])
 
-        self.stdout.write(
-            self.style.WARNING(
-                f"Creating {count:,} applicants and {count:,} employers..."
+        today = timezone.localdate()
+        start_range = today - timedelta(days=730)
+        end_range = today + timedelta(days=365)
+
+        created = {}
+
+        def beneficiary_data():
+            start_date = random_date(start_range, today)
+            end_date = start_date + timedelta(
+                days=random.randint(10, 180)
             )
-        )
+            address = random_address()
 
-        # ---------------------------------------------------------
-        # Create skills
-        # ---------------------------------------------------------
+            return {
+                "first_name": random.choice(FIRST_NAMES),
+                "middle_name": random.choice(MIDDLE_NAMES),
+                "last_name": random.choice(LAST_NAMES),
+                "sex": random.choice(["M", "F"]),
+                "date_of_birth": random_date(
+                    date(1985, 1, 1),
+                    date(2008, 12, 31),
+                ),
+                "phone_number": random_phone(),
+                **address,
+                "daily_salary": Decimal(
+                    str(random.randrange(40000, 80001) / 100)
+                ).quantize(Decimal("0.01")),
+                "start_date": start_date,
+                "end_date": end_date,
+                "is_done": end_date < today,
+            }
 
-        skills = self.create_skills()
-
-        # ---------------------------------------------------------
-        # Create applicants
-        # ---------------------------------------------------------
-
-        applicants = self.create_applicants(
-            fake,
-            count,
-            skills,
-            with_images,
-        )
-
-        # ---------------------------------------------------------
-        # Create employers
-        # ---------------------------------------------------------
-
-        employers = self.create_employers(
-            fake,
-            count,
-            with_images,
-        )
-
-        # ---------------------------------------------------------
-        # Create jobs
-        # ---------------------------------------------------------
-
-        jobs = self.create_jobs(
-            fake,
-            employers,
-            count,
-        )
-
-        # ---------------------------------------------------------
-        # Assign preferred jobs
-        # ---------------------------------------------------------
-
-        self.assign_preferred_jobs(
-            applicants,
-            jobs,
-        )
-
-        # ---------------------------------------------------------
-        # Create applications
-        # ---------------------------------------------------------
-
-        applications = self.create_applications(
-            applicants,
-            jobs,
-            count,
-        )
-
-        # ---------------------------------------------------------
-        # Create offers
-        # ---------------------------------------------------------
-
-        self.create_offers(
-            applications,
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                "Sample data successfully created."
-            )
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Applicants : {len(applicants):,}"
-            )
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Employers  : {len(employers):,}"
-            )
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Jobs       : {len(jobs):,}"
-            )
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Applications: {AppliedJobs.objects.count():,}"
-            )
-        )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Offers     : {OfferedJobs.objects.count():,}"
-            )
-        )
-
-    # =========================================================
-    # SKILLS
-    # =========================================================
-
-    def create_skills(self):
-
-        skill_names = [
-            "Python",
-            "Django",
-            "Django REST Framework",
-            "JavaScript",
-            "React",
-            "HTML",
-            "CSS",
-            "Tailwind CSS",
-            "Java",
-            "C++",
-            "C#",
-            "PHP",
-            "Laravel",
-            "Node.js",
-            "SQL",
-            "MySQL",
-            "PostgreSQL",
-            "MongoDB",
-            "Git",
-            "GitHub",
-            "Docker",
-            "Linux",
-            "Networking",
-            "CCNA",
-            "Cybersecurity",
-            "Network Administration",
-            "Technical Support",
-            "Computer Hardware",
-            "Microsoft Office",
-            "Excel",
-            "Word",
-            "PowerPoint",
-            "Accounting",
-            "Bookkeeping",
-            "Customer Service",
-            "Communication",
-            "Sales",
-            "Marketing",
-            "Graphic Design",
-            "Video Editing",
-            "Data Entry",
-            "Project Management",
-            "Human Resources",
-            "Teaching",
-            "Research",
-            "Food Preparation",
-            "Hospitality",
-            "Driving",
-            "Electrical Installation",
-            "Welding",
-        ]
-
-        skills = []
-
-        for name in skill_names:
-
-            skill, created = ApplicantSkills.objects.get_or_create(
-                skill_name=name
-            )
-
-            skills.append(skill)
-
-        self.stdout.write(
-            f"  Skills: {len(skills):,}"
-        )
-
-        return skills
-
-    # =========================================================
-    # APPLICANTS
-    # =========================================================
-
-    def create_applicants(
-        self,
-        fake,
-        count,
-        skills,
-        with_images,
-    ):
-
-        applicants = []
-
-        education_levels = [
-            "elementary",
-            "high_school",
-            "college",
-            "university",
-            "vocational",
-            "other",
-        ]
-
+        # SPES beneficiaries
         for _ in range(count):
-
-            sex = random.choice(["M", "F"])
-
-            first_name = (
-                fake.first_name_male()
-                if sex == "M"
-                else fake.first_name_female()
-            )
-
-            middle_name = fake.first_name()
-            last_name = fake.last_name()
-
-            username = self.unique_username(
-                first_name,
-                last_name,
-            )
-
-            email = (
-                f"{username}"
-                f"@example.com"
-            )
-
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password="Password123!",
-                role="applicant",
-                is_active=True,
-            )
-
-            if with_images:
-                self.add_avatar(
-                    user,
-                    seed=str(user.uuid),
-                    style="personas",
-                )
-
-            applicant = ApplicantProfile.objects.create(
-                user=user,
-                first_name=first_name,
-                middle_name=middle_name,
-                last_name=last_name,
-                date_of_birth=fake.date_of_birth(
-                    minimum_age=18,
-                    maximum_age=60,
-                ),
-                sex=sex,
-                civil_status=random.choice([
-                    "single",
-                    "married",
-                    "divorced",
-                    "widowed",
+            SpecialProgramForEmploymentOfStudents.objects.create(
+                **beneficiary_data(),
+                education_level=random.choice([
+                    "elementary",
+                    "juniors_hs",
+                    "senior_hs",
+                    "college",
+                    "tech_voc",
                 ]),
-                phone_number=self.philippine_phone(),
-                barangay=random.choice([
-                    "Abucay",
-                    "Bagacay",
-                    "Buntay",
-                    "Can-abay",
-                    "Cangumbang",
-                    "Cogon",
-                    "Downtown",
-                    "Guindapunan",
-                    "Libertad",
-                    "Palanog",
-                    "San Jose",
-                    "San Roque",
-                    "Santa Cruz",
-                    "Santo Niño",
-                ]),
-                municipality=random.choice([
-                    "Tacloban City",
-                    "Palo",
-                    "Tanauan",
-                    "Basey",
-                    "Marabut",
-                    "Tolosa",
-                    "Dulag",
-                    "Alangalang",
-                    "Babatngon",
-                    "Jaro",
-                ]),
-                province="Leyte",
-                region="Eastern Visayas",
-                zip_code=random.choice([
-                    "6500",
-                    "6501",
-                    "6502",
-                    "6503",
-                    "6504",
-                    "6505",
-                ]),
-                education_level=random.choice(
-                    education_levels
-                ),
-                status="pending",
+                is_out_of_school_youth=random.choice([True, False]),
+                has_graduated=random.choice([True, False]),
+                has_nc_certification=random.choice([True, False]),
+                is_absorbed_by_employer=random.choice([True, False]),
+                school_name=random.choice(SCHOOLS),
+                college_program=random.choice(COLLEGE_PROGRAMS),
             )
 
-            # Give each applicant 2-6 skills
-            applicant.skills.set(
-                random.sample(
-                    skills,
-                    k=random.randint(
-                        2,
-                        min(6, len(skills)),
+        created["SPES"] = count
+
+        # Government Internship Program beneficiaries
+        for _ in range(count):
+            GovernmentInternshipProgram.objects.create(
+                **beneficiary_data(),
+                education_level=random.choice([
+                    "als",
+                    "juniors_hs",
+                    "senior_hs",
+                    "tech_voc",
+                    "college",
+                ]),
+                has_nc_certification=random.choice([True, False]),
+                is_absorbed_by_agency=random.choice([True, False]),
+            )
+
+        created["GIP"] = count
+
+        # TUPAD beneficiaries
+        for _ in range(count):
+            TupadBeneficiary.objects.create(
+                **beneficiary_data(),
+                project_type=random.choice(["short", "long"]),
+                project_name=random.choice([
+                    "Community Cleanup",
+                    "Drainage Maintenance",
+                    "Roadside Clearing",
+                    "Public Facility Maintenance",
+                    "Community Gardening",
+                ]),
+            )
+
+        created["TUPAD"] = count
+
+        # DILP beneficiaries
+        for _ in range(count):
+            DisplacedInformalLaborProgram.objects.create(
+                **beneficiary_data(),
+                project_category=random.choice([
+                    "individual", "group"
+                ]),
+                project_classification=random.choice([
+                    "formation",
+                    "enhancement",
+                    "restoration",
+                ]),
+            )
+
+        created["DILP"] = count
+
+        # Career Guidance beneficiaries
+        for _ in range(count):
+            CareerGuidanceBeneficiary.objects.create(
+                **beneficiary_data(),
+                participant_category=random.choice([
+                    "juniors_hs",
+                    "senior_hs",
+                    "college",
+                    "tech_voc",
+                    "osy",
+                    "jobseeker",
+                ]),
+                activity_type=random.choice([
+                    "orientation",
+                    "coaching",
+                    "lmi_briefing",
+                    "pre_employment",
+                ]),
+                school_or_institution=random.choice(SCHOOLS),
+                preferred_curriculum_exit=random.choice([
+                    "higher_ed",
+                    "employment",
+                    "entrepreneurship",
+                    "skills_dev",
+                    "undecided",
+                ]),
+                conducted_date=random_date(start_range, today),
+                has_received_lmi_materials=random.choice([True, False]),
+            )
+
+        created["Career Guidance"] = count
+
+        # PESO activities require an existing User foreign key.
+        users = list(User.objects.all())
+
+        if users:
+            for _ in range(activity_count):
+                activity_name, description = random.choice(ACTIVITIES)
+                activity_date = random_date(start_range, end_range)
+
+                PESOActivities.objects.create(
+                    activity_name=activity_name,
+                    activity_description=description,
+                    number_of_participants=random.randint(10, 250),
+                    activity_date=activity_date,
+                    activity_time=time(
+                        hour=random.randint(8, 16),
+                        minute=random.choice([0, 15, 30, 45]),
                     ),
-                )
-            )
-
-            applicants.append(applicant)
-
-        self.stdout.write(
-            f"  Applicants: {len(applicants):,}"
-        )
-
-        return applicants
-
-    # =========================================================
-    # EMPLOYERS
-    # =========================================================
-
-    def create_employers(
-        self,
-        fake,
-        count,
-        with_images,
-    ):
-
-        employers = []
-
-        company_names = [
-            "Eastern Visayas Technology Solutions",
-            "Leyte Business Solutions",
-            "Tacloban Digital Services",
-            "Visayas Software Development",
-            "Eastern Visayas Trading Corporation",
-            "Leyte Manufacturing Corporation",
-            "Tacloban Hospitality Group",
-            "Eastern Visayas Healthcare Services",
-            "Visayas Logistics Corporation",
-            "Leyte Construction Services",
-            "Eastern Visayas Financial Services",
-            "Tacloban Retail Group",
-            "Visayas Agricultural Corporation",
-            "Leyte Telecommunications",
-            "Eastern Visayas Consulting Group",
-        ]
-
-        for _ in range(count):
-
-            company_name = (
-                f"{random.choice(company_names)} "
-                f"{random.randint(100, 999)}"
-            )
-
-            username = (
-                "employer_"
-                f"{uuid.uuid4().hex[:8]}"
-            )
-
-            email = (
-                f"{username}"
-                "@example.com"
-            )
-
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password="Password123!",
-                role="employer",
-                is_active=True,
-            )
-
-            if with_images:
-                self.add_avatar(
-                    user,
-                    seed=str(user.uuid),
-                    style="personas",
+                    activity_location=(
+                        f"{random.choice(BARANGAYS)}, "
+                        f"{random.choice(MUNICIPALITIES)}, Cebu"
+                    ),
+                    organizer=random.choice(AGENCIES),
+                    added_by=random.choice(users),
                 )
 
-            employer = EmployerProfile.objects.create(
-                user=user,
-                company_name=company_name,
-                company_type=random.choice([
-                    "private",
-                    "government",
-                    "non_profit",
-                    "other",
-                ]),
-                business_permit=self.fake_business_permit(),
-                email=fake.unique.company_email(),
-                phone_number=self.philippine_phone(),
-                company_address=(
-                    f"{random.randint(1, 999)} "
-                    f"{fake.street_name()}, "
-                    f"Tacloban City, Leyte"
-                ),
-                contact_person=fake.name(),
-                verification_status=random.choice([
-                    "pending",
-                    "verified",
-                    "verified",
-                    "verified",
-                    "rejected",
-                ]),
-            )
-
-            employers.append(employer)
-
-        self.stdout.write(
-            f"  Employers: {len(employers):,}"
-        )
-
-        return employers
-
-    # =========================================================
-    # JOBS
-    # =========================================================
-
-    def create_jobs(
-        self,
-        fake,
-        employers,
-        count,
-    ):
-
-        jobs = []
-
-        job_titles = [
-            "Software Developer",
-            "Web Developer",
-            "Backend Developer",
-            "Frontend Developer",
-            "Full Stack Developer",
-            "IT Support Specialist",
-            "Network Administrator",
-            "Cybersecurity Analyst",
-            "Data Entry Specialist",
-            "Administrative Assistant",
-            "Accountant",
-            "Bookkeeper",
-            "Customer Service Representative",
-            "Sales Representative",
-            "Marketing Assistant",
-            "Graphic Designer",
-            "Video Editor",
-            "HR Assistant",
-            "Project Coordinator",
-            "Electrical Technician",
-        ]
-
-        job_descriptions = [
-            "We are looking for a motivated professional to join our team.",
-            "The successful candidate will work with our team on daily operations and projects.",
-            "This position requires someone who is organized, responsible, and willing to learn.",
-            "The candidate will support the company's daily activities and assigned projects.",
-        ]
-
-        requirements = [
-            "Good communication skills",
-            "Ability to work with a team",
-            "Computer literate",
-            "Strong problem-solving skills",
-            "Willing to learn",
-            "Relevant educational background",
-        ]
-
-        sectors = [
-            "BPO / IT",
-            "Finance",
-            "Administrative",
-            "Hospitality",
-            "Wholesale & Retail",
-            "Logistics",
-            "Manufacturing",
-            "Construction",
-            "Healthcare",
-            "Education",
-            "Public Sector",
-            "Agriculture",
-        ]
-
-        for _ in range(count):
-
-            employer = random.choice(employers)
-
-            title = random.choice(job_titles)
-
-            job = Jobs.objects.create(
-                job_title=title,
-                job_description=random.choice(
-                    job_descriptions
-                ),
-                job_requirements="\n".join(
-                    random.sample(
-                        requirements,
-                        k=random.randint(3, 6),
-                    )
-                ),
-                job_location=random.choice([
-                    "Tacloban City",
-                    "Palo, Leyte",
-                    "Tanauan, Leyte",
-                    "Ormoc City",
-                    "Baybay City",
-                    "Cebu City",
-                    "Manila",
-                    "Remote",
-                ]),
-                job_type=random.choice([
-                    "full_time",
-                    "part_time",
-                    "contract",
-                    "internship",
-                ]),
-                vacancy=random.randint(1, 15),
-                salary=random.randint(
-                    12000,
-                    60000,
-                ),
-                employer=employer,
-                status=random.choice([
-                    "Active",
-                    "Active",
-                    "Active",
-                    "Pending",
-                    "Filled",
-                    "Closed",
-                ]),
-                job_posting_expiry=timezone.make_aware(
-                fake.date_time_between(
-                    start_date="+30d",
-                    end_date="+180d",
-                )
-),
-            )
-
-            jobs.append(job)
-
-        self.stdout.write(
-            f"  Jobs: {len(jobs):,}"
-        )
-
-        return jobs
-
-    # =========================================================
-    # PREFERRED JOBS
-    # =========================================================
-
-    def assign_preferred_jobs(
-        self,
-        applicants,
-        jobs,
-    ):
-
-        if not jobs:
-            return
-
-        for applicant in applicants:
-
-            preferred = random.sample(
-                jobs,
-                k=random.randint(
-                    1,
-                    min(5, len(jobs)),
-                ),
-            )
-
-            applicant.preferred_job.set(
-                preferred
-            )
-
-        self.stdout.write(
-            "  Preferred jobs assigned."
-        )
-
-    # =========================================================
-    # APPLICATIONS
-    # =========================================================
-
-    def create_applications(
-        self,
-        applicants,
-        jobs,
-        count,
-    ):
-
-        applications = []
-
-        # Not every applicant needs to apply to every job.
-        for applicant in applicants:
-
-            number_of_applications = random.randint(
-                0,
-                min(5, len(jobs)),
-            )
-
-            selected_jobs = random.sample(
-                jobs,
-                k=number_of_applications,
-            )
-
-            for job in selected_jobs:
-
-                application = AppliedJobs.objects.create(
-                    applicant=applicant,
-                    applied_job=job,
-                    is_hired=False,
-                    status=random.choice([
-                        "pending",
-                        "reviewed",
-                        "for interview",
-                        "hired",
-                        "rejected",
-                    ]),
-                )
-
-                applications.append(
-                    application
-                )
-
-        self.stdout.write(
-            f"  Applications: {len(applications):,}"
-        )
-
-        return applications
-
-    # =========================================================
-    # OFFERS
-    # =========================================================
-
-    def create_offers(
-        self,
-        applications,
-    ):
-
-        offers = []
-
-        # Only a percentage of applications receive offers.
-        for application in applications:
-
-            if application.status not in [
-                "for interview",
-                "hired",
-            ]:
-                continue
-
-            if random.random() > 0.25:
-                continue
-
-            offer = OfferedJobs.objects.create(
-                applicant=application.applicant,
-                offered_job=application.applied_job,
-                referred_by=random.choice([
-                    "PESO",
-                    "MSWDO",
-                    "Employer",
-                    "Job Fair",
-                    "Online Application",
-                    None,
-                ]),
-                status=random.choice([
-                    "pending",
-                    "reviewed",
-                    "for interview",
-                    "hired",
-                ]),
-                remarks=random.choice([
-                    None,
-                    "Candidate recommended for interview.",
-                    "Employer requested additional documents.",
-                    "Candidate qualified for the position.",
-                ]),
-            )
-
-            offers.append(offer)
-
-        self.stdout.write(
-            f"  Offers: {len(offers):,}"
-        )
-
-        return offers
-
-    # =========================================================
-    # UTILITIES
-    # =========================================================
-
-    def unique_username(
-        self,
-        first_name,
-        last_name,
-    ):
-
-        base = (
-            f"{first_name.lower()}"
-            f".{last_name.lower()}"
-        )
-
-        username = base
-
-        while User.objects.filter(
-            username=username
-        ).exists():
-
-            username = (
-                f"{base}"
-                f"{random.randint(1000, 9999)}"
-            )
-
-        return username
-
-    def philippine_phone(self):
-
-        return (
-            "09"
-            f"{random.randint(10, 99)}"
-            f"{random.randint(1000000, 9999999)}"
-        )
-
-    def fake_business_permit(self):
-
-        return ContentFile(
-            b"Sample business permit for development data.",
-            name=f"business_permit_{uuid.uuid4().hex}.txt",
-        )
-
-    # =========================================================
-    # DICEBEAR AVATAR
-    # =========================================================
-
-    def add_avatar(
-        self,
-        user,
-        seed,
-        style="personas",
-    ):
-
-        try:
-
-            url = (
-                f"https://api.dicebear.com/10.x/"
-                f"{style}/png"
-                f"?seed={seed}&size=256"
-            )
-
-            request = Request(
-                url,
-                headers={
-                    "User-Agent": "Django Development Seeder"
-                },
-            )
-
-            with urlopen(
-                request,
-                timeout=10,
-            ) as response:
-
-                image_data = response.read()
-
-            user.profile_picture.save(
-                f"{user.username}.png",
-                ContentFile(image_data),
-                save=True,
-            )
-
-        except Exception as exc:
-
+            created["PESO Activities"] = activity_count
+        else:
+            created["PESO Activities"] = 0
             self.stdout.write(
                 self.style.WARNING(
-                    f"Could not download avatar for "
-                    f"{user.username}: {exc}"
+                    "No User records found. PESO activities were skipped "
+                    "because added_by requires an existing user."
                 )
             )
+
+        self.stdout.write(self.style.SUCCESS(
+            "Development seed data created successfully:"
+        ))
+
+        for label, amount in created.items():
+            self.stdout.write(f"  {label}: {amount}")
+
+        self.stdout.write(
+            f"  Total created: {sum(created.values())}"
+        )

@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -36,52 +37,93 @@
         <!-- Sidebar -->
         <aside class="w-full bg-admin-dark text-white md:fixed md:inset-y-0 md:left-0 md:flex md:w-64 md:flex-col">
 
+            <!-- Branding -->
             <div class="border-b border-slate-700 px-6 py-6">
-                <a href="{% url 'super_login' %}"
+                <a href="{% url 'superadmin-dashboard' %}"
                    class="text-xl font-bold tracking-wide">
                     <span class="mr-2 text-blue-400">◆</span>
                     Super Admin
                 </a>
+
                 <p class="mt-2 text-xs text-slate-400">
                     Management Console
                 </p>
             </div>
 
+            <!-- Navigation -->
             <nav class="flex flex-wrap gap-2 p-4 md:flex-1 md:flex-col">
 
+                <!-- Dashboard -->
                 <a href="{% url 'superadmin-dashboard' %}"
-                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar {% if request.resolver_match.url_name == 'super_login' %}border-l-4 border-blue-400 bg-admin-sidebar text-white{% else %}text-slate-300{% endif %}">
-                    <span class="mr-3">▦</span> Dashboard
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'superadmin-dashboard' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">▦</span>
+                    Dashboard
                 </a>
 
+                <!-- Manage Users -->
                 <a href="{% url 'superadmin-users' %}"
-                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar {% if request.resolver_match.url_name == 'superadmin_users' %}border-l-4 border-blue-400 bg-admin-sidebar text-white{% else %}text-slate-300{% endif %}">
-                    <span class="mr-3">♙</span> Manage Users
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'superadmin-users' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">♙</span>
+                    Manage Users
                 </a>
 
+                <!-- Create MSWDO Account -->
+                <a href="{% url 'create_mswdo_account' %}"
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'create_mswdo_account' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">＋</span>
+                    Create MSWDO Account
+                </a>
+
+                <!-- System Logs -->
                 <a href="{% url 'superadmin-system-logs' %}"
-                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar {% if request.resolver_match.url_name == 'superadmin_system_logs' %}border-l-4 border-blue-400 bg-admin-sidebar text-white{% else %}text-slate-300{% endif %}">
-                    <span class="mr-3">≡</span> System Logs
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'superadmin-system-logs' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">≡</span>
+                    System Logs
                 </a>
 
-                <div class="hidden border-t border-slate-700 md:block md:my-4"></div>
+                <div class="my-2 hidden border-t border-slate-700 md:block"></div>
 
+                <!-- Logout -->
                 <form method="post"
                       action="{% url 'super_logout' %}"
                       class="w-full md:mt-auto">
                     {% csrf_token %}
+
                     <button type="submit"
                             class="w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:bg-red-500/10 hover:text-red-300">
-                        <span class="mr-3">↪</span> Logout
+                        <span class="mr-3">↪</span>
+                        Logout
                     </button>
                 </form>
             </nav>
 
+            <!-- Sidebar footer -->
             <div class="hidden border-t border-slate-700 px-6 py-4 md:block">
                 <p class="text-xs text-slate-500">
                     Admin Management System
                 </p>
             </div>
+
         </aside>
 
         <!-- Main content -->
@@ -95,26 +137,33 @@
                         <h1 class="text-xl font-bold tracking-tight text-slate-800 sm:text-2xl">
                             {% block heading %}Dashboard{% endblock %}
                         </h1>
+
                         <p class="mt-1 text-sm text-slate-500">
                             Super Admin Management Panel
                         </p>
                     </div>
 
+                    <!-- Logged-in administrator -->
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
                             {{ request.user.email|first|upper|default:"A" }}
                         </div>
+
                         <div class="min-w-0">
                             <p class="max-w-56 truncate text-sm font-semibold text-slate-800">
                                 {{ request.user.email|default:"Administrator" }}
                             </p>
-                            <p class="text-xs text-slate-500">Administrator</p>
+
+                            <p class="text-xs text-slate-500">
+                                Administrator
+                            </p>
                         </div>
                     </div>
 
                 </div>
             </header>
 
+            <!-- Page content -->
             <div class="p-5 sm:p-8">
 
                 <!-- Django messages -->
@@ -145,5 +194,6 @@
     </div>
 
     {% block extra_js %}{% endblock %}
+
 </body>
 </html>

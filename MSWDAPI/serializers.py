@@ -1,5 +1,11 @@
 from rest_framework import serializers
 from AdminSide.models import SpecialProgramForEmploymentOfStudents,GovernmentInternshipProgram,TupadBeneficiary,DisplacedInformalLaborProgram,CareerGuidanceBeneficiary
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+    
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = "email"
+
 
 
 class SpecialProgramForEmploymentOfStudentsSerializer(serializers.ModelSerializer):

@@ -8,6 +8,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
+from datetime import timedelta
 
 load_dotenv()
 
@@ -179,7 +180,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1 
+AXES_COOLOFF_TIME = timedelta(seconds=20)
 AXES_RESET_ON_SUCCESS = True
 
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
