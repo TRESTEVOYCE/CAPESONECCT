@@ -73,7 +73,9 @@
     <div x-show="sidebarOpen" x-cloak x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-slate-950/70 z-40 lg:hidden" aria-hidden="true">
     </div>
     <!-- SIDEBAR -->
+
     <aside id="applicant-sidebar" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] border-r border-slate-800/80 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shrink-0 flex flex-col text-slate-300 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
+        
         <!-- PESO BRAND -->
         <div class="p-5 border-b border-slate-800/80 flex flex-col items-center text-center space-y-1">
             <div class="w-14 h-14 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shadow-md border-2 border-white/20">
@@ -89,245 +91,102 @@
                 Job Seeker Portal
             </div>
         </div>
+
         <!-- ACCOUNT STATUS -->
-        {% if applicant_profile.status == 'approved' %}
-        <div class="mx-3 mt-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
-            <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            <div class="text-[11px] leading-tight">
-                <span class="font-bold text-emerald-200 block mb-0.5">
-                    Account Approved
-                </span>
-                Your account has been verified. You can now apply for jobs.
-            </div>
-
-        {% elif applicant_profile.status == 'rejected' %}
-
-            <div class="mx-3 mt-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5">
-
-                <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"/>
+        <div class="px-3 pt-3">
+            {% if applicant_profile.status == 'approved' %}
+            <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
-
                 <div class="text-[11px] leading-tight">
-                    <span class="font-bold text-rose-200 block mb-0.5">
-                        Account Rejected
-                    </span>
-
-                    Your account verification was rejected.
-                    Submit an appeal if you believe this decision should be reviewed.
+                    <span class="font-bold text-emerald-200 block mb-0.5">Account Approved</span>
+                    Your account has been verified. You can now apply for jobs.
                 </div>
-
+            </div>
+            {% elif applicant_profile.status == 'rejected' %}
+            <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex flex-col gap-2.5">
+                <div class="flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <div class="text-[11px] leading-tight">
+                        <span class="font-bold text-rose-200 block mb-0.5">Account Rejected</span>
+                        Verification rejected. Submit an appeal for review.
+                    </div>
+                </div>
                 <form method="post" action="{% url 'applicant-reverification-appeal' %}" class="w-full">
                     {% csrf_token %}
                     <label for="applicantAppealReason" class="sr-only">Reason for appeal</label>
-                    <textarea id="applicantAppealReason" name="reason" rows="2" maxlength="2000" required placeholder="Reason for appeal" class="w-full rounded-lg border border-rose-400/30 bg-slate-900/50 p-2 text-[11px] text-white placeholder:text-slate-400"></textarea>
-                    <button type="submit" class="mt-2 w-full rounded-lg bg-rose-500/20 px-3 py-2 text-[11px] font-bold text-rose-100 hover:bg-rose-500/30">
+                    <textarea id="applicantAppealReason" name="reason" rows="2" maxlength="2000" required placeholder="Reason for appeal..." class="w-full rounded-lg border border-rose-400/30 bg-slate-900/50 p-2 text-[11px] text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-400"></textarea>
+                    <button type="submit" class="mt-2 w-full rounded-lg bg-rose-500/20 px-3 py-2 text-[11px] font-bold text-rose-100 hover:bg-rose-500/30 transition-colors">
                         Appeal for Reverification
                     </button>
                 </form>
-
             </div>
-
-        {% else %}
-
-            <div class="mx-3 mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-
-                <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
+            {% else %}
+            <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
                 </svg>
-
                 <div class="text-[11px] leading-tight">
-                    <span class="font-bold text-amber-200 block mb-0.5">
-                        Account Pending
-                    </span>
-
-                    PESO Admin is reviewing your credentials.
-                    You can browse jobs but cannot apply until approved.
+                    <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
+                    PESO Admin is reviewing your credentials. You can browse jobs while waiting.
                 </div>
-
             </div>
-
-        {% endif %}
-
-        <!-- NAVIGATION LABEL -->
-        <div class="px-5 pt-5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navigation</div>
+            {% endif %}
+        </div>
 
         <!-- NAVIGATION -->
-        <nav class="flex-1 px-3 py-1 space-y-1 overflow-y-auto text-xs font-semibold">
-
-            <!-- Dashboard -->
-            <a href="{% url 'applicant-dashboard' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'applicant-dashboard' %}bg-amber-400 text-slate-950 shadow-sm font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
-                Job Matches
+        <div class="px-5 pt-5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Navigation</div>
+        
+        <nav aria-label="Main navigation" class="flex-1 px-3 py-1 space-y-1 overflow-y-auto text-xs font-semibold">
+            {% with current_url=request.resolver_match.url_name %}
+            
+            <!-- Dashboard / Job Matches -->
+            <a href="{% url 'applicant-dashboard' %}" {% if current_url == 'dashboard' or current_url == 'applicant-dashboard' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'dashboard' or current_url == 'applicant-dashboard' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
+                <span>Job Matches</span>
             </a>
 
             <!-- Browse All Jobs -->
-            <a href="{% url 'job_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if request.resolver_match.url_name == 'job_list' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                Browse All Jobs
+            <a href="{% url 'job_list' %}" {% if current_url == 'job_list' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'job_list' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>Browse All Jobs</span>
             </a>
 
-            <!-- Applications -->
-            <a href="{% url 'applied_jobs' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if request.resolver_match.url_name == 'applied_jobs' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                My Applications
+            <!-- My Applications -->
+            <a href="{% url 'applied_jobs' %}" {% if current_url == 'applied_jobs' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'applied_jobs' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>My Applications</span>
             </a>
 
             <!-- Saved Jobs -->
-            <a href="{% url 'saved_jobs' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if request.resolver_match.url_name == 'saved_jobs' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                Saved Jobs
-            </a>
-
-            <!-- Profile -->
-            <a href="{% url 'my_profile' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if request.resolver_match.url_name == 'my_profile' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                My Profile
-            </a>
-        </nav>
-
-        <!-- HELP -->
-        <div class="m-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
-            <div class="flex items-center gap-1.5 font-bold text-white">
-                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Need Help?
-            </div>
-            <p class="text-slate-400 leading-relaxed text-[10px]">If you need assistance, please contact PESO Carigara.</p>
-        </div>
-        {% elif applicant_profile.status == 'rejected' %}
-        <div class="mx-3 mt-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5">
-            <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            <div class="text-[11px] leading-tight">
-                <span class="font-bold text-rose-200 block mb-0.5">
-                    Account Rejected
-                </span>
-                Your account verification was rejected. Please contact
-                PESO Carigara for assistance.
-            </div>
-        </div>
-        {% else %}
-        <div class="mx-3 mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856
-                         c1.54 0 2.502-1.667 1.732-3L13.732 4
-                         c-.77-1.333-2.694-1.333-3.464 0L3.34 16
-                         c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <div class="text-[11px] leading-tight">
-                <span class="font-bold text-amber-200 block mb-0.5">
-                    Account Pending
-                </span>
-                PESO Admin is reviewing your credentials. You can browse
-                jobs, but you may not apply until your account is approved.
-            </div>
-        </div>
-        {% endif %}
-        <!-- NAVIGATION LABEL -->
-        <div class="px-5 pt-5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Navigation
-        </div>
-        <!-- NAVIGATION -->
-        <nav aria-label="Main navigation" class="flex-1 px-3 py-1 space-y-1 overflow-y-auto text-xs font-semibold">
-            {% with current_url=request.resolver_match.url_name %}
-            <!-- DASHBOARD -->
-            <a href="{% url 'applicant-dashboard' %}" {% if current_url == 'dashboard' or current_url == 'applicant-dashboard' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'dashboard' or current_url == 'applicant-dashboard' %}bg-amber-400 text-slate-950 font-bold shadow-sm{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10
-                             a1 1 0 001 1h3m10-11l2 2m-2-2v10
-                             a1 1 0 01-1 1h-3m-6 0h6"/>
-                </svg>
-                <span>Job Matches</span>
-            </a>
-            <!-- BROWSE JOBS -->
-            <a href="{% url 'job_list' %}" {% if current_url == 'job_list' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'job_list' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15
-                             c-3.183 0-6.22-.62-9-1.745M16 6V4
-                             a2 2 0 00-2-2h-4a2 2 0 00-2 2v2
-                             m4 6h.01M5 20h14a2 2 0 002-2V8
-                             a2 2 0 00-2-2H5a2 2 0 00-2 2v10
-                             a2 2 0 002 2z"/>
-                </svg>
-                <span>Browse All Jobs</span>
-            </a>
-            <!-- APPLICATIONS -->
-            <a href="{% url 'applied_jobs' %}" {% if current_url == 'applied_jobs' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'applied_jobs' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12
-                             a2 2 0 002 2h10a2 2 0 002-2V7
-                             a2 2 0 00-2-2h-2M9 5
-                             a2 2 0 002 2h2a2 2 0 002-2
-                             M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <span>My Applications</span>
-            </a>
-            <!-- SAVED JOBS -->
             <a href="{% url 'saved_jobs' %}" {% if current_url == 'saved_jobs' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'saved_jobs' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16
-                             l-7-3.5L5 21V5z"/>
-                </svg>
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                 <span>Saved Jobs</span>
             </a>
-            <!-- PROFILE -->
+
+            <!-- My Profile -->
             <a href="{% url 'my_profile' %}" {% if current_url == 'my_profile' or current_url == 'personal_info' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'my_profile' or current_url == 'personal_info' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z
-                             M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>My Profile</span>
             </a>
-            <!-- SETTINGS -->
+
+            <!-- Settings -->
             <a href="{% url 'settings' %}" {% if current_url == 'settings' %}aria-current="page"{% endif %} @click="sidebarOpen = false" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {% if current_url == 'settings' %}bg-amber-400 text-slate-950 font-bold{% else %}text-slate-300 hover:bg-slate-800/60 hover:text-white{% endif %}">
-                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756
-                             3.35 0a1.724 1.724 0 002.573 1.066
-                             c1.543-.94 3.31.826 2.37 2.37
-                             a1.724 1.724 0 001.065 2.572
-                             c1.756.426 1.756 2.924 0 3.35
-                             a1.724 1.724 0 00-1.066 2.573
-                             c.94 1.543-.826 3.31-2.37 2.37
-                             a1.724 1.724 0 00-2.572 1.065
-                             c-.426 1.756-2.924-1.756-3.35 0
-                             a1.724 1.724 0 00-2.573-1.066
-                             c-1.543.94-3.31-.826-2.37-2.37
-                             a1.724 1.724 0 00-1.065-2.572
-                             c-1.756-.426-1.756-2.924 0-3.35
-                             a1.724 1.724 0 001.066-2.573
-                             c-.94-1.543.826-3.31 2.37-2.37
-                             .996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
+                <svg class="w-4 h-4 shrink-0" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span>Settings</span>
             </a>
+            
             {% endwith %}
         </nav>
         
-<!-- HELP (CLICKABLE) -->
+        <!-- HELP BOX -->
         <a href="{% url 'applicant-help' %}" @click="sidebarOpen = false" class="block m-3 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1.5 hover:bg-slate-800/80 hover:border-amber-400/50 transition-all cursor-pointer group">
             <div class="flex items-center gap-1.5 font-bold text-white group-hover:text-amber-400 transition-colors">
                 <svg class="w-3.5 h-3.5 text-amber-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2
-                             2.21 0 4 1.343 4 3
-                             0 1.4-1.278 2.575-3.006 2.907
-                             -.542.104-.994.54-.994 1.093
-                             m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span>Need Help?</span>
             </div>

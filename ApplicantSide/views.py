@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text
 from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User
-from django.contrib.auth.views import LogoutView as DjangoLogoutView
+from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from .forms import ProfilePictureForm
@@ -736,3 +736,209 @@ class MyProfileView(ApplicantRequiredMixin, TemplateView):
         context['applicant_profile'] = profile
         context['account_email'] = self.request.user.email
         return context
+
+# ==========================================
+# SETTINGS & SECURE ACCOUNT MANAGEMENT VIEWS
+# ==========================================
+
+class SettingsView(ApplicantRequiredMixin, TemplateView):
+    template_name = 'settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = ApplicantProfile.objects.filter(user=self.request.user).first()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        full_name = request.POST.get('full_name')
+        if full_name:
+            user = request.user
+            user.first_name = full_name.strip()
+            user.save()
+            
+            applicant_profile = ApplicantProfile.objects.filter(user=user).first()
+            if applicant_profile and hasattr(applicant_profile, 'full_name'):
+                applicant_profile.full_name = full_name.strip()
+                applicant_profile.save()
+
+            messages.success(request, "Your name has been updated successfully.")
+
+        messages.success(request, "Your settings preferences have been saved.")
+        return redirect('settings')
+
+
+@login_required
+def send_email_otp(request):
+    if request.method == "POST":
+        new_email = request.POST.get("email")
+        if not new_email:
+            return JsonResponse({"status": "error", "message": "Email is required."}, status=400)
+        
+        if User.objects.filter(email=new_email).exclude(pk=request.user.pk).exists():
+            return JsonResponse({"status": "error", "message": "This email address is already in use."}, status=400)
+        
+        otp_code = str(random.randint(100000, 999999))
+        
+        request.session['pending_new_email'] = new_email
+        request.session['email_otp_code'] = otp_code
+        
+        try:
+            send_mail(
+                subject="Your CAPESONNECT Verification Code",
+                message=f"Your One-Time Password (OTP) to change your email is: {otp_code}. Valid for 10 minutes.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[new_email],
+                fail_silently=False,
+            )
+            return JsonResponse({"status": "success", "message": "OTP sent successfully."})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            
+    return JsonResponse({"status": "error", "message": "Invalid request method."}, status=405)
+
+
+@login_required
+def update_email_view(request):
+    if getattr(request.user, 'role', '') != 'applicant':
+        return redirect('applicant-dashboard')
+        
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp_code", "").strip()
+        session_email = request.session.get('pending_new_email')
+        session_otp = request.session.get('email_otp_code')
+        
+        if not session_otp or not session_email:
+            messages.error(request, "Please request a verification code first.")
+        elif entered_otp != session_otp:
+            messages.error(request, "Invalid verification code. Please try again.")
+        elif User.objects.filter(email=session_email).exclude(pk=request.user.pk).exists():
+            messages.error(request, "This email address is already registered to another account.")
+        else:
+            user = request.user
+            user.email = session_email
+            if hasattr(user, 'username') and user.username == user.email:
+                user.username = session_email
+            user.save()
+            
+            request.session.pop('pending_new_email', None)
+            request.session.pop('email_otp_code', None)
+            
+            messages.success(request, "Your email address has been successfully updated.")
+            return redirect('settings')
+            
+    return render(request, 'change_email.html')
+
+
+@login_required
+def send_password_otp_view(request):
+    otp = str(random.randint(100000, 999999))
+    
+    request.session['password_otp'] = otp
+    request.session['otp_verified'] = False
+
+    send_mail(
+        subject='Password Change Verification Code — CAPESONNECT',
+        message=f'Your security verification code to change your password is: {otp}. This code expires shortly.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[request.user.email],
+        fail_silently=False,
+    )
+    
+    return redirect('verify-password-otp')
+
+
+@login_required
+def verify_password_otp_view(request):
+    if request.method == 'POST':
+        user_otp = request.POST.get('otp')
+        if user_otp == request.session.get('password_otp'):
+            request.session['otp_verified'] = True
+            return redirect('update-password')
+        else:
+            messages.error(request, "Invalid OTP code. Please try again.")
+            
+    return render(request, 'verify_otp.html')
+
+
+class SecurePasswordChangeView(PasswordChangeView):
+    template_name = 'change_password.html'
+    success_url = reverse_lazy('settings')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.session.get('otp_verified', False):
+            messages.warning(request, "Please verify your email with an OTP first.")
+            return redirect('send-password-otp')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        request = self.request
+        request.session.pop('password_otp', None)
+        request.session.pop('otp_verified', None)
+        
+        update_session_auth_hash(request, request.user)
+        
+        messages.success(request, "Your password has been changed successfully.")
+        return super().form_valid(form)
+
+
+class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
+    model = User
+    form_class = UpdateUsernameForm
+    template_name = 'update_username.html'
+    success_url = reverse_lazy('my_profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Username updated successfully.')
+        return super().form_valid(form)
+
+
+class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ApplicantProfile
+    success_url = reverse_lazy('login')
+
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
+
+    def get_object(self, queryset=None):
+        return ApplicantProfile.objects.get(user=self.request.user)
+
+
+# ==========================================
+# HELP & SUPPORT API / VIEW
+# ==========================================
+
+@login_required
+def send_applicant_support_message_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            subject = data.get('subject', 'CAPESONNECT Applicant Support')
+            user_message = data.get('message', '')
+            
+            user_email = getattr(request.user, 'email', None) or 'Not provided'
+            sender_info = f"Applicant Username: {request.user.username}\nEmail: {user_email}\n\n"
+            full_message = sender_info + "Message:\n" + user_message
+            
+            send_mail(
+                subject=subject,
+                message=full_message,
+                from_email=None,
+                recipient_list=['pesocarigaraadmin@gmail.com'],
+                fail_silently=False,
+            )
+            
+            return JsonResponse({'status': 'success', 'message': 'Message sent successfully!'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+class HelpPageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'applicant_help.html'
+
+    def test_func(self):
+        return self.request.user.is_authenticated and getattr(self.request.user, 'role', '') == 'applicant'
