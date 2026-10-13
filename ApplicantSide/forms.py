@@ -1,7 +1,8 @@
 from django import forms
 from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience,User
 from django.contrib.auth.forms import SetPasswordForm
-
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 TAILWIND_INPUT_CLASSES = {
@@ -215,6 +216,24 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
 
         return instance
 
+    def clean_date_of_birth(self):
+        dob = self.cleaned_data.get('date_of_birth')
+
+        if dob:
+            today = timezone.localdate()
+
+            age = today.year - dob.year - (
+                (today.month, today.day) < (dob.month, dob.day)
+            )
+
+            if age < 18:
+                raise ValidationError(
+                    'Applicant must be at least 18 years old.'
+                )
+
+        return dob
+
+
     class Meta:
         model = ApplicantProfile
 
@@ -264,20 +283,66 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
         }
 
 
-
-
 class ApplicantAddressForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field_name in ('phone_number', 'barangay', 'municipality', 'province'):
+
+        for field_name in (
+            'phone_number',
+            'barangay',
+            'municipality',
+            'province'
+        ):
             self.fields[field_name].required = True
+
         apply_tailwind_widgets(self)
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+
+        if phone and not phone.isdigit():
+            raise ValidationError(
+                'Phone number must contain numbers only.'
+            )
+
+        return phone
+
+    def clean_mobile_number_secondary(self):
+        mobile = self.cleaned_data.get('mobile_number_secondary')
+
+        if mobile and not mobile.isdigit():
+            raise ValidationError(
+                'Secondary mobile number must contain numbers only.'
+            )
+
+        return mobile
+
+    def clean_landline_number(self):
+        landline = self.cleaned_data.get('landline_number')
+
+        if landline and not landline.isdigit():
+            raise ValidationError(
+                'Landline number must contain numbers only.'
+            )
+
+        return landline
 
     class Meta:
         model = ApplicantProfile
 
-        fields = [ 'house_street', 'barangay', 'municipality', 'province', 'region', 'zip_code', 'phone_number', 'mobile_number_secondary', 'landline_number', 'email_address'] 
+        fields = [
+            'house_street',
+            'barangay',
+            'municipality',
+            'province',
+            'region',
+            'zip_code',
+            'phone_number',
+            'mobile_number_secondary',
+            'landline_number',
+            'email_address',
+        ]
 
 
 class ApplicantEducationForm(forms.ModelForm):
