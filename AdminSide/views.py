@@ -59,6 +59,14 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
+ADMIN_NOTIFICATION_EXCLUDED_TYPES = ('VERIFICATION_APPROVED', 'VERIFICATION_REJECTED')
+
+
+def get_admin_notification_queryset(user):
+    return Notification.objects.filter(
+        recipient=user,
+    ).exclude(notification_type__in=ADMIN_NOTIFICATION_EXCLUDED_TYPES)
+
 
 def send_applicant_verified_email(applicant):
     if not applicant.user.email:
@@ -646,7 +654,12 @@ class EmployerListView(LoginRequiredMixin, ListView):
                 was_verified = employer.verification_status == 'verified'
                 employer.verification_status = 'verified'
                 employer.save()
-                if not was_verified:
+                approval_notification_exists = Notification.objects.filter(
+                    recipient=employer.user,
+                    notification_type='VERIFICATION_APPROVED',
+                    title='Employer Account Verified',
+                ).exists()
+                if not was_verified or not approval_notification_exists:
                     notify_employer_verified(employer, request.user)
             elif action == 'reject':
                 employer.verification_status = 'rejected'
@@ -731,7 +744,12 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
             was_verified = employer.verification_status == 'verified'
             employer.verification_status = 'verified'
             employer.save()
-            if not was_verified:
+            approval_notification_exists = Notification.objects.filter(
+                recipient=employer.user,
+                notification_type='VERIFICATION_APPROVED',
+                title='Employer Account Verified',
+            ).exists()
+            if not was_verified or not approval_notification_exists:
                 notify_employer_verified(employer, request.user)
         elif action == 'reject':
             if not remarks:
@@ -1844,9 +1862,7 @@ class NotificationListView(LoginRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        queryset = Notification.objects.filter(
-            recipient=self.request.user,
-        ).exclude(notification_type='VERIFICATION_REJECTED')
+        queryset = get_admin_notification_queryset(self.request.user)
         status_filter = self.request.GET.get('status', 'all').lower()
 
         if status_filter == 'unread':
@@ -1858,9 +1874,7 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_notifications = Notification.objects.filter(
-            recipient=self.request.user,
-        ).exclude(notification_type='VERIFICATION_REJECTED')
+        user_notifications = get_admin_notification_queryset(self.request.user)
         
         context.update({
             'unread_count': user_notifications.filter(is_read=False).count(),
@@ -1875,9 +1889,7 @@ class NotificationHeaderApiView(LoginRequiredMixin, View):
     for the navbar dropdown while keeping read notifications visible.
     """
     def get(self, request, *args, **kwargs):
-        user_notifications = Notification.objects.filter(
-            recipient=request.user,
-        ).exclude(notification_type='VERIFICATION_REJECTED')
+        user_notifications = get_admin_notification_queryset(request.user)
         latest_qs = user_notifications.order_by('-created_at', '-pk')[:5]
 
         data = {
@@ -1905,14 +1917,14 @@ class MarkNotificationAsReadView(LoginRequiredMixin, View):
     Marks a single notification as read. Supports both standard POST redirects and AJAX calls.
     """
     def post(self, request, notification_id, *args, **kwargs):
-        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification = get_object_or_404(
+            get_admin_notification_queryset(request.user),
+            id=notification_id,
+        )
         notification.is_read = True
         notification.save(update_fields=['is_read'])
 
-        unread_notifications = Notification.objects.filter(
-            recipient=request.user,
-            is_read=False,
-        ).exclude(notification_type='VERIFICATION_REJECTED')
+        unread_notifications = get_admin_notification_queryset(request.user).filter(is_read=False)
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'status': 'success', 'unread_count': unread_notifications.count()})
 
@@ -1925,10 +1937,9 @@ class MarkAllNotificationsAsReadView(LoginRequiredMixin, View):
     Marks all unread notifications for the current user as read.
     """
     def post(self, request, *args, **kwargs):
-        updated_count = Notification.objects.filter(
-            recipient=request.user, 
-            is_read=False
-        ).exclude(notification_type='VERIFICATION_REJECTED').update(is_read=True)
+        updated_count = get_admin_notification_queryset(request.user).filter(
+            is_read=False,
+        ).update(is_read=True)
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'status': 'success', 'updated_count': updated_count, 'unread_count': 0})
@@ -1941,11 +1952,15 @@ class DeleteNotificationView(LoginRequiredMixin, View):
     Deletes a single notification record.
     """
     def post(self, request, notification_id, *args, **kwargs):
-        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification = get_object_or_404(
+            get_admin_notification_queryset(request.user),
+            id=notification_id,
+        )
         notification.delete()
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'status': 'success', 'unread_count': Notification.objects.filter(recipient=request.user, is_read=False).count()})
+            unread_count = get_admin_notification_queryset(request.user).filter(is_read=False).count()
+            return JsonResponse({'status': 'success', 'unread_count': unread_count})
 
         messages.success(request, "Notification deleted.")
         return redirect('AdminSide:notifications_list')

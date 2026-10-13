@@ -355,6 +355,71 @@ class EmployerNotificationTests(TestCase):
         employer_inbox = self.client.get(reverse('employer-notifications'))
         self.assertContains(employer_inbox, 'Employer Account Verified')
 
+    def test_admin_notification_center_hides_employer_account_approval(self):
+        admin = User.objects.create_superuser(
+            username='notification-admin-approval-inbox',
+            email='notification-admin-approval-inbox@example.com',
+            password='test-password',
+        )
+        approval = Notification.objects.create(
+            recipient=admin,
+            title='Employer Account Verified',
+            message='Your employer account has been verified.',
+            notification_type='VERIFICATION_APPROVED',
+        )
+        self.client.force_login(admin)
+
+        inbox = self.client.get(reverse('AdminSide:notifications_list'))
+        header = self.client.get(reverse('AdminSide:notifications_header_api'))
+
+        self.assertEqual(inbox.status_code, 200)
+        self.assertNotContains(inbox, 'Employer Account Verified')
+        self.assertEqual(header.status_code, 200)
+        self.assertEqual(header.json()['total_count'], 0)
+        self.assertEqual(header.json()['unread_count'], 0)
+        self.assertEqual(header.json()['notifications'], [])
+        self.assertTrue(Notification.objects.filter(pk=approval.pk).exists())
+
+    def test_approval_notifies_preverified_employer_when_notice_is_missing(self):
+        admin = User.objects.create_superuser(
+            username='notification-preverified-admin',
+            email='notification-preverified-admin@example.com',
+            password='test-password',
+        )
+        self.employer.verification_status = 'verified'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(admin)
+
+        response = self.client.post(
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            ),
+            {'action': 'approve'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        notification = Notification.objects.get(
+            recipient=self.employer_user,
+            notification_type='VERIFICATION_APPROVED',
+        )
+        self.assertEqual(notification.title, 'Employer Account Verified')
+        self.assertFalse(Notification.objects.filter(
+            recipient=admin,
+            notification_type='VERIFICATION_APPROVED',
+        ).exists())
+
+    def test_verified_employer_sidebar_shows_approved_status(self):
+        self.employer.verification_status = 'verified'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+
+        response = self.client.get(reverse('employer-notifications'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Account Approved')
+        self.assertNotContains(response, 'Account Pending')
+
     def test_admin_cannot_reject_without_a_reason(self):
         admin = User.objects.create_superuser(
             username='notification-admin-no-reason',
@@ -440,5 +505,103 @@ class EmployerNotificationTests(TestCase):
             recipient=self.employer_user,
             notification_type='APPEAL_REVERIFICATION',
         ).exists())
+
+    def test_reverification_appeal_is_sent_to_mswd_admin_role(self):
+        mswd_admin = User.objects.create_user(
+            username='notification-mswd-admin',
+            email='notification-mswd-admin@example.com',
+            password='test-password',
+            role='mswdo',
+        )
+
+        notifications = notify_admins(
+            title='Appeal for Reverification',
+            message='Test appeal',
+            notification_type='APPEAL_REVERIFICATION',
+        )
+
+        self.assertEqual(len(notifications), 1)
+        self.assertEqual(notifications[0].recipient, mswd_admin)
+        self.assertEqual(notifications[0].notification_type, 'APPEAL_REVERIFICATION')
+
+    def test_employer_appeal_reaches_peso_admin_inbox(self):
+        peso_admin = User.objects.create_user(
+            username='notification-peso-admin',
+            email='notification-peso-admin@example.com',
+            password='test-password',
+            role='peso',
+        )
+        self.employer.verification_status = 'rejected'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+
+        response = self.client.post(
+            reverse('employer-reverification-appeal'),
+            {'reason': 'Updated verification documents are ready for review.'},
+        )
+
+        self.assertRedirects(response, reverse('employer-home'))
+        appeal = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='APPEAL_REVERIFICATION',
+        )
+        self.assertEqual(appeal.reason, 'Updated verification documents are ready for review.')
+
+        self.client.force_login(peso_admin)
+        header = self.client.get(reverse('AdminSide:notifications_header_api'))
+        inbox = self.client.get(reverse('AdminSide:notifications_list'))
+
+        self.assertTrue(any(
+            item['id'] == str(appeal.pk)
+            for item in header.json()['notifications']
+        ))
+        self.assertContains(inbox, 'Appeal for Reverification')
+
+    def test_employer_appeal_reaches_uppercase_peso_admin_role(self):
+        peso_admin = User.objects.create_user(
+            username='notification-uppercase-peso-admin',
+            email='notification-uppercase-peso-admin@example.com',
+            password='test-password',
+            role='PESO',
+        )
+        self.employer.verification_status = 'rejected'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+
+        self.client.post(
+            reverse('employer-reverification-appeal'),
+            {'reason': 'Updated verification documents are ready for review.'},
+        )
+
+        appeal = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='APPEAL_REVERIFICATION',
+        )
+        self.client.force_login(peso_admin)
+        header = self.client.get(reverse('AdminSide:notifications_header_api'))
+        inbox = self.client.get(reverse('AdminSide:notifications_list'))
+        header_data = header.json()
+
+        self.assertEqual(header.status_code, 200)
+        self.assertEqual(header_data['unread_count'], 1)
+        self.assertEqual(header_data['total_count'], 1)
+        self.assertEqual(len(header_data['notifications']), 1)
+        self.assertEqual(header_data['notifications'][0]['id'], str(appeal.pk))
+        self.assertEqual(header_data['notifications'][0]['title'], 'Appeal for Reverification')
+        self.assertEqual(
+            header_data['notifications'][0]['notification_type'],
+            'APPEAL_REVERIFICATION',
+        )
+        self.assertEqual(inbox.status_code, 200)
+        self.assertContains(inbox, 'Appeal for Reverification')
+        self.assertContains(inbox, 'id="notifBellBtn"')
+        self.assertContains(
+            inbox,
+            reverse('AdminSide:notifications_header_api'),
+        )
+        self.assertEqual(
+            inbox.context['notifications'][0],
+            appeal,
+        )
 
 # Create your tests here.
