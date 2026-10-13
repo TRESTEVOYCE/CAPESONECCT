@@ -6,7 +6,10 @@ from .models import Notification, User
 
 def get_admin_users():
     return User.objects.filter(
-        Q(role__in=['admin', 'peso']) | (Q(is_superuser=True) & ~Q(role='employer'))
+        Q(role__iexact='admin')
+        | Q(role__iexact='peso')
+        | Q(role__iexact='mswdo')
+        | (Q(is_superuser=True) & ~Q(role__iexact='employer'))
     ).distinct()
 
 

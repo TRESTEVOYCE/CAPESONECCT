@@ -619,7 +619,9 @@
             if(notifBellBtn && notifDropdown){
                 notifBellBtn.addEventListener('click', (e)=>{
                     e.stopPropagation();
+                    const openingDropdown = notifDropdown.classList.contains('hidden');
                     notifDropdown.classList.toggle('hidden');
+                    if(openingDropdown) fetchHeaderNotifications();
                     if(userDropdown) userDropdown.classList.add('hidden');
                 });
 

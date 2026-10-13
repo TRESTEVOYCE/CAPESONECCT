@@ -59,7 +59,7 @@
         <!-- ACCOUNT STATUS -->
             <div class="px-3 pt-3">
                 {% if request.user.employer_profile %}
-                    {% if request.user.employer_profile.verification_status == 'approved' or request.user.employer_profile.status == 'approved' or request.user.employer_profile.is_verified %}
+                    {% if request.user.employer_profile.verification_status == 'verified' %}
                         <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5">
                             <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -69,7 +69,7 @@
                                 Your account has been verified. You can post and manage jobs.
                             </div>
                         </div>
-                    {% elif request.user.employer_profile.verification_status == 'rejected' or request.user.employer_profile.status == 'rejected' %}
+                    {% elif request.user.employer_profile.verification_status == 'rejected' %}
                         <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex flex-col gap-2.5">
                             <div class="flex items-start gap-2.5">
                                 <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
