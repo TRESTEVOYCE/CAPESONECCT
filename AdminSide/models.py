@@ -326,7 +326,8 @@ class ApplicantProfile(models.Model):
 
     resume = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
     curriculum_vitae = models.FileField(upload_to='applicant_docs/curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
-    applicant_id_picture = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture_back = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture_front = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -345,7 +346,6 @@ class ApplicantProfile(models.Model):
     mobile_number_secondary = models.CharField(max_length=20, blank=True, null=True)
     landline_number = models.CharField(max_length=20, blank=True, null=True)
     email_address = models.EmailField(unique=True, blank=True, null=True)
-    
     
     school_status_yes = models.BooleanField(default=False)
     school_status_no = models.BooleanField(default=False)

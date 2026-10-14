@@ -370,7 +370,7 @@ class Command(BaseCommand):
             formatted_name = f"{f_name} {l_name}"
             app_id_code = f"APP-2026-{i+1:04d}"
             id_file = self.generate_dummy_id_image(formatted_name, app_id_code)
-            app_profile.applicant_id_picture.save(f"id_{app_id_code}.jpg", id_file, save=True)
+            app_profile.applicant_id_picture_front.save(f"id_{app_id_code}.jpg", id_file, save=True)
 
             # Assign random skills & preferred jobs
             app_profile.skills.set(random.sample(created_skills, k=random.randint(2, 4)))

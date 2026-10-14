@@ -8,11 +8,11 @@
 
             <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
 
-                {% if profile and profile.applicant_id_picture %}
+                {% if profile and profile.applicant_id_picture_front %}
 
                     <!-- Applicant uploaded picture -->
                     <img
-                        src="{{ profile.applicant_id_picture.url }}"
+                        src="{{ profile.applicant_id_picture_front.url }}"
                         alt="Profile Picture"
                         class="w-full h-full object-cover"
                     >
@@ -41,10 +41,10 @@
 
 
             <!-- CHANGE PROFILE PICTURE BUTTON -->
-            {% if form and form.applicant_id_picture %}
+            {% if form and form.applicant_id_picture_front %}
 
                 <label
-                    for="{{ form.applicant_id_picture.id_for_label }}"
+                    for="{{ form.applicant_id_picture_front.id_for_label }}"
                     title="Change Profile Picture"
                     class="absolute -bottom-1 -right-1 w-7 h-7 bg-stone-900 hover:bg-stone-800 text-white rounded-full flex items-center justify-center cursor-pointer shadow-3xs text-xs overflow-hidden z-15"
                 >
@@ -56,7 +56,7 @@
                     📷
 
                     <div class="absolute inset-0 opacity-0">
-                        {{ form.applicant_id_picture }}
+                        {{ form.applicant_id_picture_front }}
                     </div>
 
                 </label>

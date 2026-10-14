@@ -359,11 +359,22 @@
                 </h2>
 
                 <div class="border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50 text-center flex flex-col items-center justify-center min-h-[220px]">
-                    {% if applicant.applicant_id_picture %}
-                        <a href="{{ applicant.applicant_id_picture.url }}" target="_blank" rel="noopener noreferrer" title="Click to view full size">
-                            <img src="{{ applicant.applicant_id_picture.url }}" alt="Uploaded Valid ID Document" class="max-h-72 w-auto mx-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
-                        </a>
-                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Click image to inspect full size</p>
+                    {% if applicant.applicant_id_picture_front or applicant.applicant_id_picture_back %}
+                        <div class="flex flex-wrap items-start justify-center gap-4">
+                            {% if applicant.applicant_id_picture_front %}
+                                <a href="{{ applicant.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer" title="View front of ID">
+                                    <img src="{{ applicant.applicant_id_picture_front.url }}" alt="Front of uploaded valid ID" class="max-h-72 w-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
+                                    <span class="text-[11px] text-slate-500">Front</span>
+                                </a>
+                            {% endif %}
+                            {% if applicant.applicant_id_picture_back %}
+                                <a href="{{ applicant.applicant_id_picture_back.url }}" target="_blank" rel="noopener noreferrer" title="View back of ID">
+                                    <img src="{{ applicant.applicant_id_picture_back.url }}" alt="Back of uploaded valid ID" class="max-h-72 w-auto rounded-lg shadow-sm object-contain hover:scale-[1.02] transition">
+                                    <span class="text-[11px] text-slate-500">Back</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Click an image to inspect full size</p>
                     {% else %}
                         <div class="py-8 space-y-2">
                             <i class="fa-regular fa-image text-3xl text-slate-300"></i>

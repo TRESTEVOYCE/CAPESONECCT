@@ -575,10 +575,31 @@
             <div class="pt-4 border-t border-stone-100 space-y-3">
 
                 <h3 class="font-semibold text-stone-700">
-                    Uploaded Documents
+                    Uploaded Documents and ID
                 </h3>
 
                 <div class="flex flex-wrap gap-2">
+
+                    {% if profile.applicant_id_picture_front or profile.applicant_id_picture_back %}
+                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                            {% if profile.applicant_id_picture_front %}
+                                <div class="space-y-2">
+                                    <p class="text-sm font-semibold text-stone-700">Front of ID</p>
+                                    <a href="{{ profile.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer">
+                                        <img src="{{ profile.applicant_id_picture_front.url }}" alt="Front of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
+                                    </a>
+                                </div>
+                            {% endif %}
+                            {% if profile.applicant_id_picture_back %}
+                                <div class="space-y-2">
+                                    <p class="text-sm font-semibold text-stone-700">Back of ID</p>
+                                    <a href="{{ profile.applicant_id_picture_back.url }}" target="_blank" rel="noopener noreferrer">
+                                        <img src="{{ profile.applicant_id_picture_back.url }}" alt="Back of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
 
                     {% if profile.resume_file %}
                         <a href="{{ profile.resume_file.url }}"
@@ -626,13 +647,13 @@
                         </a>
                     {% endif %}
 
-                    {% if not profile.resume_file and not profile.supporting_doc %}
+                    {% if not profile.applicant_id_picture_front and not profile.applicant_id_picture_back and not profile.resume_file and not profile.supporting_doc %}
                         <div class="w-full p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
                             <p class="text-stone-500 font-medium">
                                 No documents uploaded.
                             </p>
                             <p class="text-stone-400 mt-1">
-                                Your resume and supporting documents will appear here.
+                                Your ID images, resume, and supporting documents will appear here.
                             </p>
                         </div>
                     {% endif %}
@@ -743,4 +764,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-

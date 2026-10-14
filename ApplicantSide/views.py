@@ -444,7 +444,7 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 completed += 1
             if applicant_profile.resume or applicant_profile.curriculum_vitae:
                 completed += 1
-            if applicant_profile.applicant_id_picture:
+            if applicant_profile.applicant_id_picture_front or applicant_profile.applicant_id_picture_back:
                 completed += 1
 
             context['profile_strength'] = int((completed / total) * 100)

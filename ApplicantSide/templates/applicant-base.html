@@ -248,8 +248,8 @@
                 <a href="{% url 'personal_info' %}" class="flex items-center gap-2 bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 rounded-full pl-1.5 pr-3 py-1 transition-all group" aria-label="View personal profile">
                     {% if request.user.profile_picture %}
                         <img src="{{ request.user.profile_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full object-cover border border-amber-400/40">
-                    {% elif applicant_profile and applicant_profile.applicant_id_picture %}
-                        <img src="{{ applicant_profile.applicant_id_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full object-cover border border-amber-400/40">
+                    {% elif applicant_profile and applicant_profile.applicant_id_picture_front %}
+                        <img src="{{ applicant_profile.applicant_id_picture_front.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full object-cover border border-amber-400/40">
                     {% else %}
                         <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
                             {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}

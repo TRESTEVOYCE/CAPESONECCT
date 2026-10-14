@@ -516,7 +516,8 @@ class ApplicantDocumentsForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
         fields = [
-            'applicant_id_picture',
+            'applicant_id_picture_front',
+            'applicant_id_picture_back',
             'certification_agree',
             'resume_file',
             'supporting_doc',
