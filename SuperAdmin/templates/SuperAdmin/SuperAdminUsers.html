@@ -1,122 +1,582 @@
+
 {% extends "SuperAdmin/base.html" %}
 
-{% block title %}Manage Users | Super Admin{% endblock %}
-{% block heading %}Manage Users{% endblock %}
-
 {% block content %}
+<div class="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
 
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-    <div class="flex flex-col justify-between gap-4 border-b border-slate-200 p-6 sm:flex-row sm:items-center">
-        <div>
-            <h2 class="text-lg font-bold text-slate-800">
-                Registered Users
-            </h2>
-            <p class="mt-1 text-sm text-slate-500">
-                View all applicants and employers.
-            </p>
-        </div>
-
-        <span class="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">
-            {{ page_obj.paginator.count }} users
-        </span>
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        #
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Email
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Role
-                    </th>
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-slate-100 bg-white">
-                {% for user in users %}
-                    <tr class="transition hover:bg-slate-50">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                            {{ page_obj.start_index|add:forloop.counter0 }}
-                        </td>
-
-                        <td class="whitespace-nowrap px-6 py-4">
-                            <div class="text-sm font-medium text-slate-800">
-                                {{ user.email }}
-                            </div>
-                        </td>
-
-                        <td class="whitespace-nowrap px-6 py-4">
-                            {% if user.role == 'applicant' %}
-                                <span class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-                                    Applicant
-                                </span>
-                            {% elif user.role == 'employer' %}
-                                <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                    Employer
-                                </span>
-                            {% else %}
-                                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                    {{ user.role|title }}
-                                </span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="3" class="px-6 py-14 text-center">
-                            <div class="text-3xl">♙</div>
-                            <p class="mt-3 font-semibold text-slate-700">
-                                No users found
-                            </p>
-                            <p class="mt-1 text-sm text-slate-500">
-                                Registered applicants and employers will appear here.
-                            </p>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {% if is_paginated %}
-        <div class="flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row">
-
-            <p class="text-sm text-slate-500">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-            </p>
-
-            <div class="flex items-center gap-2">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}"
-                       class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                        Previous
-                    </a>
-                {% else %}
-                    <span class="cursor-not-allowed rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-400">
-                        Previous
-                    </span>
-                {% endif %}
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}"
-                       class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
-                        Next
-                    </a>
-                {% else %}
-                    <span class="cursor-not-allowed rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-400">
-                        Next
-                    </span>
-                {% endif %}
+    <!-- Page Header -->
+    <div class="mx-auto max-w-7xl">
+        <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wider text-blue-600">
+                    Super Admin
+                </p>
+                <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+                    Manage Users
+                </h1>
+                <p class="mt-2 text-sm text-slate-500">
+                    View and manage applicant, employer, and staff accounts.
+                </p>
             </div>
-        </div>
-    {% endif %}
 
+            <a href="{% url 'superadmin-dashboard' %}"
+               class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">
+                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Django Messages -->
+        {% if messages %}
+            <div class="mb-6 space-y-3">
+                {% for message in messages %}
+                    <div class="rounded-xl border px-4 py-3 text-sm
+                        {% if message.tags == 'error' %}
+                            border-red-200 bg-red-50 text-red-700
+                        {% elif message.tags == 'success' %}
+                            border-emerald-200 bg-emerald-50 text-emerald-700
+                        {% else %}
+                            border-blue-200 bg-blue-50 text-blue-700
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- User Table Card -->
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+            <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">
+                        User Accounts
+                    </h2>
+                    <p class="mt-1 text-sm text-slate-500">
+                        {% if is_paginated %}
+                            {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                            of {{ paginator.count }} accounts
+                        {% else %}
+                            {{ users|length }} account{{ users|length|pluralize }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="relative w-full sm:max-w-xs">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-width="2"
+                              d="m16 16 4 4"/>
+                    </svg>
+                    <input
+                        id="userSearch"
+                        type="search"
+                        placeholder="Search users..."
+                        class="w-full rounded-xl border border-slate-300 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                User
+                            </th>
+                            <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Role
+                            </th>
+                            <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Account ID
+                            </th>
+                            <th class="px-5 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="userTableBody" class="divide-y divide-slate-100 bg-white">
+                        {% for user in users %}
+                            <tr class="user-row transition hover:bg-slate-50"
+                                data-search="{{ user.email|lower }} {{ user.role|lower }} {{ user.pk }}">
+
+                                <!-- User Details -->
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold uppercase text-blue-700">
+                                            {{ user.email|first }}
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-900">
+                                                {{ user.email }}
+                                            </p>
+                                            <p class="mt-1 text-xs text-slate-500">
+                                                {{ user.get_full_name|default:"User account" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Role Badge -->
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    {% if user.role == 'admin' %}
+                                        <span class="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                                            Super Admin
+                                        </span>
+                                    {% elif user.role == 'applicant' %}
+                                        <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                            Applicant
+                                        </span>
+                                    {% elif user.role == 'employer' %}
+                                        <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                            Employer
+                                        </span>
+                                    {% elif user.role == 'mswdo' %}
+                                        <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                            MSWDO Staff
+                                        </span>
+                                    {% elif user.role == 'peso' %}
+                                        <span class="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-700">
+                                            PESO Staff
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                            {{ user.role|title }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Account ID -->
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
+                                    #{{ user.pk }}
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="whitespace-nowrap px-5 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        {% if user.role == 'mswdo' or user.role == 'peso' %}
+                                            <button
+                                                type="button"
+                                                data-password-modal
+                                                data-action="edit"
+                                                data-verify-url="{% url 'staff-account-password-confirm' user.pk %}"
+                                                data-user-email="{{ user.email|escape }}"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">
+                                                <svg class="h-4 w-4" fill="none"
+                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="m16.862 4.487 1.687-1.688a2.121 2.121 0 0 1 3 3l-9.193 9.193a4 4 0 0 1-1.686 1.065l-3.2 1.067 1.067-3.2a4 4 0 0 1 1.065-1.686l7.26-7.751Z"/>
+                                                    <path stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M19 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/>
+                                                </svg>
+                                                Edit
+                                            </button>
+                                        {% endif %}
+
+                                        {% if user.role == 'applicant' or user.role == 'employer' or user.role == 'mswdo' or user.role == 'peso' %}
+                                            <button
+                                                type="button"
+                                                data-password-modal
+                                                data-action="delete"
+                                                data-verify-url="{% url 'staff-account-password-confirm' user.pk %}"
+                                                data-user-email="{{ user.email|escape }}"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100">
+                                                <svg class="h-4 w-4" fill="none"
+                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round"
+                                                          stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M19 7 18.132 19.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.994-1.858L5 7m5 4v6m4-6v6M4 7h16M9 7V4h6v3"/>
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        {% else %}
+                                            {% if user.role == 'admin' %}
+                                                <span class="text-xs font-medium text-slate-400">
+                                                    Protected Account
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-5 py-16 text-center">
+                                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                                        <svg class="h-6 w-6 text-slate-400"
+                                             fill="none" stroke="currentColor"
+                                             viewBox="0 0 24 24">
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m16 0v-2a4 4 0 0 0-3-3.87M10 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm11 4a4 4 0 1 0-8 0"/>
+                                        </svg>
+                                    </div>
+                                    <h3 class="mt-4 text-sm font-semibold text-slate-900">
+                                        No users found
+                                    </h3>
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        User accounts will appear here when available.
+                                    </p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div id="noSearchResults" class="hidden px-5 py-10 text-center text-sm text-slate-500">
+                    No users match your search.
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="flex flex-col gap-4 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm text-slate-500">
+                        Page {{ page_obj.number }} of {{ paginator.num_pages }}
+                    </p>
+
+                    <div class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}"
+                               class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="cursor-not-allowed rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-400">
+                                Previous
+                            </span>
+                        {% endif %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}"
+                               class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Next
+                            </a>
+                        {% else %}
+                            <span class="cursor-not-allowed rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-400">
+                                Next
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <p class="mt-4 text-xs leading-5 text-slate-400">
+            Account deletion is permanent. Password verification and the final confirmation are required before an account is deleted.
+        </p>
+    </div>
 </div>
 
+
+<!-- Password Verification Modal -->
+<div id="passwordModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="passwordModalTitle">
+
+    <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+        <!-- Modal Header -->
+        <div class="border-b border-slate-100 px-6 py-5">
+            <div class="flex items-start gap-4">
+                <div id="passwordIcon"
+                     class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <rect x="5" y="11" width="14" height="10" rx="2"
+                              stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-width="2"
+                              d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                    </svg>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                    <h2 id="passwordModalTitle" class="text-lg font-bold text-slate-900">
+                        Verify Your Password
+                    </h2>
+                    <p id="passwordModalDescription" class="mt-1 text-sm leading-5 text-slate-500">
+                        Enter your Super Admin password to continue.
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="closePasswordModal"
+                        aria-label="Close password modal"
+                        class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2" d="m6 6 12 12M18 6 6 18"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <form id="passwordForm" method="post" action="">
+            {% csrf_token %}
+
+            <div class="space-y-5 px-6 py-6">
+
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Selected Account
+                    </p>
+                    <p id="selectedUserEmail"
+                       class="mt-1 break-all text-sm font-semibold text-slate-900">
+                        —
+                    </p>
+                    <p id="selectedActionLabel" class="mt-1 text-xs text-slate-500">
+                        Account action
+                    </p>
+                </div>
+
+                <input type="hidden" name="action" id="passwordAction" value="">
+
+                <div>
+                    <label for="adminPassword"
+                           class="mb-2 block text-sm font-semibold text-slate-700">
+                        Super Admin Password
+                    </label>
+
+                    <div class="relative">
+                        <input
+                            id="adminPassword"
+                            type="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="Enter your password"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                        >
+
+                        <button type="button"
+                                id="togglePassword"
+                                class="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 hover:text-slate-700"
+                                aria-label="Show password">
+                            <svg id="eyeIcon" class="h-5 w-5"
+                                 fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/>
+                                <circle cx="12" cy="12" r="3"
+                                        stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <p id="passwordClientError"
+                       class="mt-2 hidden text-sm text-red-600">
+                        Please enter your password.
+                    </p>
+                </div>
+
+                <div id="deleteNotice"
+                     class="hidden rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <p class="text-sm leading-5 text-amber-800">
+                        You will be asked to confirm the deletion on the next page. The account will not be deleted by verifying your password alone.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+                <button type="button"
+                        id="cancelPasswordModal"
+                        class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        id="verifyPasswordButton"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Verify Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("passwordModal");
+    const form = document.getElementById("passwordForm");
+    const passwordInput = document.getElementById("adminPassword");
+    const actionInput = document.getElementById("passwordAction");
+    const selectedUserEmail = document.getElementById("selectedUserEmail");
+    const selectedActionLabel = document.getElementById("selectedActionLabel");
+    const modalTitle = document.getElementById("passwordModalTitle");
+    const modalDescription = document.getElementById("passwordModalDescription");
+    const passwordIcon = document.getElementById("passwordIcon");
+    const verifyButton = document.getElementById("verifyPasswordButton");
+    const deleteNotice = document.getElementById("deleteNotice");
+    const clientError = document.getElementById("passwordClientError");
+
+    let previouslyFocusedElement = null;
+
+    function openModal(button) {
+        previouslyFocusedElement = button;
+
+        const action = button.dataset.action;
+        const verifyUrl = button.dataset.verifyUrl;
+        const email = button.dataset.userEmail || "Selected user";
+
+        if (!verifyUrl || (action !== "edit" && action !== "delete")) {
+            alert("Unable to open password verification. Please refresh the page.");
+            return;
+        }
+
+        form.action = verifyUrl;
+        actionInput.value = action;
+        selectedUserEmail.textContent = email;
+
+        passwordInput.value = "";
+        clientError.classList.add("hidden");
+
+        if (action === "delete") {
+            modalTitle.textContent = "Authorize Account Deletion";
+            modalDescription.textContent =
+                "Verify your Super Admin password before proceeding to the deletion confirmation.";
+            selectedActionLabel.textContent = "Requested action: Delete account";
+            verifyButton.lastChild.textContent = " Verify Password";
+            deleteNotice.classList.remove("hidden");
+
+            passwordIcon.className =
+                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700";
+            verifyButton.className =
+                "inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-200";
+        } else {
+            modalTitle.textContent = "Verify Your Password";
+            modalDescription.textContent =
+                "Enter your Super Admin password to edit this staff account.";
+            selectedActionLabel.textContent = "Requested action: Edit staff account";
+            verifyButton.lastChild.textContent = " Verify Password";
+            deleteNotice.classList.add("hidden");
+
+            passwordIcon.className =
+                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700";
+            verifyButton.className =
+                "inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200";
+        }
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+
+        window.setTimeout(() => passwordInput.focus(), 50);
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.classList.remove("overflow-hidden");
+
+        passwordInput.value = "";
+        clientError.classList.add("hidden");
+
+        if (previouslyFocusedElement) {
+            previouslyFocusedElement.focus();
+        }
+    }
+
+    document.querySelectorAll("[data-password-modal]").forEach((button) => {
+        button.addEventListener("click", () => openModal(button));
+    });
+
+    document.getElementById("closePasswordModal")
+        .addEventListener("click", closeModal);
+
+    document.getElementById("cancelPasswordModal")
+        .addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+
+    form.addEventListener("submit", (event) => {
+        if (!passwordInput.value.trim()) {
+            event.preventDefault();
+            clientError.classList.remove("hidden");
+            passwordInput.focus();
+            return;
+        }
+
+        if (!actionInput.value || !form.action) {
+            event.preventDefault();
+            alert("Invalid account action. Please close the modal and try again.");
+            return;
+        }
+
+        verifyButton.disabled = true;
+        verifyButton.classList.add("cursor-wait", "opacity-70");
+        verifyButton.textContent = "Verifying...";
+    });
+
+    passwordInput.addEventListener("input", () => {
+        clientError.classList.add("hidden");
+    });
+
+    document.getElementById("togglePassword").addEventListener("click", () => {
+        const showPassword = passwordInput.type === "password";
+        passwordInput.type = showPassword ? "text" : "password";
+        document.getElementById("togglePassword").setAttribute(
+            "aria-label",
+            showPassword ? "Hide password" : "Show password"
+        );
+    });
+
+    // Client-side search across the currently displayed page.
+    const searchInput = document.getElementById("userSearch");
+    const rows = Array.from(document.querySelectorAll(".user-row"));
+    const noResults = document.getElementById("noSearchResults");
+
+    searchInput.addEventListener("input", function () {
+        const query = this.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const matches = row.dataset.search.includes(query);
+            row.classList.toggle("hidden", !matches);
+
+            if (matches) visibleCount++;
+        });
+
+        noResults.classList.toggle(
+            "hidden",
+            visibleCount !== 0 || rows.length === 0
+        );
+    });
+});
+</script>
 {% endblock %}

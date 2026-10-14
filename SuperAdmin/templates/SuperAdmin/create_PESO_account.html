@@ -1,0 +1,238 @@
+
+{% extends 'SuperAdmin/base.html' %}
+
+{% block title %}Create PESO Account | Super Admin{% endblock %}
+{% block heading %}Create PESO Account{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-4xl space-y-6">
+
+    <!-- Page introduction -->
+    <div>
+        <p class="text-sm text-slate-500">
+            Manage authorized Public Employment Service Office accounts.
+        </p>
+    </div>
+
+    <!-- Information banner -->
+    <div class="flex items-start gap-4 rounded-xl border border-blue-200 bg-blue-50 p-5">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-xl text-blue-700">
+            ♙
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-blue-900">
+                PESO Account Registration
+            </h2>
+            <p class="mt-1 text-sm leading-6 text-blue-800">
+                Create an account for an authorized PESO representative.
+                The system will automatically assign the PESO role.
+            </p>
+        </div>
+    </div>
+
+    <!-- Account creation card -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        <!-- Card header -->
+        <div class="border-b border-slate-200 px-6 py-5 sm:px-8">
+            <h2 class="text-lg font-bold text-slate-800">
+                Account Information
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Complete the fields below to register a new PESO account.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form method="POST"
+              action="{% url 'peso_account_creation' %}"
+              class="space-y-6 px-6 py-6 sm:px-8">
+
+            {% csrf_token %}
+
+            <!-- General form errors -->
+            {% if form.non_field_errors %}
+                <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+                    <p class="mb-2 text-sm font-semibold text-red-800">
+                        Please check the following:
+                    </p>
+                    <div class="text-sm text-red-700">
+                        {{ form.non_field_errors }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Username -->
+            <div>
+                <label for="{{ form.username.id_for_label }}"
+                       class="mb-2 block text-sm font-semibold text-slate-700">
+                    Username <span class="text-red-500">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="{{ form.username.html_name }}"
+                    id="{{ form.username.id_for_label }}"
+                    value="{{ form.username.value|default_if_none:'' }}"
+                    autocomplete="username"
+                    required
+                    placeholder="Enter a unique username"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                >
+
+                {% if form.username.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                        {{ form.username.errors|striptags }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="{{ form.email.id_for_label }}"
+                       class="mb-2 block text-sm font-semibold text-slate-700">
+                    Email Address <span class="text-red-500">*</span>
+                </label>
+
+                <input
+                    type="email"
+                    name="{{ form.email.html_name }}"
+                    id="{{ form.email.id_for_label }}"
+                    value="{{ form.email.value|default_if_none:'' }}"
+                    autocomplete="email"
+                    required
+                    placeholder="Enter the official email address"
+                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                >
+
+                {% if form.email.errors %}
+                    <p class="mt-2 text-sm text-red-600">
+                        {{ form.email.errors|striptags }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Password fields -->
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <!-- Password -->
+                <div>
+                    <label for="{{ form.password1.id_for_label }}"
+                           class="mb-2 block text-sm font-semibold text-slate-700">
+                        Password <span class="text-red-500">*</span>
+                    </label>
+
+                    <input
+                        type="password"
+                        name="{{ form.password1.html_name }}"
+                        id="{{ form.password1.id_for_label }}"
+                        autocomplete="new-password"
+                        required
+                        placeholder="Create a strong password"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                    >
+
+                    {% if form.password1.errors %}
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ form.password1.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Confirm password -->
+                <div>
+                    <label for="{{ form.password2.id_for_label }}"
+                           class="mb-2 block text-sm font-semibold text-slate-700">
+                        Confirm Password <span class="text-red-500">*</span>
+                    </label>
+
+                    <input
+                        type="password"
+                        name="{{ form.password2.html_name }}"
+                        id="{{ form.password2.id_for_label }}"
+                        autocomplete="new-password"
+                        required
+                        placeholder="Re-enter the password"
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                    >
+
+                    {% if form.password2.errors %}
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ form.password2.errors|striptags }}
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- Password help -->
+            {% if form.password1.help_text %}
+                <div class="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    {{ form.password1.help_text|safe }}
+                </div>
+            {% endif %}
+
+            <!-- Assigned role -->
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700">
+                    Assigned Role
+                </label>
+
+                <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                        ✓
+                    </span>
+
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800">
+                            PESO
+                        </p>
+                        <p class="text-xs text-slate-500">
+                            Public Employment Service Office
+                        </p>
+                    </div>
+
+                    <span class="ml-auto rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                        Automatic
+                    </span>
+                </div>
+
+                <p class="mt-2 text-xs text-slate-500">
+                    The role is assigned by the server and cannot be changed through this form.
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
+
+                <a href="{% url 'superadmin-users' %}"
+                   class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                    <span>＋</span>
+                    Create PESO Account
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Security note -->
+    <div class="flex items-start gap-3 px-1">
+        <span class="text-slate-400">ⓘ</span>
+        <p class="text-xs leading-5 text-slate-500">
+            Only authorized administrators can create PESO accounts.
+            Ensure that the email address belongs to the intended representative.
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -89,6 +89,18 @@
                     Create MSWDO Account
                 </a>
 
+                <!-- Create PESO Account -->
+                <a href="{% url 'peso_account_creation' %}"
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'peso_account_creation' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">＋</span>
+                    Create PESO Account
+                </a>
+
                 <!-- System Logs -->
                 <a href="{% url 'superadmin-system-logs' %}"
                    class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
