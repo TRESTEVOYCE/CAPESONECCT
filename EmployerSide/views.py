@@ -9,28 +9,23 @@ from .forms import EmployerProfileForm,JobsForm,ProfilePictureForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.views import LogoutView
-from JobMatchingEngine.database import upsert_job_vector
+from JobMatchingEngine.database import upsert_job_vector, build_job_text,build_applicant_profile_text
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.views import PasswordChangeView
+from JobMatchingEngine.config import embedding_function
 from django.urls import reverse_lazy
-from django.contrib import messages
 import random
 from django.core.mail import send_mail
-from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Q
-
+import math
 import json
 from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def send_support_message_api(request):
@@ -523,18 +518,121 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Jobs
     template_name = 'job_detail.html'
     context_object_name = 'job'
+    raise_exception = True
 
     def test_func(self):
+        user = self.request.user
+        employer_profile = getattr(user, 'employer_profile', None)
+
         return (
-            self.request.user.is_authenticated
-            and self.request.user.role == 'employer'
-            and self.request.user.employer_profile.verification_status == 'verified'
+            user.is_authenticated
+            and user.role == 'employer'
+            and employer_profile is not None
+            and employer_profile.verification_status == 'verified'
         )
 
     def get_queryset(self):
+        # Employers can only view their own job postings.
         return Jobs.objects.filter(
             employer=self.request.user.employer_profile
         )
+
+    @staticmethod
+    def cosine_similarity(vector_a, vector_b):
+        """Calculate cosine similarity between two embedding vectors."""
+        dot_product = sum(
+            a * b for a, b in zip(vector_a, vector_b)
+        )
+
+        magnitude_a = math.sqrt(sum(a * a for a in vector_a))
+        magnitude_b = math.sqrt(sum(b * b for b in vector_b))
+
+        if magnitude_a == 0 or magnitude_b == 0:
+            return 0.0
+
+        return dot_product / (magnitude_a * magnitude_b)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        job = self.object
+        employer_profile = self.request.user.employer_profile
+
+        # Retrieve only applications for this job and this employer.
+        applications = list(
+            AppliedJobs.objects.filter(
+                applied_job=job,
+                employer=employer_profile,
+                applicant__isnull=False,
+            )
+            .select_related(
+                'applicant',
+                'applicant__user',
+            )
+            .prefetch_related(
+                'applicant__skills',
+                'applicant__preferred_job',
+            )
+            .order_by('-application_date')
+        )
+
+        ranked_applicants = []
+        matching_available = True
+
+        if applications:
+            try:
+                # Build the job description and applicant profile texts.
+                job_text = build_job_text(job)
+
+                applicant_texts = [
+                    build_applicant_profile_text(application.applicant)
+                    for application in applications
+                ]
+
+                # Generate all embeddings in one batch.
+                embeddings = embedding_function(
+                    [job_text] + applicant_texts
+                )
+
+                job_embedding = embeddings[0]
+
+                # Calculate each applicant's similarity to this job.
+                for index, application in enumerate(applications):
+                    applicant_embedding = embeddings[index + 1]
+
+                    score = self.cosine_similarity(
+                        job_embedding,
+                        applicant_embedding,
+                    )
+
+                    application.match_score = score
+                    application.match_score_display = round(
+                        score * 100, 1
+                    )
+
+                    ranked_applicants.append(application)
+
+                # Highest similarity first.
+                ranked_applicants.sort(
+                    key=lambda application: application.match_score,
+                    reverse=True,
+                )
+
+            except Exception:
+                # Keep the page usable if embedding generation fails.
+                matching_available = False
+                ranked_applicants = applications
+
+                for application in ranked_applicants:
+                    application.match_score = None
+                    application.match_score_display = None
+
+        context['ranked_applicants'] = ranked_applicants
+        context['applicant_count'] = len(applications)
+        context['matching_available'] = matching_available
+
+        return context
+
 
 class AccountDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = EmployerProfile

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+
+    <div class="w-full max-w-md">
+
+        <div class="mb-8 text-center">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-3xl text-white shadow-lg shadow-blue-600/20">
+                ◆
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+                Super Admin
+            </h1>
+            <p class="mt-2 text-sm text-slate-500">
+                Sign in to access the management console
+            </p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
+
+            <h2 class="text-xl font-bold text-slate-800">
+                Welcome back
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Enter your administrator credentials.
+            </p>
+
+            {% if form.non_field_errors %}
+                <div class="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="mt-6 space-y-5 action = {% url 'superadmin-dashboard' %}">
+                {% csrf_token %}
+
+                <div>
+                    <label for="{{ form.email.id_for_label }}"
+                           class="mb-2 block text-sm font-semibold text-slate-700">
+                        Email address
+                    </label>
+                    <input
+                        type="email"
+                        name="{{ form.email.html_name }}"
+                        id="{{ form.email.id_for_label }}"
+                        value="{{ form.email.value|default_if_none:'' }}"
+                        autocomplete="username"
+                        required
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                        placeholder="admin@example.com">
+
+                    {% for error in form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label for="{{ form.password.id_for_label }}"
+                           class="mb-2 block text-sm font-semibold text-slate-700">
+                        Password
+                    </label>
+                    <input
+                        type="password"
+                        name="{{ form.password.html_name }}"
+                        id="{{ form.password.id_for_label }}"
+                        autocomplete="current-password"
+                        required
+                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                        placeholder="Enter your password">
+
+                    {% for error in form.password.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <button type="submit"
+                        class="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                    Sign In
+                </button>
+            </form>
+
+        </div>
+
+        <p class="mt-6 text-center text-xs text-slate-400">
+            Authorized administrators only
+        </p>
+
+    </div>
+
+</body>
+</html>

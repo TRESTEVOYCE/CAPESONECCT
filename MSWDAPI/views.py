@@ -1,21 +1,31 @@
-from datetime import __all__
-
 from rest_framework.generics import ListAPIView,RetrieveAPIView
-from .serializers import SpecialProgramForEmploymentOfStudentsSerializer,GovernmentInternshipProgramSerializer,TupadBeneficiarySerializer,DisplacedInformalLaborProgramSerializer,CareerGuidanceBeneficiarySerializer
+from .serializers import SpecialProgramForEmploymentOfStudentsSerializer,GovernmentInternshipProgramSerializer,TupadBeneficiarySerializer,DisplacedInformalLaborProgramSerializer,CareerGuidanceBeneficiarySerializer,EmailTokenObtainPairSerializer
 from AdminSide.models import SpecialProgramForEmploymentOfStudents,GovernmentInternshipProgram,TupadBeneficiary,DisplacedInformalLaborProgram,CareerGuidanceBeneficiary
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from AdminSide.permissions import MSWDRolePermission
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.filters import SearchFilter
 
+
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
 
 
 class SpecialProgramForEmploymentOfStudentsListView(ListAPIView):
     queryset = SpecialProgramForEmploymentOfStudents.objects.all()
     serializer_class = SpecialProgramForEmploymentOfStudentsSerializer
     permission_classes = [IsAuthenticated, MSWDRolePermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_fields = '__all__'
-
+    search_fields = [
+        "first_name",
+        "middle_name",
+        "last_name",
+        "phone_number",
+        "barangay",
+        "municipality",
+    ]
 
 class SpecialProgramForEmploymentOfStudentsDetailView(RetrieveAPIView):
     queryset = SpecialProgramForEmploymentOfStudents.objects.all()
@@ -28,8 +38,16 @@ class GovernmentInternshipProgramListView(ListAPIView):
     queryset = GovernmentInternshipProgram.objects.all()
     serializer_class = GovernmentInternshipProgramSerializer
     permission_classes = [IsAuthenticated, MSWDRolePermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_fields = '__all__'
+    search_fields = [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+            "barangay",
+            "municipality",
+        ]
 
 
 class GovernmentInternshipProgramDetailView(RetrieveAPIView):
@@ -42,8 +60,16 @@ class TupadBeneficiaryListView(ListAPIView):
     queryset = TupadBeneficiary.objects.all()
     serializer_class = TupadBeneficiarySerializer
     permission_classes = [IsAuthenticated, MSWDRolePermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_fields = '__all__'
+    search_fields = [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+            "barangay",
+            "municipality",
+        ]
 
 
 class TupadBeneficiaryDetailView(RetrieveAPIView):
@@ -56,8 +82,16 @@ class DisplacedInformalLaborProgramListView(ListAPIView):
     queryset = DisplacedInformalLaborProgram.objects.all()
     serializer_class = DisplacedInformalLaborProgramSerializer
     permission_classes = [IsAuthenticated, MSWDRolePermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_fields = '__all__'
+    search_fields = [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+            "barangay",
+            "municipality",
+        ]
 
 
 class DisplacedInformalLaborProgramDetailView(RetrieveAPIView):
@@ -70,8 +104,16 @@ class CareerGuidanceBeneficiaryListView(ListAPIView):
     queryset = CareerGuidanceBeneficiary.objects.all()
     serializer_class = CareerGuidanceBeneficiarySerializer
     permission_classes = [IsAuthenticated, MSWDRolePermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     filterset_fields = '__all__'
+    search_fields = [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+            "barangay",
+            "municipality",
+        ]
 
 
 class CareerGuidanceBeneficiaryDetailView(RetrieveAPIView):
