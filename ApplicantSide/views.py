@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text,query_matching_jobs
-from AdminSide.models import Jobs, ApplicantProfile, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User,AuditLog
+from AdminSide.models import Jobs, ApplicantProfile, ApplicantWorkExperience, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User,AuditLog
 from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
@@ -26,6 +26,19 @@ from .forms import (
 from django.contrib.auth import update_session_auth_hash
 from AdminSide.utils import notify_admins
 from JobMatchingEngine.database import query_matching_jobs
+from AdminSide.services.profile_sensitivity import mark_profile_for_reverification
+
+
+def _mark_applicant_for_reverification(request, profile, changed_fields, change_model=None):
+    if mark_profile_for_reverification(profile, changed_fields, change_model):
+        request.session.pop('job_matches', None)
+        messages.warning(
+            request,
+            'Your profile has been updated and is pending re-verification. '
+            'You cannot apply for jobs until it is approved again.',
+        )
+        return True
+    return False
 
 class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = reverse_lazy('signin')
@@ -197,6 +210,11 @@ class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
     def form_valid(self, form):
         form.instance.user = self.request.user
         self.object = form.save()
+        _mark_applicant_for_reverification(
+            self.request,
+            self.object,
+            form.changed_data,
+        )
         messages.success(self.request, 'Personal information saved successfully.')
         return redirect(self.get_success_url())
 
@@ -216,7 +234,12 @@ class ApplicantAddressView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Us
         return reverse_lazy('applicant-education')
 
     def form_valid(self, form):
-        form.save()
+        profile = form.save()
+        _mark_applicant_for_reverification(
+            self.request,
+            profile,
+            form.changed_data,
+        )
         messages.success(self.request, 'Address information saved successfully.')
         return redirect(self.get_success_url())
 
@@ -235,7 +258,12 @@ class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return reverse_lazy('applicant-training')
 
     def form_valid(self, form):
-        form.save()
+        profile = form.save()
+        _mark_applicant_for_reverification(
+            self.request,
+            profile,
+            form.changed_data,
+        )
         messages.success(self.request, 'Educational information saved successfully.')
         return redirect(self.get_success_url())
 
@@ -254,7 +282,12 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
         return reverse_lazy('applicant-preferred-job')
 
     def form_valid(self, form):
-        form.save()
+        profile = form.save()
+        _mark_applicant_for_reverification(
+            self.request,
+            profile,
+            form.changed_data,
+        )
         messages.success(self.request, 'Training information saved successfully.')
         return redirect(self.get_success_url())
 
@@ -274,8 +307,16 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
 
     def form_valid(self, form):
         profile = form.save()
-        matches = query_matching_jobs(applicant=profile, total_results=10)
-        self.request.session['job_matches'] = matches['ids']
+        _mark_applicant_for_reverification(
+            self.request,
+            profile,
+            form.changed_data,
+        )
+        if profile.status == 'approved':
+            matches = query_matching_jobs(applicant=profile, total_results=10)
+            self.request.session['job_matches'] = matches['ids']
+        else:
+            self.request.session.pop('job_matches', None)
         messages.success(self.request, 'Job preferences saved successfully.')
         return redirect(self.get_success_url())
 
@@ -297,7 +338,19 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
         profile = self.get_profile()
         work_formset = ApplicantWorkExperienceFormSet(request.POST, instance=profile)
         if work_formset.is_valid():
+            changed_fields = set()
+            for form in work_formset.forms:
+                if form.has_changed():
+                    changed_fields.update(form.changed_data)
+                    if form.cleaned_data.get('DELETE'):
+                        changed_fields.add('__deleted__')
             work_formset.save()
+            _mark_applicant_for_reverification(
+                request,
+                profile,
+                changed_fields,
+                ApplicantWorkExperience,
+            )
             messages.success(request, 'Work experience saved successfully.')
             return redirect('applicant-skills')
         return render(request, self.template_name, {'work_formset': work_formset})
@@ -327,9 +380,27 @@ class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Use
         if form.is_valid() and skill_formset.is_valid():
             form.save()
             skills = skill_formset.save()
-            profile.skills.set(skills)
-            matches = query_matching_jobs(applicant=profile, total_results=10)
-            request.session['job_matches'] = matches['ids']
+            profile.skills.add(*skills)
+            changed_fields = set(form.changed_data)
+            for skill_form in skill_formset.forms:
+                if skill_form.has_changed():
+                    changed_fields.update(skill_form.changed_data)
+                    if skill_form.cleaned_data.get('DELETE'):
+                        changed_fields.add('__deleted__')
+            _mark_applicant_for_reverification(
+                request,
+                profile,
+                changed_fields,
+                ApplicantSkills if any(
+                    skill_form.has_changed()
+                    for skill_form in skill_formset.forms
+                ) else ApplicantProfile,
+            )
+            if profile.status == 'approved':
+                matches = query_matching_jobs(applicant=profile, total_results=10)
+                request.session['job_matches'] = matches['ids']
+            else:
+                request.session.pop('job_matches', None)
             messages.success(request, 'Skills information saved successfully.')
             return redirect('applicant-documents')
         return render(request, self.template_name, {'form': form, 'skill_formset': skill_formset})
@@ -349,7 +420,12 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return reverse_lazy('applicant-dashboard')
 
     def form_valid(self, form):
-        form.save()
+        profile = form.save()
+        _mark_applicant_for_reverification(
+            self.request,
+            profile,
+            form.changed_data,
+        )
         messages.success(self.request, 'Documents submitted successfully.')
         return redirect(self.get_success_url())
 
@@ -424,21 +500,31 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context['applicant_profile'] = applicant_profile
 
         if applicant_profile:
-            applicant_profile_text = build_applicant_profile_text(applicant_profile)
-            collection = get_job_collection()
-            results = collection.query(query_texts=[applicant_profile_text], n_results=10)
+            if applicant_profile.status == 'approved':
+                applicant_profile_text = build_applicant_profile_text(applicant_profile)
+                collection = get_job_collection()
+                results = collection.query(query_texts=[applicant_profile_text], n_results=10)
 
-            job_uuids = [
-                metadata['job_uuid'] for metadata in results['metadatas'][0]
-                if metadata and 'job_uuid' in metadata
-            ]
+                job_uuids = [
+                    metadata['job_uuid'] for metadata in results['metadatas'][0]
+                    if metadata and 'job_uuid' in metadata
+                ]
 
-            matching_jobs = Jobs.objects.filter(uuid__in=job_uuids, status='Active')
+                matching_jobs = Jobs.objects.filter(
+                    uuid__in=job_uuids,
+                    status='Active',
+                    employer__verification_status='verified',
+                )
 
-            if matching_jobs.exists():
-                context['matching_jobs'] = matching_jobs
+                if matching_jobs.exists():
+                    context['matching_jobs'] = matching_jobs
+                else:
+                    context['matching_jobs'] = Jobs.objects.filter(
+                        status='Active',
+                        employer__verification_status='verified',
+                    )
             else:
-                context['matching_jobs'] = Jobs.objects.filter(status='Active')
+                context['matching_jobs'] = Jobs.objects.none()
 
             applications = AppliedJobs.objects.filter(applicant=applicant_profile)
             context['application_count'] = applications.count()
@@ -466,7 +552,10 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             context['profile_strength'] = int((completed / total) * 100)
         else:
-            context['matching_jobs'] = Jobs.objects.filter(status='Active')
+            context['matching_jobs'] = Jobs.objects.filter(
+                status='Active',
+                employer__verification_status='verified',
+            )
             context['application_count'] = 0
             context['saved_jobs_count'] = 0
             context['under_review_count'] = 0
@@ -475,7 +564,10 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             context['withdrawn_count'] = 0
             context['profile_strength'] = 0
 
-        context['total_jobs'] = Jobs.objects.filter(status='Active').count()
+        context['total_jobs'] = Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        ).count()
         return context
 
 
@@ -488,7 +580,10 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        jobs = Jobs.objects.filter(status='Active')
+        jobs = Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        )
 
         q = self.request.GET.get('q')
         if q:
@@ -516,23 +611,26 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         available_jobs = self.get_queryset()
 
         if applicant_profile:
-            applicant_text = build_applicant_profile_text(applicant_profile)
-            collection = get_job_collection()
-            results = collection.query(query_texts=[applicant_text], n_results=10)
-            job_uuids = []
-
-            if results.get('metadatas'):
-                job_uuids = [
-                    metadata['job_uuid'] for metadata in results['metadatas'][0]
-                    if metadata and 'job_uuid' in metadata
-                ]
-
-            matching_jobs = available_jobs.filter(uuid__in=job_uuids)
-
-            if matching_jobs.exists():
-                context['matching_jobs'] = matching_jobs
+            if applicant_profile.status != 'approved':
+                context['matching_jobs'] = Jobs.objects.none()
             else:
-                context['matching_jobs'] = available_jobs
+                applicant_text = build_applicant_profile_text(applicant_profile)
+                collection = get_job_collection()
+                results = collection.query(query_texts=[applicant_text], n_results=10)
+                job_uuids = []
+
+                if results.get('metadatas'):
+                    job_uuids = [
+                        metadata['job_uuid'] for metadata in results['metadatas'][0]
+                        if metadata and 'job_uuid' in metadata
+                    ]
+
+                matching_jobs = available_jobs.filter(uuid__in=job_uuids)
+
+                if matching_jobs.exists():
+                    context['matching_jobs'] = matching_jobs
+                else:
+                    context['matching_jobs'] = available_jobs
         else:
             context['matching_jobs'] = available_jobs
 
@@ -547,6 +645,12 @@ class JobDetailsView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
+    def get_queryset(self):
+        return Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        )
+
 class SortJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     context_object_name = 'matching_jobs'
@@ -555,13 +659,17 @@ class SortJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
+        jobs = Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        )
         sort_by = self.request.GET.get('sort_by', 'date_posted')
         if sort_by == 'date_posted':
-            return Jobs.objects.all().order_by('-date_posted')
+            return jobs.order_by('-date_posted')
         elif sort_by == 'salary':
-            return Jobs.objects.all().order_by('-salary')
+            return jobs.order_by('-salary')
         else:
-            return Jobs.objects.all()
+            return jobs
 
 class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = AppliedJobs
@@ -611,7 +719,10 @@ class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_queryset(self):
-        jobs = Jobs.objects.filter(status='Active')
+        jobs = Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        )
 
         q = self.request.GET.get('q')
         if q:
@@ -634,6 +745,9 @@ class SearchJobView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['selected_job_types'] = self.request.GET.getlist('job_type')
+        applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        if not applicant_profile or applicant_profile.status != 'approved':
+            context['matching_jobs'] = Jobs.objects.none()
         return context
 
 ###class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -653,7 +767,12 @@ class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.warning(request, 'Your applicant profile must be approved before you can apply for jobs.')
             return redirect('job_details', pk=pk)
 
-        job = get_object_or_404(Jobs, pk=pk, status='Active')
+        job = get_object_or_404(
+            Jobs,
+            pk=pk,
+            status='Active',
+            employer__verification_status='verified',
+        )
         if AppliedJobs.objects.filter(applicant=applicant_profile, applied_job=job).exists():
             messages.warning(request, 'You have already applied for this job.')
             return redirect('job_details', pk=job.pk)
@@ -683,7 +802,12 @@ class SaveJobView(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.warning(request, 'Please complete your profile first.')
             return redirect('applicant-dashboard')
 
-        job = get_object_or_404(Jobs, pk=pk, status='Active')
+        job = get_object_or_404(
+            Jobs,
+            pk=pk,
+            status='Active',
+            employer__verification_status='verified',
+        )
         saved_job, created = SavedJobs.objects.get_or_create(
             applicant=applicant_profile, saved_job=job
         )

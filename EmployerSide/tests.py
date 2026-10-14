@@ -65,6 +65,82 @@ class EmployerNotificationTests(TestCase):
         self.assertIn('Test Applicant', notification.message)
         self.assertIn('/employer/applicants/', notification.target_url)
 
+    def test_sensitive_business_profile_update_moves_verified_employer_to_reverification_pending(self):
+        self.employer.business_name = 'Notification Employer Ltd'
+        self.employer.contact_person = 'Test Contact'
+        self.employer.mobile_number = '09123456789'
+        self.employer.verification_status = 'verified'
+        self.employer.save()
+        self.client.force_login(self.employer_user)
+
+        response = self.client.post(
+            reverse('employer-profile-create'),
+            {
+                'business_name': self.employer.business_name,
+                'trade_name': '',
+                'acronym': '',
+                'office_type': 'main',
+                'tin_number': '',
+                'employer_type': 'direct_hire',
+                'total_workforce': 'micro',
+                'line_of_business': '',
+                'street_address': '',
+                'barangay': 'Poblacion',
+                'municipality': 'Carigara',
+                'province': 'Leyte',
+                'owner_name': '',
+                'designation': '',
+                'contact_person': self.employer.contact_person,
+                'contact_position': '',
+                'telephone_number': '',
+                'mobile_number': '09987654321',
+                'email': '',
+                'public_doc_type': '',
+            },
+        )
+
+        self.assertRedirects(response, reverse('employer-home'))
+        self.employer.refresh_from_db()
+        self.assertEqual(self.employer.mobile_number, '09987654321')
+        self.assertEqual(self.employer.verification_status, 'reverify_pending')
+        employer_dashboard = self.client.get(reverse('employer-home'))
+        self.assertContains(employer_dashboard, 'Pending Re-Verification')
+        job_creation_response = self.client.get(reverse('job_create'))
+        self.assertEqual(job_creation_response.status_code, 403)
+
+    def test_pending_applicant_is_hidden_from_employer_candidate_list(self):
+        self.employer.verification_status = 'verified'
+        self.employer.save(update_fields=['verification_status'])
+        self.applicant.status = 'approved'
+        self.applicant.save(update_fields=['status'])
+        job = Jobs.objects.create(
+            employer=self.employer,
+            job_title='Candidate List Job',
+            job_description='Test job description',
+            place_of_work='Carigara',
+            salary=10000,
+            job_posting_expiry='2099-01-01',
+        )
+        AppliedJobs.objects.create(
+            employer=self.employer,
+            applicant=self.applicant,
+            applied_job=job,
+        )
+        self.client.force_login(self.employer_user)
+
+        approved_response = self.client.get(reverse('applicants-list'))
+        self.assertEqual(len(approved_response.context['object_list']), 1)
+
+        self.applicant.status = 'pending'
+        self.applicant.save(update_fields=['status'])
+        pending_response = self.client.get(reverse('applicants-list'))
+
+        self.assertEqual(len(pending_response.context['object_list']), 0)
+        detail_response = self.client.get(
+            reverse('applicant-detail', kwargs={'pk': job.applied_applicants.get().pk})
+        )
+        self.assertEqual(detail_response.status_code, 404)
+
     def test_employer_application_status_change_notifies_applicant_once(self):
         job = Jobs.objects.create(
             employer=self.employer,

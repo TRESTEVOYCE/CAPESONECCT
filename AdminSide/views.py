@@ -274,15 +274,25 @@ class DashboardView(LoginRequiredMixin, SuperuserRequiredMixin, TemplateView):
 
         pending_approvals = sorted(
             list(
-                ApplicantProfile.objects.filter(status='pending')
+                ApplicantProfile.objects.filter(
+                    status__in=['pending', 'reverify_pending']
+                )
                 .select_related('user')
                 .order_by('created_at')[:5]
             ) + list(
-                EmployerProfile.objects.filter(verification_status='pending')
+                EmployerProfile.objects.filter(
+                    verification_status__in=['pending', 'reverify_pending']
+                )
                 .select_related('user')
                 .order_by('created_at')[:5]
             ),
-            key=lambda profile: profile.created_at,
+            key=lambda profile: (
+                (
+                    getattr(profile, 'status', None) != 'reverify_pending'
+                    and getattr(profile, 'verification_status', None) != 'reverify_pending'
+                ),
+                profile.created_at,
+            ),
         )[:5]
 
         # Existing chart metric logic...
@@ -516,7 +526,10 @@ class ApplicantListView(LoginRequiredMixin, ListView):
             total=Count('uuid'),
             female=Count('uuid', filter=Q(sex='F')),
             verified=Count('uuid', filter=Q(status='approved')),
-            pending=Count('uuid', filter=Q(status='pending'))
+            pending=Count(
+                'uuid',
+                filter=Q(status__in=['pending', 'reverify_pending']),
+            )
         )
 
         # Keep state parameters sticky in frontend elements
@@ -711,7 +724,10 @@ class EmployerListView(LoginRequiredMixin, ListView):
         
         kpi_counts = EmployerProfile.objects.aggregate(
             approved_count=Count('id', filter=Q(verification_status='verified')),
-            pending_count=Count('id', filter=Q(verification_status='pending'))
+            pending_count=Count(
+                'id',
+                filter=Q(verification_status__in=['pending', 'reverify_pending']),
+            )
         )
 
         for employer in context['employers']:

@@ -16,7 +16,7 @@
             <p class="text-xs text-slate-500 font-medium">DOLE National Skills Registration Program Record</p>
             <span class="px-3 py-1 text-xs font-bold rounded-full mt-1 inline-block
                 {% if applicant.status == 'approved' %}bg-green-100 text-green-700
-                {% elif applicant.status == 'pending' %}bg-amber-100 text-amber-700
+                {% elif applicant.status == 'pending' or applicant.status == 'reverify_pending' %}bg-amber-100 text-amber-700
                 {% else %}bg-red-100 text-red-700{% endif %}">
                 Status: {{ applicant.get_status_display|default:applicant.status|title }}
             </span>

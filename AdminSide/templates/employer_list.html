@@ -30,6 +30,7 @@
                     <option value="All">All Status</option>
                     <option value="verified" {% if selected_status == "verified" %}selected{% endif %}>Verified</option>
                     <option value="pending" {% if selected_status == "pending" %}selected{% endif %}>Pending</option>
+                    <option value="reverify_pending" {% if selected_status == "reverify_pending" %}selected{% endif %}>Pending Re-Verification</option>
                     <option value="rejected" {% if selected_status == "rejected" %}selected{% endif %}>Rejected</option>
                 </select>
             </div>
@@ -55,6 +56,8 @@
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">Verified</span>
                             {% elif employer.verification_status == 'rejected' %}
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Rejected</span>
+                            {% elif employer.verification_status == 'reverify_pending' %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-yellow-100 text-yellow-800">Updated - Needs Audit</span>
                             {% else %}
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">Pending Verification</span>
                             {% endif %}

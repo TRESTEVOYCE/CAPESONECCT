@@ -5,6 +5,7 @@ from django.views import View
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
+from AdminSide.services.profile_sensitivity import mark_profile_for_reverification
 from .forms import EmployerProfileForm,JobsForm,ProfilePictureForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse, reverse_lazy
@@ -212,7 +213,8 @@ class HomeView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context = super().get_context_data(**kwargs)
 
         applied_jobs = AppliedJobs.objects.filter(
-            employer=self.request.user.employer_profile
+            employer=self.request.user.employer_profile,
+            applicant__status='approved',
         )
         jobs = Jobs.objects.filter(
             employer=self.request.user.employer_profile
@@ -227,10 +229,10 @@ class CompanyProfileView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'company_profile.html'
 
     def test_func(self):
-            return (
-                self.request.user.is_authenticated
-                and self.request.user.role == 'employer'
-            )
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.role == 'employer'
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -267,6 +269,18 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
 
     def get_object(self):
         return EmployerProfile.objects.get(user=self.request.user)
+
+    def form_valid(self, form):
+        changed_fields = form.changed_data
+        response = super().form_valid(form)
+        if mark_profile_for_reverification(self.object, changed_fields):
+            messages.warning(
+                self.request,
+                'Your business profile has been updated and is pending '
+                're-verification. Job posting and applicant access are paused '
+                'until it is verified again.',
+            )
+        return response
     
 
 class EmployerReverificationAppealView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -333,7 +347,8 @@ class ApplicantsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             return AppliedJobs.objects.none()
 
         queryset = AppliedJobs.objects.filter(
-            employer=employer_profile
+            employer=employer_profile,
+            applicant__status='approved',
         ).order_by('-application_date')
 
         # Capture search query for applicants using correct field lookups
@@ -375,7 +390,8 @@ class ApplicantDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def get_queryset(self):
         return AppliedJobs.objects.filter(
-            employer=self.request.user.employer_profile
+            employer=self.request.user.employer_profile,
+            applicant__status='approved',
         ).distinct()
     
 #view to update the status of an applicant's job application
@@ -396,9 +412,16 @@ class JobCreationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('employer-home')
 
     def test_func(self):
+        employer_profile = getattr(
+            self.request.user,
+            'employer_profile',
+            None,
+        )
         return (
             self.request.user.is_authenticated
             and self.request.user.role == 'employer'
+            and employer_profile is not None
+            and employer_profile.verification_status == 'verified'
         )
 
     def get_context_data(self, **kwargs):
@@ -564,6 +587,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                 applied_job=job,
                 employer=employer_profile,
                 applicant__isnull=False,
+                applicant__status='approved',
             )
             .select_related(
                 'applicant',

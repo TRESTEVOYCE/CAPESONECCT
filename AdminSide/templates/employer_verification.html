@@ -28,11 +28,11 @@
                     <div class="mt-2">
                         <span class="px-3 py-1 text-xs font-bold rounded-full inline-block
                             {% if employer.verification_status == 'verified' %}bg-green-100 text-green-700
-                            {% elif employer.verification_status == 'pending' %}bg-amber-100 text-amber-700
+                            {% elif employer.verification_status == 'pending' or employer.verification_status == 'reverify_pending' %}bg-amber-100 text-amber-700
                             {% elif employer.verification_status == 'rejected' %}bg-rose-100 text-rose-800 border border-rose-300
                             {% else %}bg-amber-100 text-amber-700{% endif %}"
                             {% if employer.verification_status == 'rejected' %}style="background-color: #ffe4e6; color: #9f1239; border-color: #fda4af;"{% endif %}>
-                            Status: {% if employer.verification_status == 'verified' %}Approved{% elif employer.verification_status == 'rejected' %}Rejected{% else %}Pending{% endif %}
+                            Status: {{ employer.get_verification_status_display|default:employer.verification_status|title }}
                         </span>
                     </div>
                 </div>

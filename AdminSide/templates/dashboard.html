@@ -228,7 +228,11 @@
                                 <div>
                                     <p class="text-sm font-bold text-slate-800">{% if approval.user.role == 'applicant' %}{{ approval.first_name }} {{ approval.last_name }}{% else %}{{ approval.business_name }}{% endif %}</p>
                                     <p class="text-[10px] text-slate-400 font-medium">
-                                        {% if approval.user.role == 'applicant' %}Applicant{% else %}Employer{% endif %} · {{ approval.created_at|date:'M d, Y' }}
+                                        {% if approval.user.role == 'applicant' %}
+                                            Applicant{% if approval.status == 'reverify_pending' %} · Updated - Needs Audit{% endif %}
+                                        {% else %}
+                                            Employer{% if approval.verification_status == 'reverify_pending' %} · Updated - Needs Audit{% endif %}
+                                        {% endif %} · {{ approval.created_at|date:'M d, Y' }}
                                     </p>
                                 </div>
                             </a>

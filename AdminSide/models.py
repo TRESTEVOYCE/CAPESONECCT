@@ -121,6 +121,7 @@ class EmployerProfile(models.Model):
 
     VERIFICATION_STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('reverify_pending', 'Pending Re-Verification'),
         ('verified', 'Verified'),
         ('rejected', 'Rejected'),
     )
@@ -280,6 +281,7 @@ class ApplicantProfile(models.Model):
 
     APPLICATION_STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('reverify_pending', 'Pending Re-Verification'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     )

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.core import mail
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -9,6 +9,8 @@ from django.utils import timezone
 from .models import (
     AppliedJobs,
     ApplicantProfile,
+    ApplicantSkills,
+    ApplicantWorkExperience,
     EmployerProfile,
     GovernmentInternshipProgram,
     Jobs,
@@ -16,8 +18,168 @@ from .models import (
     SpecialProgramForEmploymentOfStudents,
     User,
 )
+from .services.profile_sensitivity import (
+    classify_profile_changes,
+    mark_profile_for_reverification,
+)
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
+
+
+class ProfileFieldSensitivityTests(SimpleTestCase):
+    def test_applicant_phone_changes_are_sensitive_but_minor_address_edits_are_not(self):
+        classification = classify_profile_changes(
+            ApplicantProfile,
+            {
+                'education_level',
+                'skill_welding',
+                'phone_number',
+                'mobile_number_secondary',
+                'landline_number',
+                'house_street',
+                'municipality',
+            },
+        )
+
+        self.assertEqual(
+            classification.sensitive_fields,
+            frozenset({
+                'education_level',
+                'skill_welding',
+                'municipality',
+                'phone_number',
+                'mobile_number_secondary',
+                'landline_number',
+            }),
+        )
+        self.assertEqual(
+            classification.non_sensitive_fields,
+            frozenset({'house_street'}),
+        )
+        self.assertTrue(classification.requires_reverification)
+
+        address_only = classify_profile_changes(
+            ApplicantProfile,
+            {'house_street', 'barangay'},
+        )
+        self.assertFalse(address_only.requires_reverification)
+
+    def test_applicant_skills_and_work_history_are_sensitive(self):
+        skills = classify_profile_changes(ApplicantSkills, {'skill_name'})
+        work = classify_profile_changes(
+            ApplicantWorkExperience,
+            {'company', 'position', 'dates'},
+        )
+
+        self.assertTrue(skills.requires_reverification)
+        self.assertEqual(skills.sensitive_fields, frozenset({'skill_name'}))
+        self.assertTrue(work.requires_reverification)
+        self.assertEqual(
+            work.sensitive_fields,
+            frozenset({'company', 'position', 'dates'}),
+        )
+
+    def test_employer_phone_changes_are_sensitive_but_other_contact_edits_are_not(self):
+        classification = classify_profile_changes(
+            EmployerProfile,
+            {
+                'tin_number',
+                'business_permit',
+                'business_name',
+                'mobile_number',
+                'telephone_number',
+                'email',
+            },
+        )
+
+        self.assertEqual(
+            classification.sensitive_fields,
+            frozenset({
+                'tin_number',
+                'business_permit',
+                'business_name',
+                'mobile_number',
+                'telephone_number',
+            }),
+        )
+        self.assertEqual(
+            classification.non_sensitive_fields,
+            frozenset({'email'}),
+        )
+
+    def test_user_profile_picture_is_non_sensitive_and_unclassified_fields_fail_safe(self):
+        classification = classify_profile_changes(
+            User,
+            {'profile_picture', 'new_credential_field'},
+        )
+
+        self.assertEqual(
+            classification.non_sensitive_fields,
+            frozenset({'profile_picture'}),
+        )
+        self.assertEqual(
+            classification.sensitive_fields,
+            frozenset({'new_credential_field'}),
+        )
+
+
+class ProfileReverificationStatusTests(TestCase):
+    def setUp(self):
+        self.applicant_user = User.objects.create_user(
+            username='reverify-applicant',
+            email='reverify-applicant@example.com',
+            password='test-password',
+            role='applicant',
+        )
+        self.applicant = ApplicantProfile.objects.create(
+            user=self.applicant_user,
+            first_name='Reverify',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            status='approved',
+        )
+        self.employer_user = User.objects.create_user(
+            username='reverify-employer',
+            email='reverify-employer@example.com',
+            password='test-password',
+            role='employer',
+        )
+        self.employer = EmployerProfile.objects.create(
+            user=self.employer_user,
+            business_name='Reverify Employer',
+            verification_status='verified',
+        )
+
+    def test_sensitive_applicant_change_moves_approved_profile_to_reverification_pending(self):
+        changed = mark_profile_for_reverification(
+            self.applicant,
+            {'phone_number'},
+        )
+
+        self.assertTrue(changed)
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'reverify_pending')
+
+    def test_non_sensitive_applicant_change_keeps_approved_profile(self):
+        changed = mark_profile_for_reverification(
+            self.applicant,
+            {'house_street'},
+        )
+
+        self.assertFalse(changed)
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'approved')
+
+    def test_sensitive_employer_change_moves_verified_profile_to_reverification_pending(self):
+        changed = mark_profile_for_reverification(
+            self.employer,
+            {'business_permit'},
+        )
+
+        self.assertTrue(changed)
+        self.employer.refresh_from_db()
+        self.assertEqual(self.employer.verification_status, 'reverify_pending')
 
 
 @override_settings(
@@ -105,6 +267,21 @@ class DashboardViewTests(TestCase):
             mobile_number='09123456789',
             email=f'{username}-profile@example.com',
         )
+
+    def test_reverification_profiles_are_prioritized_in_pending_approvals(self):
+        applicant = self.create_applicant('dashboard-reverify-applicant')
+        applicant.status = 'reverify_pending'
+        applicant.save(update_fields=['status'])
+        employer = self.create_employer('dashboard-reverify-employer')
+        employer.verification_status = 'reverify_pending'
+        employer.save(update_fields=['verification_status'])
+
+        response = self.client.get(reverse('AdminSide:dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(applicant, response.context['pending_approvals'])
+        self.assertIn(employer, response.context['pending_approvals'])
+        self.assertContains(response, 'Updated - Needs Audit')
 
     def test_stat_cards_show_database_metrics_and_keep_their_destinations(self):
         today = timezone.localdate()

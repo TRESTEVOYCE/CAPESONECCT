@@ -1,7 +1,15 @@
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from unittest.mock import patch
 
-from AdminSide.models import ApplicantProfile, Notification, User
+from AdminSide.models import (
+    ApplicantProfile,
+    AppliedJobs,
+    EmployerProfile,
+    Jobs,
+    Notification,
+    User,
+)
 
 
 class ApplicantProfileOnboardingTests(TestCase):
@@ -64,6 +72,119 @@ class ApplicantProfileOnboardingTests(TestCase):
         profile.refresh_from_db()
         self.assertIsNone(profile.phone_number)
         self.assertIsNone(profile.barangay)
+
+    def test_sensitive_phone_update_moves_approved_applicant_to_reverification_pending(self):
+        profile = ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            status='approved',
+        )
+
+        response = self.client.post(reverse('applicant-address'), {
+            'house_street': 'New Street',
+            'barangay': 'Poblacion',
+            'municipality': 'Carigara',
+            'province': 'Leyte',
+            'region': 'Region VIII',
+            'zip_code': '6529',
+            'phone_number': '09987654321',
+            'mobile_number_secondary': '',
+            'landline_number': '',
+            'email_address': '',
+        })
+
+        self.assertRedirects(response, reverse('applicant-education'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.status, 'reverify_pending')
+
+    def test_pending_applicant_is_not_job_matched_or_allowed_to_apply(self):
+        ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            status='reverify_pending',
+        )
+        employer_user = User.objects.create_user(
+            username='pending-applicant-employer',
+            email='pending-applicant-employer@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='Verified Employer',
+            verification_status='verified',
+        )
+        job = Jobs.objects.create(
+            employer=employer,
+            job_title='Test Position',
+            job_description='Test job description',
+            place_of_work='Carigara',
+            salary=10000,
+            job_posting_expiry='2099-01-01',
+        )
+
+        with patch('ApplicantSide.views.get_job_collection') as get_job_collection:
+            dashboard = self.client.get(reverse('applicant-dashboard'))
+
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertFalse(dashboard.context['matching_jobs'].exists())
+        self.assertContains(dashboard, 'Pending Re-Verification')
+        get_job_collection.assert_not_called()
+
+        response = self.client.post(
+            reverse('apply-for-job', kwargs={'pk': job.pk})
+        )
+
+        self.assertRedirects(response, reverse('job_details', kwargs={'pk': job.pk}))
+        self.assertFalse(AppliedJobs.objects.filter(applicant__user=self.applicant).exists())
+
+    def test_unverified_employer_jobs_are_not_available_to_applicants(self):
+        ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            status='approved',
+        )
+        employer_user = User.objects.create_user(
+            username='pending-employer',
+            email='pending-employer@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='Pending Employer',
+            verification_status='pending',
+        )
+        job = Jobs.objects.create(
+            employer=employer,
+            job_title='Unverified Employer Job',
+            job_description='Test job description',
+            place_of_work='Carigara',
+            salary=10000,
+            job_posting_expiry='2099-01-01',
+        )
+
+        response = self.client.get(reverse('job_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['jobs'].filter(pk=job.pk).exists())
+        detail_response = self.client.get(
+            reverse('job_details', kwargs={'pk': job.pk})
+        )
+        self.assertEqual(detail_response.status_code, 404)
 
     def test_my_profile_keeps_registration_details_visible(self):
         ApplicantProfile.objects.create(
