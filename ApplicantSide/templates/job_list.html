@@ -1,4 +1,3 @@
-
 {% extends 'applicant-base.html' %}
 {% block title %}Browse All Jobs - CAPESCONNECT PESO Carigara{% endblock %}
 {% block content %}
@@ -67,11 +66,45 @@
                     <!-- Description excerpt -->
                     <p class="text-sm text-stone-600 line-clamp-2 leading-relaxed">{{ job.job_description|default:"Handle customer inquiries, provide support, and ensure customer satisfaction scores above 90%." }}</p>
 
-                    <!-- Skill tags -->
+                    <!-- Skill tags (All Employer-Specified Skills) -->
                     <div class="flex flex-wrap gap-1.5 pt-0.5">
-                        <span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Communication</span>
-                        <span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Customer Service</span>
-                        <span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-400">+2</span>
+                        <!-- Custom Competencies -->
+                        {% for custom_skill in job.custom_skills.all %}
+                            <span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">
+                                {{ custom_skill.skill_name }}
+                            </span>
+                        {% endfor %}
+
+                        <!-- 21st Century Skills -->
+                        {% if job.skill_innovation %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Innovation</span>{% endif %}
+                        {% if job.skill_team_work %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Team Work</span>{% endif %}
+                        {% if job.skill_multitasking %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Multitasking</span>{% endif %}
+                        {% if job.skill_work_ethics %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Work Ethics</span>{% endif %}
+                        {% if job.skill_self_motivation %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Self-Motivation</span>{% endif %}
+                        {% if job.skill_creative_problem_solving %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Creative Problem Solving</span>{% endif %}
+                        {% if job.skill_problem_solving %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Problem Solving</span>{% endif %}
+                        {% if job.skill_critical_thinking %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Critical Thinking</span>{% endif %}
+                        {% if job.skill_decision_making %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Decision Making</span>{% endif %}
+                        {% if job.skill_stress_tolerance %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Stress Tolerance</span>{% endif %}
+                        {% if job.skill_planning_organizing %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Planning and Organizing</span>{% endif %}
+                        {% if job.skill_social_perceptiveness %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Social Perceptiveness</span>{% endif %}
+                        {% if job.skill_english_functional %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">English Functional Skills</span>{% endif %}
+                        {% if job.skill_english_comprehension %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">English Comprehension</span>{% endif %}
+                        {% if job.skill_math_functional %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Math Functional Skill</span>{% endif %}
+
+                        <!-- Technical Skills -->
+                        {% if job.skill_carpentry %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Carpentry</span>{% endif %}
+                        {% if job.skill_masonry %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Masonry</span>{% endif %}
+                        {% if job.skill_welding %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Welding</span>{% endif %}
+                        {% if job.skill_auto_mechanic %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Auto Mechanic</span>{% endif %}
+                        {% if job.skill_plumbing %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Plumbing</span>{% endif %}
+                        {% if job.skill_driving %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Driving</span>{% endif %}
+                        {% if job.skill_gardening %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Gardening</span>{% endif %}
+                        {% if job.skill_tailoring %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Tailoring</span>{% endif %}
+                        {% if job.skill_photography %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Photography</span>{% endif %}
+                        {% if job.skill_hairdressing %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Hairdressing</span>{% endif %}
+                        {% if job.skill_cooking %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Cooking</span>{% endif %}
+                        {% if job.skill_baking %}<span class="px-2.5 py-1 rounded bg-stone-50 border border-stone-200/60 text-xs font-medium text-stone-700">Baking</span>{% endif %}
                     </div>
                 </div>
 
@@ -153,4 +186,3 @@
     </div>
 </div>
 {% endblock %}
-

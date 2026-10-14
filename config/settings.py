@@ -24,7 +24,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Host & Origin Settings
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.254.114").split(",")
+    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.254.110").split(",")
     if host.strip()
 ]
 

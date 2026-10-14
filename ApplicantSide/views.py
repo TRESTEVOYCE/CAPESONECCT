@@ -230,6 +230,7 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         context['applicant_profile'] = applicant_profile
 
+        matching_list = []
         if applicant_profile:
             applicant_profile_text = build_applicant_profile_text(applicant_profile)
             collection = get_job_collection()
@@ -242,10 +243,21 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             matching_jobs = Jobs.objects.filter(uuid__in=job_uuids, status='Active')
 
-            if matching_jobs.exists():
-                context['matching_jobs'] = matching_jobs
-            else:
-                context['matching_jobs'] = Jobs.objects.filter(status='Active')
+            if not matching_jobs.exists():
+                matching_jobs = Jobs.objects.filter(status='Active')
+
+            for job in matching_jobs:
+                if job.pk:
+                    matching_list.append({
+                        'job': job,
+                        'score': 88,
+                        'edu_score': 100,
+                        'exp_score': 85,
+                        'skills_score': 80,
+                        'certs_score': 50
+                    })
+
+            context['matching_jobs'] = matching_list
 
             applications = AppliedJobs.objects.filter(applicant=applicant_profile)
             context['application_count'] = applications.count()
@@ -273,7 +285,17 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
             context['profile_strength'] = int((completed / total) * 100)
         else:
-            context['matching_jobs'] = Jobs.objects.filter(status='Active')
+            for job in Jobs.objects.filter(status='Active'):
+                if job.pk:
+                    matching_list.append({
+                        'job': job,
+                        'score': 75,
+                        'edu_score': 80,
+                        'exp_score': 70,
+                        'skills_score': 75,
+                        'certs_score': 40
+                    })
+            context['matching_jobs'] = matching_list
             context['application_count'] = 0
             context['saved_jobs_count'] = 0
             context['under_review_count'] = 0
@@ -532,25 +554,29 @@ class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
 
 
 class ViewProfileView(ApplicantRequiredMixin, UpdateView):
-    model = User
-    form_class = ProfilePictureForm
-    template_name = 'view_profile.html'
+  model = ApplicantProfile
+  form_class = ProfilePictureForm
+  template_name = 'view_profile.html'
 
-    def get_object(self, queryset=None):
-        return self.request.user
+  def get_object(self, queryset=None):
+    profile, created = ApplicantProfile.objects.get_or_create(
+        user=self.request.user
+    )
+    return profile
 
-    def get_success_url(self):
-        return reverse_lazy('view_profile')
+  def get_success_url(self):
+    return reverse_lazy('view_profile')
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Profile picture updated successfully.')
-        return super().form_valid(form)
+  def form_valid(self, form):
+    messages.success(self.request, 'Profile picture updated successfully.')
+    return super().form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['profile'] = ApplicantProfile.objects.filter(user=self.request.user).first()
-        context['profile_picture'] = self.request.user
-        return context
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    profile = self.get_object()
+    context['profile'] = profile
+    context['applicant_profile'] = profile
+    return context
 
 
 class MyProfileView(ApplicantRequiredMixin, TemplateView):

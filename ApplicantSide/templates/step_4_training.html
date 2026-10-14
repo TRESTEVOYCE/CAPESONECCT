@@ -1,122 +1,74 @@
 {% extends 'applicant-base.html' %}
 {% block content %}
-<form method="POST" action="{% url 'applicant-training' %}" class="space-y-5">
+<form method="POST" action="{% url 'applicant-training' %}" class="space-y-6" id="training-form" novalidate>
     {% csrf_token %}
     <div class="flex items-center justify-between border-b border-stone-200 pb-3">
-        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
             IV. Training, Vocational, and Other Eligibility
         </h2>
     </div>
-    <div class="space-y-4">
-        <!-- Entry 1 -->
-        <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
-            <span class="text-xs font-bold text-stone-700 uppercase">
-                Training / Eligibility 1
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    
+    <div id="training-container" class="space-y-5">
+        <!-- Template / Initial Entry -->
+        <div class="training-entry p-6 rounded-2xl border border-stone-200 bg-stone-50 space-y-4 relative">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-stone-700 uppercase training-title-label">
+                    Training / Eligibility 1
+                </span>
+                <button type="button" class="remove-entry text-sm text-red-600 hover:text-red-800 font-semibold hidden">
+                    Remove
+                </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Course / Training Title / Eligibility (CES, Civil Service, NC II, etc.)*
                     </label>
-                    <input
-                        type="text"
-                        name="training_title_1"
-                        value="{{ form.training_title_1.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
+                    <div class="field-wrap">
+                        <input type="text" name="training_title[]" class="training-title w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required>
+                    </div>
+                    <p class="error-title mt-1.5 text-xs text-red-600 hidden font-medium">Must be letters only and at least 5 characters long.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Number of Hours
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        Number of Hours*
                     </label>
-                    <input
-                        type="number"
-                        name="training_hours_1"
-                        value="{{ form.training_hours_1.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
+                    <div class="field-wrap">
+                        <input type="number" name="training_hours[]" min="1" max="5000" class="training-hours w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required>
+                    </div>
+                    <p class="error-hours mt-1.5 text-xs text-red-600 hidden font-medium">Please enter valid numbers only.</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Conducted / Issued By (Institution / Agency)
                     </label>
-                    <input
-                        type="text"
-                        name="training_institution_1"
-                        value="{{ form.training_institution_1.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
+                    <div class="field-wrap">
+                        <input type="text" name="training_institution[]" class="training-inst w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                    </div>
+                    <p class="error-inst mt-1.5 text-xs text-red-600 hidden font-medium">Must be letters only and at least 5 characters long.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Date Completed / Issued
                     </label>
-                    <input
-                        type="date"
-                        name="training_date_1"
-                        value="{{ form.training_date_1.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
-                </div>
-            </div>
-        </div>
-        <!-- Entry 2 -->
-        <div class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
-            <span class="text-xs font-bold text-stone-700 uppercase">
-                Training / Eligibility 2 (Optional)
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Course / Training Title / Eligibility
-                    </label>
-                    <input
-                        type="text"
-                        name="training_title_2"
-                        value="{{ form.training_title_2.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Number of Hours
-                    </label>
-                    <input
-                        type="number"
-                        name="training_hours_2"
-                        value="{{ form.training_hours_2.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Conducted / Issued By
-                    </label>
-                    <input
-                        type="text"
-                        name="training_institution_2"
-                        value="{{ form.training_institution_2.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Date Completed / Issued
-                    </label>
-                    <input
-                        type="date"
-                        name="training_date_2"
-                        value="{{ form.training_date_2.value|default:'' }}"
-                        class="w-full h-10 border border-stone-200 bg-white text-stone-900 rounded-[0.65rem] px-3.5 py-[0.55rem] text-xs focus:ring-2 focus:ring-stone-900 focus:outline-none"
-                    >
+                    <div class="field-wrap">
+                        <input type="date" name="training_date[]" class="training-date w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                    </div>
+                    <p class="error-date mt-1.5 text-xs text-red-600 hidden font-medium">Invalid date or future date not allowed.</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Add Button Placed on the Right -->
+    <div class="flex justify-end">
+        <button type="button" id="add-training-btn" class="px-5 py-2.5 rounded-xl font-bold bg-amber-400 text-stone-900 hover:bg-amber-500 shadow-sm transition-all inline-flex items-center gap-2 text-xs">
+            <span class="text-sm font-extrabold">+</span> Add Another Training / Eligibility
+        </button>
+    </div>
+
     {% if form.errors %}
         <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {{ form.errors }}
@@ -125,7 +77,7 @@
     <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
         <a
             href="{% url 'my_profile' %}"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all text-sm"
         >
             Back
         </a>
@@ -133,10 +85,189 @@
     <div class="flex justify-end pt-6 border-t border-stone-200">
         <button
             type="submit"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all text-sm"
         >
             Save Changes
         </button>
     </div>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("training-form");
+        const container = document.getElementById("training-container");
+        const addBtn = document.getElementById("add-training-btn");
+
+        const todayStr = new Date().toISOString().split("T")[0];
+
+        function hasNumbers(val) {
+            return /\d/.test(val);
+        }
+
+        function validateLettersOnly(val) {
+            const lettersRegex = /^[A-Za-zÑñ\s\-\.]+$/;
+            return lettersRegex.test(val);
+        }
+
+        function validateNumberOnly(val) {
+            if (val === "") return true;
+            const num = Number(val);
+            return !isNaN(num) && num > 0 && num <= 5000;
+        }
+
+        function validateDate(dateVal) {
+            if (!dateVal) return true;
+            const selectedDate = new Date(dateVal);
+            const today = new Date();
+            if (selectedDate > today) return false;
+            const minAllowedYear = today.getFullYear() - 80;
+            if (selectedDate.getFullYear() < minAllowedYear) return false;
+            return true;
+        }
+
+        function setupEntryListeners(entry) {
+            const titleInput = entry.querySelector(".training-title");
+            const hoursInput = entry.querySelector(".training-hours");
+            const instInput = entry.querySelector(".training-inst");
+            const dateInput = entry.querySelector(".training-date");
+
+            const errTitle = entry.querySelector(".error-title");
+            const errHours = entry.querySelector(".error-hours");
+            const errInst = entry.querySelector(".error-inst");
+            const errDate = entry.querySelector(".error-date");
+
+            if (dateInput) dateInput.max = todayStr;
+
+            titleInput.addEventListener("input", function() {
+                if (hasNumbers(this.value)) this.value = this.value.replace(/\d/g, "");
+                const val = this.value.trim();
+                if (val.length >= 5 && validateLettersOnly(val)) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    errTitle.classList.add("hidden");
+                } else {
+                    this.classList.add("border-red-500", "bg-red-50/50");
+                    errTitle.classList.remove("hidden");
+                }
+            });
+
+            hoursInput.addEventListener("input", function() {
+                this.value = this.value.replace(/\D/g, "");
+                if (validateNumberOnly(this.value)) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    errHours.classList.add("hidden");
+                } else {
+                    this.classList.add("border-red-500", "bg-red-50/50");
+                    errHours.classList.remove("hidden");
+                }
+            });
+
+            instInput.addEventListener("input", function() {
+                if (hasNumbers(this.value)) this.value = this.value.replace(/\d/g, "");
+                const val = this.value.trim();
+                if (val === "" || (val.length >= 5 && validateLettersOnly(val))) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    errInst.classList.add("hidden");
+                } else {
+                    this.classList.add("border-red-500", "bg-red-50/50");
+                    errInst.classList.remove("hidden");
+                }
+            });
+
+            dateInput.addEventListener("change", function() {
+                if (validateDate(this.value)) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    errDate.classList.add("hidden");
+                } else {
+                    this.classList.add("border-red-500", "bg-red-50/50");
+                    errDate.classList.remove("hidden");
+                }
+            });
+
+            const removeBtn = entry.querySelector(".remove-entry");
+            removeBtn.addEventListener("click", function() {
+                entry.remove();
+                updateEntryLabels();
+            });
+        }
+
+        function updateEntryLabels() {
+            const entries = container.querySelectorAll(".training-entry");
+            entries.forEach((entry, index) => {
+                const label = entry.querySelector(".training-title-label");
+                label.textContent = `Training / Eligibility ${index + 1}`;
+                const removeBtn = entry.querySelector(".remove-entry");
+                if (entries.length > 1) {
+                    removeBtn.classList.remove("hidden");
+                } else {
+                    removeBtn.classList.add("hidden");
+                }
+            });
+        }
+
+        setupEntryListeners(container.querySelector(".training-entry"));
+
+        addBtn.addEventListener("click", function() {
+            const firstEntry = container.querySelector(".training-entry");
+            const newEntry = firstEntry.cloneNode(true);
+            
+            newEntry.querySelectorAll("input").forEach(input => input.value = "");
+            newEntry.querySelectorAll(".text-red-600").forEach(err => err.classList.add("hidden"));
+            newEntry.querySelectorAll("input").forEach(input => input.classList.remove("border-red-500", "bg-red-50/50"));
+
+            container.appendChild(newEntry);
+            setupEntryListeners(newEntry);
+            updateEntryLabels();
+        });
+
+        form.addEventListener("submit", function(e) {
+            let isValid = true;
+            const entries = container.querySelectorAll(".training-entry");
+
+            entries.forEach(entry => {
+                const titleInput = entry.querySelector(".training-title");
+                const hoursInput = entry.querySelector(".training-hours");
+                const instInput = entry.querySelector(".training-inst");
+                const dateInput = entry.querySelector(".training-date");
+
+                const errTitle = entry.querySelector(".error-title");
+                const errHours = entry.querySelector(".error-hours");
+                const errInst = entry.querySelector(".error-inst");
+                const errDate = entry.querySelector(".error-date");
+
+                const tVal = titleInput.value.trim();
+                if (tVal === "" || tVal.length < 5 || hasNumbers(titleInput.value) || !validateLettersOnly(tVal)) {
+                    titleInput.classList.add("border-red-500", "bg-red-50/50");
+                    errTitle.classList.remove("hidden");
+                    isValid = false;
+                }
+
+                const hVal = hoursInput.value.trim();
+                if (hVal === "" || !validateNumberOnly(hVal)) {
+                    hoursInput.classList.add("border-red-500", "bg-red-50/50");
+                    errHours.classList.remove("hidden");
+                    isValid = false;
+                }
+
+                const iVal = instInput.value.trim();
+                if (iVal !== "" && (iVal.length < 5 || hasNumbers(instInput.value) || !validateLettersOnly(iVal))) {
+                    instInput.classList.add("border-red-500", "bg-red-50/50");
+                    errInst.classList.remove("hidden");
+                    isValid = false;
+                }
+
+                const dVal = dateInput.value.trim();
+                if (dVal !== "" && !validateDate(dVal)) {
+                    dateInput.classList.add("border-red-500", "bg-red-50/50");
+                    errDate.classList.remove("hidden");
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    });
+</script>
 {% endblock %}

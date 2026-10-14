@@ -75,12 +75,13 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {% for job in matching_jobs %}
+                {% for match in matching_jobs %}
+                {% with job=match.job score=match.score %}
                 <div class="bg-white border border-stone-200/90 rounded-xl p-4 shadow-3xs hover:border-stone-300 transition-all flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <span class="inline-flex items-center text-[11px] font-semibold text-stone-700 bg-stone-100 px-2 py-0.5 rounded">
-                                88% Match
+                                {{ score|default:"85" }}% Match
                             </span>
                             <button type="button" class="text-xs font-medium text-stone-400 hover:text-stone-700 transition-colors">
                                 Save
@@ -95,59 +96,91 @@
                         <div class="flex items-center gap-2 mt-2 text-[11px] text-stone-500">
                             <span>{{ job.place_of_work|default:"Makati City" }}</span>
                             <span>•</span>
-                            <span>Full-time</span>
+                            <span>{{ job.get_nature_of_work_display|default:"Full-time" }}</span>
                         </div>
 
                         <p class="text-xs text-stone-600 mt-2 line-clamp-2 leading-relaxed">
                             {{ job.job_description }}
                         </p>
 
-                        <!-- Compact Match breakdown bars -->
+                        <!-- Dynamic Match breakdown bars -->
                         <div class="mt-3.5 pt-3 border-t border-stone-100 grid grid-cols-4 gap-2 text-[10px]">
                             <div>
                                 <div class="flex justify-between text-stone-500 mb-0.5">
-                                    <span>Edu</span><span class="text-stone-800 font-semibold">100%</span>
+                                    <span>Edu</span><span class="text-stone-800 font-semibold">{{ match.edu_score|default:"100" }}%</span>
                                 </div>
                                 <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-stone-800 h-full w-full"></div>
+                                    <div class="bg-stone-800 h-full" style="width: {{ match.edu_score|default:100 }}%;"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex justify-between text-stone-500 mb-0.5">
-                                    <span>Exp</span><span class="text-stone-800 font-semibold">85%</span>
+                                    <span>Exp</span><span class="text-stone-800 font-semibold">{{ match.exp_score|default:"85" }}%</span>
                                 </div>
                                 <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-stone-800 h-full w-[85%]"></div>
+                                    <div class="bg-stone-800 h-full" style="width: {{ match.exp_score|default:85 }}%;"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex justify-between text-stone-500 mb-0.5">
-                                    <span>Skills</span><span class="text-stone-800 font-semibold">80%</span>
+                                    <span>Skills</span><span class="text-stone-800 font-semibold">{{ match.skills_score|default:"80" }}%</span>
                                 </div>
                                 <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-stone-800 h-full w-[80%]"></div>
+                                    <div class="bg-stone-800 h-full" style="width: {{ match.skills_score|default:80 }}%;"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex justify-between text-stone-500 mb-0.5">
-                                    <span>Certs</span><span class="text-stone-800 font-semibold">47%</span>
+                                    <span>Certs</span><span class="text-stone-800 font-semibold">{{ match.certs_score|default:"50" }}%</span>
                                 </div>
                                 <div class="w-full bg-stone-100 h-1 rounded-full overflow-hidden">
-                                    <div class="bg-stone-800 h-full w-[47%]"></div>
+                                    <div class="bg-stone-800 h-full" style="width: {{ match.certs_score|default:50 }}%;"></div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- All Employer-Specified Skill Tags -->
                         <div class="flex flex-wrap gap-1 mt-3">
-                            <span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Communication</span>
-                            <span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Customer Service</span>
-                            <span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-400 border border-stone-200/60">+2</span>
+                            {% for custom_skill in job.custom_skills.all %}
+                                <span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">{{ custom_skill.skill_name }}</span>
+                            {% endfor %}
+
+                            <!-- 21st Century Skills -->
+                            {% if job.skill_innovation %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Innovation</span>{% endif %}
+                            {% if job.skill_team_work %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Team Work</span>{% endif %}
+                            {% if job.skill_multitasking %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Multitasking</span>{% endif %}
+                            {% if job.skill_work_ethics %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Work Ethics</span>{% endif %}
+                            {% if job.skill_self_motivation %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Self-Motivation</span>{% endif %}
+                            {% if job.skill_creative_problem_solving %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Creative Problem Solving</span>{% endif %}
+                            {% if job.skill_problem_solving %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Problem Solving</span>{% endif %}
+                            {% if job.skill_critical_thinking %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Critical Thinking</span>{% endif %}
+                            {% if job.skill_decision_making %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Decision Making</span>{% endif %}
+                            {% if job.skill_stress_tolerance %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Stress Tolerance</span>{% endif %}
+                            {% if job.skill_planning_organizing %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Planning and Organizing</span>{% endif %}
+                            {% if job.skill_social_perceptiveness %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Social Perceptiveness</span>{% endif %}
+                            {% if job.skill_english_functional %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">English Functional Skills</span>{% endif %}
+                            {% if job.skill_english_comprehension %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">English Comprehension</span>{% endif %}
+                            {% if job.skill_math_functional %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Math Functional Skill</span>{% endif %}
+
+                            <!-- Technical Skills -->
+                            {% if job.skill_carpentry %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Carpentry</span>{% endif %}
+                            {% if job.skill_masonry %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Masonry</span>{% endif %}
+                            {% if job.skill_welding %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Welding</span>{% endif %}
+                            {% if job.skill_auto_mechanic %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Auto Mechanic</span>{% endif %}
+                            {% if job.skill_plumbing %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Plumbing</span>{% endif %}
+                            {% if job.skill_driving %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Driving</span>{% endif %}
+                            {% if job.skill_gardening %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Gardening</span>{% endif %}
+                            {% if job.skill_tailoring %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Tailoring</span>{% endif %}
+                            {% if job.skill_photography %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Photography</span>{% endif %}
+                            {% if job.skill_hairdressing %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Hairdressing</span>{% endif %}
+                            {% if job.skill_cooking %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Cooking</span>{% endif %}
+                            {% if job.skill_baking %}<span class="px-2 py-0.5 rounded bg-stone-50 text-[10px] font-medium text-stone-600 border border-stone-200/60">Baking</span>{% endif %}
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between pt-3.5 mt-3.5 border-t border-stone-100">
                         <div>
-                            <span class="text-xs font-bold text-stone-900">₱{{ job.salary|default:"18,000" }}</span>
+                            <span class="text-xs font-bold text-stone-900">₱{{ job.salary|floatformat:2 }}</span>
                             <span class="text-[10px] text-stone-400">/mo</span>
                         </div>
 
@@ -157,7 +190,7 @@
                         </a>
                     </div>
                 </div>
-
+                {% endwith %}
                 {% empty %}
                 <div class="col-span-full bg-white border border-stone-200/95 rounded-xl p-8 text-center">
                     <p class="text-xs text-stone-500">Fill out your profile experience and skill set to enable smart job matching.</p>

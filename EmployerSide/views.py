@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db.models import Q
 import json
+from .forms import EmployerProfileForm, JobsForm, ProfilePictureForm, JobSkillFormSet
 
 @login_required
 def update_applicant_status(request, pk):
@@ -228,13 +229,30 @@ class JobCreationView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             employer_profile is not None
             and employer_profile.verification_status == 'verified'
         )
+        
+        # Pass an unsaved Jobs() instance so the inline formset renders its extra row
+        if self.request.POST:
+            context['skill_formset'] = JobSkillFormSet(self.request.POST)
+        else:
+            context['skill_formset'] = JobSkillFormSet(instance=Jobs())
+            
         return context
 
     def form_valid(self, form):
-        form.instance.employer = self.request.user.employer_profile
-        response = super().form_valid(form)
-        upsert_job_vector(self.object)
-        return response
+        context = self.get_context_data()
+        skill_formset = context['skill_formset']
+        
+        if form.is_valid() and skill_formset.is_valid():
+            form.instance.employer = self.request.user.employer_profile
+            self.object = form.save()
+            
+            skill_formset.instance = self.object
+            skill_formset.save()
+            
+            upsert_job_vector(self.object)
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
     
 class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Jobs
@@ -259,12 +277,30 @@ class JobUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             employer_profile is not None
             and employer_profile.verification_status == 'verified'
         )
+        
+        if self.request.POST:
+            context['skill_formset'] = JobSkillFormSet(self.request.POST, instance=self.object)
+        else:
+            context['skill_formset'] = JobSkillFormSet(instance=self.object)
+            
         return context
 
     def get_queryset(self):
         return Jobs.objects.filter(
             employer=self.request.user.employer_profile
         )
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        skill_formset = context['skill_formset']
+        
+        if form.is_valid() and skill_formset.is_valid():
+            self.object = form.save()
+            skill_formset.instance = self.object
+            skill_formset.save()
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
 
 class JobDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Jobs

@@ -12,7 +12,7 @@
     </div>
 
     {% if is_verified %}
-    <form method="POST" class="space-y-6">
+    <form method="POST" class="space-y-6" id="job-posting-form" novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -39,7 +39,7 @@
                     </label>
                     <input type="text" name="{{ form.job_title.html_name }}" id="{{ form.job_title.id_for_label }}"
                            value="{{ form.job_title.value|default:'' }}" placeholder="e.g. Software Developer"
-                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none focus:border-stone-500 focus:bg-white transition text-sm" required>
                     {% for error in form.job_title.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -52,7 +52,7 @@
                     </label>
                     <textarea name="{{ form.job_description.html_name }}" id="{{ form.job_description.id_for_label }}"
                               rows="5" placeholder="Describe the responsibilities and duties of this position..."
-                              class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition text-sm">{{ form.job_description.value|default:'' }}</textarea>
+                              class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 outline-none resize-y focus:border-stone-500 focus:bg-white transition text-sm" required>{{ form.job_description.value|default:'' }}</textarea>
                     {% for error in form.job_description.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -138,11 +138,11 @@
             </div>
         </div>
 
-        <!-- QUALIFICATIONS -->
+        <!-- QUALIFICATIONS & SKILLS REQUIRED -->
         <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-6">
             <div class="border-b border-stone-100 pb-3">
-                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Qualifications</h2>
-                <p class="text-sm text-stone-500 mt-0.5">Specify the educational and professional requirements.</p>
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Qualifications & Skills Required</h2>
+                <p class="text-sm text-stone-500 mt-0.5">Specify educational, professional, and required competency requirements.</p>
             </div>
 
             <div class="space-y-5 text-sm">
@@ -229,6 +229,173 @@
                     </div>
 
                 </div>
+
+                <!-- ========================================= -->
+                <!-- 21ST CENTURY SKILLS REQUIRED -->
+                <!-- ========================================= -->
+                <div class="space-y-4 pt-4 border-t border-stone-100">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                            21st Century Skills Required
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_innovation }} Innovation
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_team_work }} Team Work
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_multitasking }} Multitasking
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_work_ethics }} Work Ethics
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_self_motivation }} Self-Motivation
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_creative_problem_solving }} Creative Problem Solving
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_problem_solving }} Problem Solving
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_critical_thinking }} Critical Thinking
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_decision_making }} Decision Making
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_stress_tolerance }} Stress Tolerance
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_planning_organizing }} Planning and Organizing
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_social_perceptiveness }} Social Perceptiveness
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_english_functional }} English Functional Skills
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_english_comprehension }} English Comprehension
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_math_functional }} Math Functional Skill
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ========================================= -->
+                <!-- TECHNICAL SKILLS REQUIRED -->
+                <!-- ========================================= -->
+                <div class="space-y-4 pt-4 border-t border-stone-100">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                            Technical Skills Required
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_carpentry }} Carpentry
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_masonry }} Masonry
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_welding }} Welding
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_auto_mechanic }} Auto Mechanic
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_plumbing }} Plumbing
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_driving }} Driving
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_gardening }} Gardening
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_tailoring }} Tailoring
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_photography }} Photography
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_hairdressing }} Hairdressing
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_cooking }} Cooking
+                        </label>
+                        <label class="inline-flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 cursor-pointer shadow-sm hover:border-stone-300 transition [&>input]:w-5 [&>input]:h-5 [&>input]:rounded [&>input]:border-stone-300 [&>input]:accent-stone-900 [&>input]:cursor-pointer">
+                            {{ form.skill_baking }} Baking
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Custom / Other Specific Skills Formset -->
+                <div class="space-y-4 pt-4 border-t border-stone-100">
+                    <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+                        <label class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                            Other / Specific Competencies & Skills
+                        </label>
+                        <button
+                            type="button"
+                            onclick="addSkill()"
+                            class="px-4 py-2 rounded-xl font-bold bg-amber-400 text-stone-900 hover:bg-amber-500 shadow-sm transition-all inline-flex items-center gap-1.5 text-xs"
+                        >
+                            <span class="text-sm font-extrabold">+</span> Add Skill
+                        </button>
+                    </div>
+
+                    {{ skill_formset.management_form }}
+                    <div id="skills-container" class="space-y-3">
+                        {% for skill_form in skill_formset %}
+                            <div class="skill-item flex items-center justify-between gap-4 bg-stone-50/50 p-4 rounded-xl border border-stone-200/80">
+                                {{ skill_form.id }}
+                                <div class="flex-1">
+                                    {{ skill_form.skill_name }}
+                                </div>
+                                {% if skill_form.instance.pk %}
+                                    <label class="flex items-center gap-2 text-sm text-rose-600 cursor-pointer font-semibold flex-shrink-0">
+                                        {{ skill_form.DELETE }}
+                                        <span>Remove</span>
+                                    </label>
+                                {% else %}
+                                    <button
+                                        type="button"
+                                        onclick="removeSkill(this.closest('.skill-item'))"
+                                        class="text-sm font-semibold text-rose-600 hover:text-rose-700 flex-shrink-0"
+                                    >
+                                        Remove
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Empty Form Template -->
+                    <template id="empty-skill-form">
+                        <div class="skill-item flex items-center justify-between gap-4 bg-stone-50/50 p-4 rounded-xl border border-stone-200/80">
+                            {{ skill_formset.empty_form.id }}
+                            <div class="flex-1">
+                                {{ skill_formset.empty_form.skill_name }}
+                            </div>
+                            <button
+                                type="button"
+                                onclick="removeSkill(this.closest('.skill-item'))"
+                                class="text-sm font-semibold text-rose-600 hover:text-rose-700 flex-shrink-0"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
             </div>
         </div>
 
@@ -301,10 +468,13 @@
 
                 <!-- Expiry -->
                 <div>
-                    <label for="{{ form.job_posting_expiry.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">Job Posting Expiry</label>
+                    <label for="{{ form.job_posting_expiry.id_for_label }}" class="block font-medium text-stone-700 mb-1.5">
+                        Job Posting Expiry <span class="text-rose-600">*</span>
+                    </label>
                     <input type="date" name="{{ form.job_posting_expiry.html_name }}" id="{{ form.job_posting_expiry.id_for_label }}"
                            value="{{ form.job_posting_expiry.value|default:'' }}"
-                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition text-sm">
+                           class="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 outline-none focus:border-stone-500 focus:bg-white transition text-sm" required>
+                    <p id="expiry-error" class="text-xs text-rose-600 mt-1 hidden"></p>
                     {% for error in form.job_posting_expiry.errors %}
                     <p class="text-xs text-rose-600 mt-1">{{ error }}</p>
                     {% endfor %}
@@ -312,6 +482,12 @@
 
             </div>
         </div>
+
+        {% if skill_formset.errors %}
+        <div class="rounded-xl border border-rose-200 bg-rose-50 p-4">
+            <p class="text-sm font-semibold text-rose-700">Please check the skill formset fields for errors.</p>
+        </div>
+        {% endif %}
 
         <!-- BUTTONS -->
         <div class="flex items-center justify-end gap-4 pb-10">
@@ -323,6 +499,108 @@
             </button>
         </div>
     </form>
+
+    <script>
+        function addSkill() {
+            const container = document.getElementById('skills-container');
+            const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+            const template = document.getElementById('empty-skill-form');
+            if (!container || !totalForms || !template) {
+                return;
+            }
+            const formIndex = parseInt(totalForms.value);
+            let html = template.innerHTML;
+            html = html.replace(/__prefix__/g, formIndex);
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html.trim();
+            const newElement = wrapper.firstElementChild;
+            
+            // Apply full-width input styling matching screenshot
+            const input = newElement.querySelector('input[type="text"]');
+            if (input) {
+                input.className = "w-full border border-stone-200 bg-white text-stone-900 rounded-xl px-4 py-3 text-sm focus:border-stone-500 focus:outline-none transition";
+                input.placeholder = "Enter specific skill or competency...";
+            }
+
+            container.appendChild(newElement);
+            totalForms.value = formIndex + 1;
+        }
+
+        function removeSkill(element) {
+            if (!element) {
+                return;
+            }
+            const deleteInput = element.querySelector('input[name$="-DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                element.classList.add('hidden');
+            } else {
+                element.remove();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("job-posting-form");
+            const expiryInput = document.getElementById("{{ form.job_posting_expiry.id_for_label }}");
+            const expiryError = document.getElementById("expiry-error");
+
+            // Apply full-width input styling to existing formset inputs
+            document.querySelectorAll('#skills-container input[type="text"]').forEach(input => {
+                input.className = "w-full border border-stone-200 bg-white text-stone-900 rounded-xl px-4 py-3 text-sm focus:border-stone-500 focus:outline-none transition";
+            });
+
+            // Set the minimum allowed date in the HTML date picker to 7 days from today
+            if (expiryInput) {
+                const minDate = new Date();
+                minDate.setDate(minDate.getDate() + 7);
+                expiryInput.min = minDate.toISOString().split("T")[0];
+            }
+
+            if (form) {
+                form.addEventListener("submit", function(e) {
+                    let isValid = true;
+
+                    // Validate required fields
+                    const requiredInputs = form.querySelectorAll("[required]");
+                    requiredInputs.forEach(input => {
+                        if (!input.value.trim()) {
+                            input.classList.add("border-rose-500", "bg-rose-50/50");
+                            isValid = false;
+                        } else {
+                            input.classList.remove("border-rose-500", "bg-rose-50/50");
+                        }
+                    });
+
+                    // Validate that the expiry date is at least 7 days from today
+                    if (expiryInput && expiryInput.value) {
+                        const selectedDate = new Date(expiryInput.value);
+                        
+                        const minAllowedDate = new Date();
+                        minAllowedDate.setDate(minAllowedDate.getDate() + 7);
+                        
+                        selectedDate.setHours(0, 0, 0, 0);
+                        minAllowedDate.setHours(0, 0, 0, 0);
+
+                        if (selectedDate < minAllowedDate) {
+                            e.preventDefault();
+                            expiryInput.classList.add("border-rose-500", "bg-rose-50/50");
+                            expiryError.textContent = "Job expiry date must be at least 7 days (1 week) from today.";
+                            expiryError.classList.remove("hidden");
+                            expiryInput.focus();
+                            isValid = false;
+                        } else {
+                            expiryInput.classList.remove("border-rose-500", "bg-rose-50/50");
+                            expiryError.classList.add("hidden");
+                        }
+                    }
+
+                    if (!isValid) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            }
+        });
+    </script>
 
     {% else %}
 
