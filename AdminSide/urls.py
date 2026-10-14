@@ -10,8 +10,10 @@ from .views import (
     JobVacancyCreateView, 
     ApplicantListView, 
     ApplicantVerificationView, 
+    ApplicantModificationAuditView,
     EmployerListView, 
     EmployerVerificationView, 
+    EmployerModificationAuditView,
     ReferralCreateView, 
     ReferralListView, 
     SpecialProgramsListView, 
@@ -35,8 +37,10 @@ urlpatterns = [
     path('jobs/<uuid:job_uuid>/', JobPostingDetailView.as_view(), name='job_detail'),
     path('applicants/', ApplicantListView.as_view(), name='applicants_list'),
     path('applicants/<uuid:uuid>/verify/', ApplicantVerificationView.as_view(), name='applicant_verification'),
+    path('applicants/<uuid:uuid>/modification-audit/', ApplicantModificationAuditView.as_view(), name='applicant_modification_audit'),
     path('employers/', EmployerListView.as_view(), name='employer_list'),
     path('employers/<uuid:uuid>/verify/', EmployerVerificationView.as_view(), name='employer_verification'),
+    path('employers/<uuid:uuid>/modification-audit/', EmployerModificationAuditView.as_view(), name='employer_modification_audit'),
     path('referrals/', ReferralListView.as_view(), name='referrals_list'),
     path('referrals/create/', ReferralCreateView.as_view(), name='referrals_form'),
     path('special-programs/', SpecialProgramsListView.as_view(), name='special_programs_list'),
@@ -52,6 +56,4 @@ urlpatterns = [
     path('notifications/read-all/', MarkAllNotificationsAsReadView.as_view(), name='mark_all_notifications_read'),
     path('notifications/<int:notification_id>/delete/', DeleteNotificationView.as_view(), name='delete_notification'),
 ]
-
-
 

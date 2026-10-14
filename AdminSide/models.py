@@ -301,6 +301,13 @@ class ApplicantProfile(models.Model):
         ('vocational', 'Vocational'),
         ('other', 'Other'),
     )
+    SUPPORTING_DOCUMENT_TYPE_CHOICES = (
+        ('education_proof', 'Diploma / TOR / Certificate of Graduation'),
+        ('national_certification', 'TESDA / National Certification / Trade Certificate'),
+        ('professional_license', 'Professional License / Eligibility Certificate'),
+        ('employment_proof', 'Certificate of Employment / Service Record'),
+        ('government_id', 'Barangay Clearance / Government-Issued ID'),
+    )
 
     SEX_CHOICES = (
         ('M', 'Male'),
@@ -417,6 +424,34 @@ class ApplicantProfile(models.Model):
     certification_agree = models.BooleanField(default=False)
     resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
     supporting_doc = models.FileField(upload_to='applicant_docs/supporting_docs/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc_type = models.CharField(
+        max_length=40,
+        choices=SUPPORTING_DOCUMENT_TYPE_CHOICES,
+        blank=True,
+    )
+    supporting_doc_uploaded_at = models.DateTimeField(blank=True, null=True)
+
+    education_proof_document = models.FileField(
+        upload_to='applicant_docs/education_proofs/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    education_proof_uploaded_at = models.DateTimeField(blank=True, null=True)
+    technical_certification_document = models.FileField(
+        upload_to='applicant_docs/technical_certifications/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
+    professional_license_document = models.FileField(
+        upload_to='applicant_docs/professional_licenses/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    professional_license_uploaded_at = models.DateTimeField(blank=True, null=True)
     
 
     training_title_1 = models.CharField(max_length=255, blank=True, null=True)
@@ -488,6 +523,13 @@ class ApplicantWorkExperience(models.Model):
     position = models.CharField(max_length=255)
     dates = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=100, blank=True)
+    proof_document = models.FileField(
+        upload_to='applicant_docs/employment_proofs/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    proof_document_uploaded_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.company} - {self.position}"
@@ -892,3 +934,44 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user.email if self.user else 'Unknown user'} - {self.action} - {self.timestamp}"
+
+
+class ProfileChangeLog(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='change_logs',
+    )
+    employer = models.ForeignKey(
+        EmployerProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='change_logs',
+    )
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='profile_change_logs',
+    )
+    changes = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_profile_change_logs',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        profile = self.applicant or self.employer
+        return f'Profile changes for {profile} at {self.created_at}'

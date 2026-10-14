@@ -9,7 +9,6 @@ def get_admin_users():
         Q(role__iexact='admin')
         | Q(role__iexact='peso')
         | Q(role__iexact='mswdo')
-        | (Q(is_superuser=True) & ~Q(role__iexact='employer'))
     ).distinct()
 
 

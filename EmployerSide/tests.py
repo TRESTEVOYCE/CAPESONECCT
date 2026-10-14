@@ -4,7 +4,15 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from AdminSide.models import AppliedJobs, ApplicantProfile, EmployerProfile, Jobs, Notification, User
+from AdminSide.models import (
+    AppliedJobs,
+    ApplicantProfile,
+    EmployerProfile,
+    Jobs,
+    Notification,
+    ProfileChangeLog,
+    User,
+)
 from AdminSide.signals import notify_admin_on_employer_registration
 from AdminSide.utils import notify_admins
 
@@ -66,6 +74,17 @@ class EmployerNotificationTests(TestCase):
         self.assertIn('/employer/applicants/', notification.target_url)
 
     def test_sensitive_business_profile_update_moves_verified_employer_to_reverification_pending(self):
+        peso_admin = User.objects.create_user(
+            username='business-update-peso',
+            email='business-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        other_admin = User.objects.create_superuser(
+            username='business-update-other-admin',
+            email='business-update-other-admin@example.com',
+            password='test-password',
+        )
         self.employer.business_name = 'Notification Employer Ltd'
         self.employer.contact_person = 'Test Contact'
         self.employer.mobile_number = '09123456789'
@@ -103,10 +122,175 @@ class EmployerNotificationTests(TestCase):
         self.employer.refresh_from_db()
         self.assertEqual(self.employer.mobile_number, '09987654321')
         self.assertEqual(self.employer.verification_status, 'reverify_pending')
+        self.client.force_login(peso_admin)
+        admin_verification = self.client.get(
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            )
+        )
+        self.assertEqual(
+            admin_verification.context['employer'].mobile_number,
+            '09987654321',
+        )
+        change_log = ProfileChangeLog.objects.get(employer=self.employer)
+        self.assertEqual(
+            change_log.changes['mobile_number']['old'],
+            '09123456789',
+        )
+        self.assertEqual(
+            change_log.changes['mobile_number']['new'],
+            '09987654321',
+        )
+        self.assertIsNone(change_log.reviewed_at)
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='RESUBMISSION',
+        )
+        admin_notification = Notification.objects.get(
+            recipient=other_admin,
+            notification_type='RESUBMISSION',
+        )
+        self.assertEqual(
+            notification.title,
+            'Employer Profile Updated - Re-Verification Required',
+        )
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            ),
+        )
+        self.client.force_login(peso_admin)
+        admin_header = self.client.get(
+            reverse('AdminSide:notifications_header_api'),
+        )
+        self.assertTrue(any(
+            item['id'] == str(notification.id)
+            for item in admin_header.json()['notifications']
+        ))
+        self.client.force_login(other_admin)
+        other_admin_header = self.client.get(
+            reverse('AdminSide:notifications_header_api'),
+        )
+        self.assertTrue(any(
+            item['id'] == str(admin_notification.id)
+            for item in other_admin_header.json()['notifications']
+        ))
+        admin_inbox = self.client.get(reverse('AdminSide:notifications_list'))
+        self.assertContains(
+            admin_inbox,
+            'Employer Profile Updated - Re-Verification Required',
+        )
+        self.assertContains(admin_inbox, 'fetchHeaderNotifications();')
+        admin_employer_list = self.client.get(
+            reverse('AdminSide:employer_list'),
+            {'status': 'reverify_pending'},
+        )
+        self.assertEqual(admin_employer_list.status_code, 200)
+        self.assertIn(
+            self.employer,
+            admin_employer_list.context['employers'],
+        )
+        self.assertContains(admin_employer_list, 'Updated - Needs Audit')
+        self.client.force_login(self.employer_user)
         employer_dashboard = self.client.get(reverse('employer-home'))
         self.assertContains(employer_dashboard, 'Pending Re-Verification')
         job_creation_response = self.client.get(reverse('job_create'))
         self.assertEqual(job_creation_response.status_code, 403)
+
+    def test_sensitive_account_name_update_moves_verified_employer_to_reverification_pending(self):
+        self.employer.verification_status = 'verified'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+
+        response = self.client.post(
+            reverse('employer-settings'),
+            {'full_name': 'Updated Employer Name'},
+        )
+
+        self.assertRedirects(response, reverse('employer-settings'))
+        self.employer.refresh_from_db()
+        self.assertEqual(self.employer.verification_status, 'reverify_pending')
+
+    def test_sensitive_employer_update_while_pending_notifies_admins(self):
+        peso_admin = User.objects.create_user(
+            username='pending-employer-update-peso',
+            email='pending-employer-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        self.employer.verification_status = 'pending'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+
+        response = self.client.post(
+            reverse('employer-settings'),
+            {'full_name': 'Updated Pending Employer Name'},
+        )
+
+        self.assertRedirects(response, reverse('employer-settings'))
+        self.employer.refresh_from_db()
+        self.assertEqual(self.employer.verification_status, 'pending')
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='RESUBMISSION',
+        )
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            ),
+        )
+
+    def test_email_change_reverification_notifies_admin_when_username_changes(self):
+        admin = User.objects.create_superuser(
+            username='email-change-reverification-admin',
+            email='email-change-reverification-admin@example.com',
+            password='test-password',
+        )
+        peso_admin = User.objects.create_user(
+            username='email-change-reverification-peso',
+            email='email-change-reverification-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        self.employer.verification_status = 'verified'
+        self.employer.save(update_fields=['verification_status'])
+        self.client.force_login(self.employer_user)
+        session = self.client.session
+        session['pending_new_email'] = 'updated-employer@example.com'
+        session['email_otp_code'] = '123456'
+        session.save()
+
+        response = self.client.post(
+            reverse('employer-email-change'),
+            {'otp_code': '123456'},
+        )
+
+        self.assertRedirects(response, reverse('employer-settings'))
+        self.employer.refresh_from_db()
+        self.employer_user.refresh_from_db()
+        self.assertEqual(self.employer.verification_status, 'reverify_pending')
+        self.assertEqual(self.employer_user.username, 'updated-employer@example.com')
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='RESUBMISSION',
+        )
+        admin_notification = Notification.objects.get(
+            recipient=admin,
+            notification_type='RESUBMISSION',
+        )
+        self.assertEqual(admin_notification.notification_type, 'RESUBMISSION')
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            ),
+        )
 
     def test_pending_applicant_is_hidden_from_employer_candidate_list(self):
         self.employer.verification_status = 'verified'
@@ -395,6 +579,8 @@ class EmployerNotificationTests(TestCase):
             email='notification-approval-admin@example.com',
             password='test-password',
         )
+        self.employer.verification_status = 'reverify_pending'
+        self.employer.save(update_fields=['verification_status'])
         self.client.force_login(admin)
         approval_url = reverse(
             'AdminSide:employer_verification',
@@ -580,6 +766,29 @@ class EmployerNotificationTests(TestCase):
         self.assertFalse(Notification.objects.filter(
             recipient=self.employer_user,
             notification_type='APPEAL_REVERIFICATION',
+        ).exists())
+
+    def test_admin_notifications_are_not_sent_to_applicant_superusers(self):
+        self.applicant_user.is_superuser = True
+        self.applicant_user.save(update_fields=['is_superuser'])
+        peso_admin = User.objects.create_user(
+            username='notification-peso-recipient',
+            email='notification-peso-recipient@example.com',
+            password='test-password',
+            role='peso',
+        )
+
+        notifications = notify_admins(
+            title='Employer Profile Updated - Re-Verification Required',
+            message='Test employer reverification',
+            notification_type='RESUBMISSION',
+        )
+
+        self.assertEqual(len(notifications), 1)
+        self.assertEqual(notifications[0].recipient, peso_admin)
+        self.assertFalse(Notification.objects.filter(
+            recipient=self.applicant_user,
+            notification_type='RESUBMISSION',
         ).exists())
 
     def test_reverification_appeal_is_sent_to_mswd_admin_role(self):

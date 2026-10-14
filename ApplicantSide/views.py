@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from .forms import (
     ApplicantPersonalInfoForm, ApplicantAddressForm, ApplicantEducationForm,
     ApplicantTrainingForm, ApplicantPreferredJobForm, ApplicantWorkExperienceFormSet,
@@ -26,19 +27,68 @@ from .forms import (
 from django.contrib.auth import update_session_auth_hash
 from AdminSide.utils import notify_admins
 from JobMatchingEngine.database import query_matching_jobs
-from AdminSide.services.profile_sensitivity import mark_profile_for_reverification
+from AdminSide.services.profile_sensitivity import (
+    capture_profile_changes,
+    capture_related_profile_changes,
+    classify_profile_changes,
+    mark_profile_for_reverification,
+    record_profile_changes,
+)
+
+
+def _stamp_uploaded_profile_proofs(profile, uploaded_fields, files):
+    timestamp = timezone.now()
+    timestamp_fields = []
+    for field_name, timestamp_field in uploaded_fields.items():
+        if files.get(field_name):
+            setattr(profile, timestamp_field, timestamp)
+            timestamp_fields.append(timestamp_field)
+    if timestamp_fields:
+        profile.save(update_fields=[*timestamp_fields, 'updated_at'])
 
 
 def _mark_applicant_for_reverification(request, profile, changed_fields, change_model=None):
-    if mark_profile_for_reverification(profile, changed_fields, change_model):
+    classification = classify_profile_changes(
+        change_model or profile,
+        changed_fields,
+    )
+    should_notify_admins = (
+        classification.requires_reverification
+        and profile.status in {'approved', 'pending', 'reverify_pending'}
+    )
+    status_changed = mark_profile_for_reverification(
+        profile,
+        changed_fields,
+        change_model,
+    )
+    if status_changed:
         request.session.pop('job_matches', None)
         messages.warning(
             request,
             'Your profile has been updated and is pending re-verification. '
             'You cannot apply for jobs until it is approved again.',
         )
-        return True
-    return False
+    if should_notify_admins:
+        notifications = notify_admins(
+            title='Applicant Profile Updated - Re-Verification Required',
+            message=(
+                f'{profile.first_name} {profile.last_name} updated sensitive profile '
+                'information. Review the profile changes and supporting documents.'
+            ),
+            notification_type='RESUBMISSION',
+            sender=request.user,
+            target_url=reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+        if not notifications:
+            messages.error(
+                request,
+                'Your update was saved, but no PESO administrator is configured to receive '
+                'the re-verification notification.',
+            )
+    return status_changed
 
 class ApplicantRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = reverse_lazy('signin')
@@ -209,7 +259,9 @@ class ApplicantPersonalInfoView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        changes = capture_profile_changes(form.instance)
         self.object = form.save()
+        record_profile_changes(self.object, self.request.user, changes)
         _mark_applicant_for_reverification(
             self.request,
             self.object,
@@ -234,7 +286,9 @@ class ApplicantAddressView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Us
         return reverse_lazy('applicant-education')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(form.instance)
         profile = form.save()
+        record_profile_changes(profile, self.request.user, changes)
         _mark_applicant_for_reverification(
             self.request,
             profile,
@@ -258,7 +312,14 @@ class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return reverse_lazy('applicant-training')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(form.instance)
         profile = form.save()
+        record_profile_changes(profile, self.request.user, changes)
+        _stamp_uploaded_profile_proofs(
+            profile,
+            {'education_proof_document': 'education_proof_uploaded_at'},
+            form.files,
+        )
         _mark_applicant_for_reverification(
             self.request,
             profile,
@@ -282,7 +343,17 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
         return reverse_lazy('applicant-preferred-job')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(form.instance)
         profile = form.save()
+        record_profile_changes(profile, self.request.user, changes)
+        _stamp_uploaded_profile_proofs(
+            profile,
+            {
+                'technical_certification_document': 'technical_certification_uploaded_at',
+                'professional_license_document': 'professional_license_uploaded_at',
+            },
+            form.files,
+        )
         _mark_applicant_for_reverification(
             self.request,
             profile,
@@ -306,7 +377,14 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
         return reverse_lazy('applicant-work-experience')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(
+            form.instance,
+            many_to_many_values={
+                'preferred_job': form.cleaned_data.get('preferred_job', []),
+            },
+        )
         profile = form.save()
+        record_profile_changes(profile, self.request.user, changes)
         _mark_applicant_for_reverification(
             self.request,
             profile,
@@ -336,8 +414,32 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
 
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
-        work_formset = ApplicantWorkExperienceFormSet(request.POST, instance=profile)
+        work_formset = ApplicantWorkExperienceFormSet(
+            request.POST,
+            request.FILES,
+            instance=profile,
+        )
         if work_formset.is_valid():
+            old_work_experiences = list(
+                profile.work_experiences.order_by('pk').values(
+                    'company', 'address', 'position', 'dates', 'status'
+                )
+            )
+            new_work_experiences = []
+            for work_form in work_formset.forms:
+                if work_form.cleaned_data.get('DELETE'):
+                    continue
+                values = {
+                    field: work_form.cleaned_data.get(field, '')
+                    for field in ('company', 'address', 'position', 'dates', 'status')
+                }
+                if any(values.values()):
+                    new_work_experiences.append(values)
+            changes = capture_related_profile_changes(
+                'work_experiences',
+                old_work_experiences,
+                new_work_experiences,
+            )
             changed_fields = set()
             for form in work_formset.forms:
                 if form.has_changed():
@@ -345,6 +447,14 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
                     if form.cleaned_data.get('DELETE'):
                         changed_fields.add('__deleted__')
             work_formset.save()
+            record_profile_changes(profile, request.user, changes)
+            uploaded_at = timezone.now()
+            for work_form in work_formset.forms:
+                if work_form.files.get(work_form.add_prefix('proof_document')):
+                    work_form.instance.proof_document_uploaded_at = uploaded_at
+                    work_form.instance.save(
+                        update_fields=['proof_document_uploaded_at'],
+                    )
             _mark_applicant_for_reverification(
                 request,
                 profile,
@@ -373,14 +483,57 @@ class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Use
 
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
-        form = ApplicantSkillsForm(request.POST, instance=profile)
+        form = ApplicantSkillsForm(request.POST, request.FILES, instance=profile)
         skill_formset = ApplicantSkillFormSet(
             request.POST, queryset=profile.skills.all(), prefix='skills'
         )
-        if form.is_valid() and skill_formset.is_valid():
+        form_valid = form.is_valid()
+        skill_formset_valid = skill_formset.is_valid()
+        changed_skill_records = any(
+            skill_form.has_changed()
+            for skill_form in skill_formset.forms
+        )
+        if (
+            profile.status in {'approved', 'reverify_pending'}
+            and changed_skill_records
+            and not request.FILES.get('technical_certification_document')
+        ):
+            form.add_error(
+                None,
+                ApplicantSkillsForm.proof_required_message,
+            )
+            form_valid = False
+        if form_valid and skill_formset_valid:
+            old_skills = list(
+                profile.skills.order_by('pk').values_list('skill_name', flat=True)
+            )
+            new_skills = []
+            for skill_form in skill_formset.forms:
+                if skill_form.cleaned_data.get('DELETE'):
+                    continue
+                skill_name = skill_form.cleaned_data.get('skill_name', '')
+                if skill_name:
+                    new_skills.append(skill_name)
+            changes = capture_profile_changes(form.instance)
+            changes.update(
+                capture_related_profile_changes(
+                    'skills',
+                    old_skills,
+                    new_skills,
+                )
+            )
             form.save()
             skills = skill_formset.save()
             profile.skills.add(*skills)
+            record_profile_changes(profile, request.user, changes)
+            _stamp_uploaded_profile_proofs(
+                profile,
+                {
+                    'technical_certification_document':
+                        'technical_certification_uploaded_at',
+                },
+                request.FILES,
+            )
             changed_fields = set(form.changed_data)
             for skill_form in skill_formset.forms:
                 if skill_form.has_changed():
@@ -420,7 +573,9 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return reverse_lazy('applicant-dashboard')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(form.instance)
         profile = form.save()
+        record_profile_changes(profile, self.request.user, changes)
         _mark_applicant_for_reverification(
             self.request,
             profile,
@@ -854,8 +1009,18 @@ class ViewProfileView(ApplicantRequiredMixin, UpdateView):
         return reverse_lazy('view_profile')
 
     def form_valid(self, form):
+        changes = capture_profile_changes(form.instance)
+        profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        response = super().form_valid(form)
+        if profile:
+            record_profile_changes(
+                profile,
+                self.request.user,
+                changes,
+                change_model=User,
+            )
         messages.success(self.request, 'Profile picture updated successfully.')
-        return super().form_valid(form)
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -891,10 +1056,27 @@ class SettingsView(ApplicantRequiredMixin, TemplateView):
         full_name = request.POST.get('full_name')
         if full_name:
             user = request.user
-            user.first_name = full_name.strip()
+            updated_name = full_name.strip()
+            name_changed = user.first_name != updated_name
+            user.first_name = updated_name
+            changes = capture_profile_changes(user) if name_changed else {}
             user.save()
             
             applicant_profile = ApplicantProfile.objects.filter(user=user).first()
+            if applicant_profile:
+                record_profile_changes(
+                    applicant_profile,
+                    user,
+                    changes,
+                    change_model=User,
+                )
+            if applicant_profile and name_changed:
+                _mark_applicant_for_reverification(
+                    request,
+                    applicant_profile,
+                    {'first_name'},
+                    change_model=User,
+                )
             if applicant_profile and hasattr(applicant_profile, 'full_name'):
                 applicant_profile.full_name = full_name.strip()
                 applicant_profile.save()
@@ -953,10 +1135,20 @@ def update_email_view(request):
             messages.error(request, "This email address is already registered to another account.")
         else:
             user = request.user
+            email_changed = user.email != session_email
             user.email = session_email
             if hasattr(user, 'username') and user.username == user.email:
                 user.username = session_email
+            changes = capture_profile_changes(user) if email_changed else {}
             user.save()
+            profile = ApplicantProfile.objects.filter(user=user).first()
+            if profile:
+                record_profile_changes(
+                    profile,
+                    user,
+                    changes,
+                    change_model=User,
+                )
             
             request.session.pop('pending_new_email', None)
             request.session.pop('email_otp_code', None)
@@ -1029,8 +1221,24 @@ class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
         return self.request.user
 
     def form_valid(self, form):
+        profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        changes = capture_profile_changes(form.instance)
+        response = super().form_valid(form)
+        if profile:
+            record_profile_changes(
+                profile,
+                self.request.user,
+                changes,
+                change_model=User,
+            )
+            _mark_applicant_for_reverification(
+                self.request,
+                profile,
+                form.changed_data,
+                change_model=User,
+            )
         messages.success(self.request, 'Username updated successfully.')
-        return super().form_valid(form)
+        return response
 
 
 class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):

@@ -3,6 +3,7 @@ from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExper
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from PIL import Image, UnidentifiedImageError
 
 
 TAILWIND_INPUT_CLASSES = {
@@ -40,6 +41,58 @@ def apply_tailwind_widgets(form):
 
         else:
             field.widget.attrs['class'] = f'{existing_class} {new_class}'.strip()
+
+
+def validate_proof_document(uploaded_file):
+    if uploaded_file.size > 5 * 1024 * 1024:
+        raise ValidationError('Supporting documents must be 5MB or smaller.')
+
+    extension = uploaded_file.name.rsplit('.', 1)[-1].lower()
+    if extension not in {'pdf', 'jpg', 'jpeg', 'png'}:
+        raise ValidationError('Upload a PDF, JPG, JPEG, or PNG document.')
+    if extension == 'pdf':
+        if uploaded_file.read(5) != b'%PDF-':
+            raise ValidationError('Upload a valid PDF document.')
+        uploaded_file.seek(0)
+        return uploaded_file
+
+    try:
+        with Image.open(uploaded_file) as image:
+            if image.format not in {'JPEG', 'PNG'}:
+                raise ValidationError('Upload a valid JPG or PNG image.')
+            image.verify()
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise ValidationError('Upload a valid JPG or PNG image.') from exc
+    finally:
+        uploaded_file.seek(0)
+    return uploaded_file
+
+
+class ApplicantProofDocumentFormMixin:
+    proof_document_fields = ()
+    proof_required_for_fields = ()
+    proof_required_message = ''
+
+    def clean(self):
+        cleaned_data = super().clean()
+        uploaded_fields = set()
+        for field_name in self.proof_document_fields:
+            uploaded_file = self.files.get(self.add_prefix(field_name))
+            if uploaded_file:
+                uploaded_fields.add(field_name)
+                try:
+                    validate_proof_document(uploaded_file)
+                except ValidationError as error:
+                    self.add_error(field_name, error)
+
+        profile = getattr(self.instance, 'applicant', self.instance)
+        if (
+            profile.status in {'approved', 'reverify_pending'}
+            and set(self.changed_data).intersection(self.proof_required_for_fields)
+            and not uploaded_fields
+        ):
+            self.add_error(None, self.proof_required_message)
+        return cleaned_data
 
 
 class ApplicantPersonalInfoForm(forms.ModelForm):
@@ -345,7 +398,23 @@ class ApplicantAddressForm(forms.ModelForm):
         ]
 
 
-class ApplicantEducationForm(forms.ModelForm):
+class ApplicantEducationForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
+    proof_document_fields = ('education_proof_document',)
+    proof_required_for_fields = (
+        'school_status_yes',
+        'school_status_no',
+        'highest_educational_attainment',
+        'school_university',
+        'course_program',
+        'year_graduated_attended',
+        'award_1',
+        'award_2',
+        'award_3',
+    )
+    proof_required_message = (
+        'Upload a diploma, transcript of records, or certificate of graduation '
+        'to support these education changes.'
+    )
 
     highest_educational_attainment = forms.ChoiceField(
         required=False,
@@ -428,6 +497,7 @@ class ApplicantEducationForm(forms.ModelForm):
             'award_1',
             'award_2',
             'award_3',
+            'education_proof_document',
         ]
 
         widgets = {
@@ -437,7 +507,25 @@ class ApplicantEducationForm(forms.ModelForm):
         }
 
 
-class ApplicantTrainingForm(forms.ModelForm):
+class ApplicantTrainingForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
+    proof_document_fields = (
+        'technical_certification_document',
+        'professional_license_document',
+    )
+    proof_required_for_fields = (
+        'training_title_1',
+        'training_hours_1',
+        'training_institution_1',
+        'training_date_1',
+        'training_title_2',
+        'training_hours_2',
+        'training_institution_2',
+        'training_date_2',
+    )
+    proof_required_message = (
+        'Upload a TESDA/trade certificate or a professional license/eligibility '
+        'document to support these changes.'
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -456,6 +544,8 @@ class ApplicantTrainingForm(forms.ModelForm):
             'training_hours_2',
             'training_institution_2',
             'training_date_2',
+            'technical_certification_document',
+            'professional_license_document',
         ]
 
         widgets = {
@@ -503,7 +593,13 @@ class ApplicantPreferredJobForm(forms.ModelForm):
 
 
 
-class ApplicantWorkExperienceForm(forms.ModelForm):
+class ApplicantWorkExperienceForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
+    proof_document_fields = ('proof_document',)
+    proof_required_for_fields = ('company', 'address', 'position', 'dates', 'status')
+    proof_required_message = (
+        'Upload a Certificate of Employment, service record, or employer '
+        'clearance to support this work experience.'
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -518,6 +614,7 @@ class ApplicantWorkExperienceForm(forms.ModelForm):
             'position',
             'dates',
             'status',
+            'proof_document',
         ]
 
 
@@ -535,7 +632,21 @@ ApplicantWorkExperienceFormSet = forms.inlineformset_factory(
 # SKILLS
 # ============================================================
 
-class ApplicantSkillsForm(forms.ModelForm):
+class ApplicantSkillsForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
+    proof_document_fields = ('technical_certification_document',)
+    proof_required_for_fields = (
+        'skill_computer',
+        'skill_driving',
+        'skill_customer_service',
+        'skill_bookkeeping',
+        'skill_carpentry',
+        'skill_welding',
+        'other_skills',
+    )
+    proof_required_message = (
+        'Upload a TESDA national certification or official trade certificate '
+        'to support these skill changes.'
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -552,6 +663,7 @@ class ApplicantSkillsForm(forms.ModelForm):
             'skill_carpentry',
             'skill_welding',
             'other_skills',
+            'technical_certification_document',
         ]
 
 
@@ -585,8 +697,10 @@ class ApplicantDocumentsForm(forms.ModelForm):
             'applicant_id_picture_back',
             'certification_agree',
             'resume_file',
-            'supporting_doc',
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class ProfilePictureForm(forms.ModelForm):

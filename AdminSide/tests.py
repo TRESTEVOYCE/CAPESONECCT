@@ -5,6 +5,7 @@ from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from unittest.mock import patch
 
 from .models import (
     AppliedJobs,
@@ -14,13 +15,19 @@ from .models import (
     EmployerProfile,
     GovernmentInternshipProgram,
     Jobs,
+    Notification,
     OfferedJobs,
+    ProfileChangeLog,
     SpecialProgramForEmploymentOfStudents,
     User,
 )
 from .services.profile_sensitivity import (
+    capture_profile_changes,
     classify_profile_changes,
+    clear_profile_changes,
+    has_current_supporting_document,
     mark_profile_for_reverification,
+    record_profile_changes,
 )
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
@@ -107,15 +114,15 @@ class ProfileFieldSensitivityTests(SimpleTestCase):
             frozenset({'email'}),
         )
 
-    def test_user_profile_picture_is_non_sensitive_and_unclassified_fields_fail_safe(self):
+    def test_user_profile_picture_and_email_are_non_sensitive_and_unknown_fields_fail_safe(self):
         classification = classify_profile_changes(
             User,
-            {'profile_picture', 'new_credential_field'},
+            {'profile_picture', 'email', 'new_credential_field'},
         )
 
         self.assertEqual(
             classification.non_sensitive_fields,
-            frozenset({'profile_picture'}),
+            frozenset({'profile_picture', 'email'}),
         )
         self.assertEqual(
             classification.sensitive_fields,
@@ -180,6 +187,100 @@ class ProfileReverificationStatusTests(TestCase):
         self.assertTrue(changed)
         self.employer.refresh_from_db()
         self.assertEqual(self.employer.verification_status, 'reverify_pending')
+
+    def test_profile_change_log_keeps_only_sensitive_changes_for_current_review(self):
+        self.applicant.phone_number = '09987654321'
+        changes = capture_profile_changes(self.applicant)
+        self.applicant.save()
+        change_log = record_profile_changes(
+            self.applicant,
+            self.applicant_user,
+            changes,
+        )
+
+        self.assertEqual(
+            change_log.changes['phone_number'],
+            {
+                'label': 'Phone Number',
+                'old': '',
+                'new': '09987654321',
+            },
+        )
+        self.assertIsNone(change_log.reviewed_at)
+
+        self.applicant.house_street = 'New Street'
+        non_sensitive_changes = capture_profile_changes(self.applicant)
+        self.assertEqual(set(non_sensitive_changes), {'house_street'})
+        self.applicant.save()
+        reviewed_log = record_profile_changes(
+            self.applicant,
+            self.applicant_user,
+            non_sensitive_changes,
+        )
+        self.assertIsNone(reviewed_log)
+        self.assertEqual(
+            ProfileChangeLog.objects.filter(applicant=self.applicant).count(),
+            1,
+        )
+
+    def test_profile_change_logs_are_cleared_after_approval(self):
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={'phone_number': {'label': 'Phone Number', 'old': '', 'new': '123'}},
+        )
+
+        clear_profile_changes(self.applicant)
+
+        self.assertFalse(ProfileChangeLog.objects.filter(applicant=self.applicant).exists())
+
+    def test_new_verified_profile_change_starts_a_fresh_audit_cycle(self):
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={'education_level': {'label': 'Education Level', 'old': 'High School', 'new': 'College'}},
+            reviewed_at=timezone.now(),
+        )
+        self.applicant.phone_number = '09123456789'
+        self.applicant.save()
+
+        fresh_log = record_profile_changes(
+            self.applicant,
+            self.applicant_user,
+            {'phone_number': {'label': 'Phone Number', 'old': '', 'new': '09123456789'}},
+        )
+
+        self.assertEqual(ProfileChangeLog.objects.filter(applicant=self.applicant).count(), 1)
+        self.assertEqual(
+            fresh_log.changes,
+            {'phone_number': {'label': 'Phone Number', 'old': '', 'new': '09123456789'}},
+        )
+
+    def test_education_proof_must_be_newer_than_unreviewed_education_changes(self):
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={
+                'school_university': {
+                    'label': 'School University',
+                    'old': 'Old School',
+                    'new': 'New School',
+                },
+            },
+        )
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            education_proof_document='applicant_docs/education_proofs/proof.pdf',
+            education_proof_uploaded_at=timezone.now() - timedelta(minutes=1),
+        )
+        self.applicant.refresh_from_db()
+
+        self.assertFalse(has_current_supporting_document(self.applicant))
+
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            education_proof_uploaded_at=timezone.now() + timedelta(seconds=1),
+        )
+        self.applicant.refresh_from_db()
+        self.assertTrue(has_current_supporting_document(self.applicant))
 
 
 @override_settings(
@@ -400,6 +501,25 @@ class ApplicantVerificationEmailTests(TestCase):
         )
         self.client.force_login(self.admin)
 
+    def test_notification_header_api_returns_ten_latest_notifications(self):
+        for index in range(11):
+            Notification.objects.create(
+                recipient=self.admin,
+                title=f'Notification {index}',
+                message=f'Message {index}',
+                notification_type='NEW_APPLICANT',
+            )
+
+        response = self.client.get(
+            reverse('AdminSide:notifications_header_api'),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        notifications = response.json()['notifications']
+        self.assertEqual(len(notifications), 10)
+        self.assertEqual(notifications[0]['title'], 'Notification 10')
+        self.assertNotIn('Notification 0', [item['title'] for item in notifications])
+
     def test_verifying_applicant_sends_account_verified_email_once(self):
         url = reverse(
             'AdminSide:applicant_verification',
@@ -423,6 +543,275 @@ class ApplicantVerificationEmailTests(TestCase):
 
         self.client.post(url, {'action': 'verify'})
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_applicant_modification_audit_opens_from_review_button_and_clears_on_approval(self):
+        self.applicant.status = 'reverify_pending'
+        self.applicant.save(update_fields=['status'])
+        log = ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={
+                'phone_number': {
+                    'label': 'Phone Number',
+                    'old': '09123456789',
+                    'new': '09987654321',
+                },
+            },
+        )
+        url = reverse(
+            'AdminSide:applicant_verification',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        page = self.client.get(url)
+
+        self.assertContains(page, 'Review Updates')
+        self.assertContains(
+            page,
+            reverse(
+                'AdminSide:applicant_modification_audit',
+                kwargs={'uuid': self.applicant.uuid},
+            ),
+        )
+        self.assertNotContains(page, '09123456789')
+
+        audit_url = reverse(
+            'AdminSide:applicant_modification_audit',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+        audit_page = self.client.get(audit_url)
+        self.assertContains(audit_page, 'Field')
+        self.assertContains(audit_page, 'Old Value')
+        self.assertContains(audit_page, 'New Value')
+        self.assertContains(audit_page, 'Date and Time')
+        self.assertContains(audit_page, 'Phone Number')
+        self.assertContains(audit_page, '09123456789')
+        self.assertContains(audit_page, '09987654321')
+
+        response = self.client.post(url, {'action': 'verify'})
+
+        self.assertRedirects(response, url)
+        self.assertFalse(ProfileChangeLog.objects.filter(pk=log.pk).exists())
+        self.assertNotContains(self.client.get(url), 'Review Updates')
+
+    def test_applicant_verification_displays_latest_education_form_values(self):
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            school_status_yes=True,
+            edu_college_level=True,
+            school_university='Updated State University',
+            course_program='Updated Engineering Program',
+            year_graduated_attended='2025-05',
+            award_1='Updated Academic Award',
+            education_level='high_school',
+            school_name='Previous School',
+            year_graduated='2000',
+        )
+        url = reverse(
+            'AdminSide:applicant_verification',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        response = self.client.get(url)
+
+        self.assertContains(response, 'Currently in school')
+        self.assertContains(response, 'Yes')
+        self.assertContains(response, 'College Level')
+        self.assertContains(response, 'Updated State University')
+        self.assertContains(response, 'Updated Engineering Program')
+        self.assertContains(response, '2025-05')
+        self.assertContains(response, 'Updated Academic Award')
+        self.assertNotContains(response, 'Previous School')
+
+    def test_reverification_approval_requires_current_education_proof(self):
+        self.applicant.status = 'reverify_pending'
+        self.applicant.save(update_fields=['status'])
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={
+                'school_university': {
+                    'label': 'School University',
+                    'old': 'Old School',
+                    'new': 'New School',
+                },
+            },
+        )
+        url = reverse(
+            'AdminSide:applicant_verification',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        blocked_response = self.client.post(url, {'action': 'verify'})
+
+        self.assertRedirects(blocked_response, url)
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'reverify_pending')
+
+        upload_time = timezone.now()
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            education_proof_document='applicant_docs/education_proofs/proof.pdf',
+            education_proof_uploaded_at=upload_time,
+        )
+
+        response = self.client.post(url, {'action': 'verify'})
+
+        self.assertRedirects(response, url)
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'approved')
+
+    def test_applicant_registry_cannot_bypass_supporting_document_approval_gate(self):
+        self.applicant.status = 'reverify_pending'
+        self.applicant.save(update_fields=['status'])
+
+        response = self.client.post(
+            reverse('AdminSide:applicants_list'),
+            {
+                'applicant_uuid': str(self.applicant.uuid),
+                'status': 'approved',
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': self.applicant.uuid},
+            ),
+        )
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'reverify_pending')
+
+    def test_employer_modification_audit_opens_from_review_button_and_clears_on_approval(self):
+        employer_user = User.objects.create_user(
+            username='employer-delta-user',
+            email='employer-delta@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='Delta Employer',
+            verification_status='reverify_pending',
+        )
+        log = ProfileChangeLog.objects.create(
+            employer=employer,
+            changed_by=employer_user,
+            changes={
+                'mobile_number': {
+                    'label': 'Mobile Number',
+                    'old': '09123456789',
+                    'new': '09987654321',
+                },
+            },
+        )
+        url = reverse(
+            'AdminSide:employer_verification',
+            kwargs={'uuid': employer.uuid},
+        )
+
+        page = self.client.get(url)
+
+        self.assertContains(page, 'Review Updates')
+        audit_url = reverse(
+            'AdminSide:employer_modification_audit',
+            kwargs={'uuid': employer.uuid},
+        )
+        self.assertContains(page, audit_url)
+        self.assertNotContains(page, '09123456789')
+        audit_page = self.client.get(audit_url)
+        self.assertContains(audit_page, 'Mobile Number')
+        self.assertContains(audit_page, '09123456789')
+        self.assertContains(audit_page, '09987654321')
+
+        response = self.client.post(url, {'action': 'approve'})
+
+        self.assertRedirects(response, url)
+        self.assertFalse(ProfileChangeLog.objects.filter(pk=log.pk).exists())
+
+    def test_applicant_audit_links_changed_file_values_and_omits_reviewed_history(self):
+        self.applicant.status = 'reverify_pending'
+        self.applicant.save(update_fields=['status'])
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={
+                'phone_number': {
+                    'label': 'Phone Number',
+                    'old': 'OLD VERIFIED VALUE',
+                    'new': 'OLD REVIEWED VALUE',
+                },
+            },
+            reviewed_at=timezone.now(),
+        )
+        ProfileChangeLog.objects.create(
+            applicant=self.applicant,
+            changed_by=self.applicant_user,
+            changes={
+                'supporting_doc': {
+                    'label': 'Supporting Document',
+                    'old': 'applicant_docs/supporting_docs/old.pdf',
+                    'new': 'applicant_docs/supporting_docs/new.pdf',
+                },
+            },
+        )
+        storage = ApplicantProfile._meta.get_field('supporting_doc').storage
+        audit_url = reverse(
+            'AdminSide:applicant_modification_audit',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        with patch.object(
+            storage,
+            'url',
+            side_effect=lambda name: f'https://files.example/{name}',
+        ):
+            page = self.client.get(audit_url)
+
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'href="https://files.example/applicant_docs/supporting_docs/old.pdf"')
+        self.assertContains(page, 'href="https://files.example/applicant_docs/supporting_docs/new.pdf"')
+        self.assertNotContains(page, 'OLD VERIFIED VALUE')
+        self.assertNotContains(page, 'OLD REVIEWED VALUE')
+
+    def test_employer_audit_links_changed_file_values(self):
+        employer_user = User.objects.create_user(
+            username='employer-file-audit-user',
+            email='employer-file-audit@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='File Audit Employer',
+            verification_status='reverify_pending',
+        )
+        ProfileChangeLog.objects.create(
+            employer=employer,
+            changed_by=employer_user,
+            changes={
+                'business_permit': {
+                    'label': 'Business Permit',
+                    'old': 'employer_docs/old-permit.pdf',
+                    'new': 'employer_docs/new-permit.pdf',
+                },
+            },
+        )
+        storage = EmployerProfile._meta.get_field('business_permit').storage
+        audit_url = reverse(
+            'AdminSide:employer_modification_audit',
+            kwargs={'uuid': employer.uuid},
+        )
+
+        with patch.object(
+            storage,
+            'url',
+            side_effect=lambda name: f'https://files.example/{name}',
+        ):
+            page = self.client.get(audit_url)
+
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'href="https://files.example/employer_docs/old-permit.pdf"')
+        self.assertContains(page, 'href="https://files.example/employer_docs/new-permit.pdf"')
 
     def test_applicant_approval_from_registry_sends_verified_email(self):
         response = self.client.post(

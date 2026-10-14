@@ -643,7 +643,7 @@
                                       stroke-width="2"
                                       d="M14 3v5h5M9 13h6M9 17h6"/>
                             </svg>
-                            Supporting Document
+                            Supporting Document{% if profile.supporting_doc_type %}: {{ profile.get_supporting_doc_type_display }}{% endif %}
                         </a>
                     {% endif %}
 

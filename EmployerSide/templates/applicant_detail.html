@@ -366,7 +366,7 @@
                     class="flex items-center justify-between gap-4 p-5 bg-stone-50 border border-stone-200/90 rounded-xl hover:border-stone-400 transition-colors shadow-sm"
                 >
                     <div>
-                        <p class="font-bold text-stone-900">Supporting Certificate / ID</p>
+                        <p class="font-bold text-stone-900">{{ object.applicant.get_supporting_doc_type_display|default:"Supporting Document" }}</p>
                         <p class="text-xs text-stone-500">View document</p>
                     </div>
 

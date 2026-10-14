@@ -1,5 +1,7 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from unittest.mock import patch
 
 from AdminSide.models import (
@@ -8,8 +10,10 @@ from AdminSide.models import (
     EmployerProfile,
     Jobs,
     Notification,
+    ProfileChangeLog,
     User,
 )
+from .forms import ApplicantDocumentsForm, ApplicantEducationForm
 
 
 class ApplicantProfileOnboardingTests(TestCase):
@@ -74,6 +78,17 @@ class ApplicantProfileOnboardingTests(TestCase):
         self.assertIsNone(profile.barangay)
 
     def test_sensitive_phone_update_moves_approved_applicant_to_reverification_pending(self):
+        peso_admin = User.objects.create_user(
+            username='phone-update-peso',
+            email='phone-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        other_admin = User.objects.create_superuser(
+            username='phone-update-other-admin',
+            email='phone-update-other-admin@example.com',
+            password='test-password',
+        )
         profile = ApplicantProfile.objects.create(
             user=self.applicant,
             first_name='Test',
@@ -101,6 +116,148 @@ class ApplicantProfileOnboardingTests(TestCase):
         })
 
         self.assertRedirects(response, reverse('applicant-education'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.status, 'reverify_pending')
+        self.client.force_login(peso_admin)
+        admin_verification = self.client.get(
+            reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            )
+        )
+        self.assertEqual(
+            admin_verification.context['applicant'].phone_number,
+            '09987654321',
+        )
+        change_log = ProfileChangeLog.objects.get(applicant=profile)
+        self.assertEqual(
+            change_log.changes['phone_number']['old'],
+            '09123456789',
+        )
+        self.assertEqual(
+            change_log.changes['phone_number']['new'],
+            '09987654321',
+        )
+        self.assertIsNone(change_log.reviewed_at)
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='RESUBMISSION',
+        )
+        admin_notification = Notification.objects.get(
+            recipient=other_admin,
+            notification_type='RESUBMISSION',
+        )
+        self.assertEqual(
+            notification.title,
+            'Applicant Profile Updated - Re-Verification Required',
+        )
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+        self.client.force_login(peso_admin)
+        admin_header = self.client.get(
+            reverse('AdminSide:notifications_header_api'),
+        )
+        self.assertTrue(any(
+            item['id'] == str(notification.id)
+            for item in admin_header.json()['notifications']
+        ))
+        self.client.force_login(other_admin)
+        admin_role_header = self.client.get(
+            reverse('AdminSide:notifications_header_api'),
+        )
+        self.assertTrue(any(
+            item['id'] == str(admin_notification.id)
+            for item in admin_role_header.json()['notifications']
+        ))
+
+    def test_sensitive_account_name_update_moves_approved_applicant_to_reverification_pending(self):
+        profile = ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            status='approved',
+        )
+
+        response = self.client.post(
+            reverse('settings'),
+            {'full_name': 'Updated Applicant'},
+        )
+
+        self.assertRedirects(response, reverse('settings'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.status, 'reverify_pending')
+
+    def test_sensitive_applicant_update_while_pending_notifies_admins(self):
+        peso_admin = User.objects.create_user(
+            username='pending-applicant-update-peso',
+            email='pending-applicant-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        profile = ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            status='pending',
+        )
+
+        response = self.client.post(reverse('applicant-address'), {
+            'house_street': 'New Street',
+            'barangay': 'Poblacion',
+            'municipality': 'Carigara',
+            'province': 'Leyte',
+            'region': 'Region VIII',
+            'zip_code': '6529',
+            'phone_number': '09987654321',
+            'mobile_number_secondary': '',
+            'landline_number': '',
+            'email_address': '',
+        })
+
+        self.assertRedirects(response, reverse('applicant-education'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.status, 'pending')
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='RESUBMISSION',
+        )
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+
+    def test_sensitive_username_update_moves_approved_applicant_to_reverification_pending(self):
+        profile = ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            status='approved',
+        )
+
+        response = self.client.post(
+            reverse('update-username'),
+            {'username': 'updated-applicant'},
+        )
+
+        self.assertRedirects(response, reverse('my_profile'))
         profile.refresh_from_db()
         self.assertEqual(profile.status, 'reverify_pending')
 
@@ -212,6 +369,72 @@ class ApplicantProfileOnboardingTests(TestCase):
         self.assertContains(personal_info_response, 'value="1995-01-01"')
 
 
+class ApplicantProofDocumentFormTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='supporting-document-applicant',
+            email='supporting-document-applicant@example.com',
+            password='test-password',
+            role='applicant',
+        )
+        self.profile = ApplicantProfile.objects.create(
+            user=self.user,
+            first_name='Document',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+        )
+
+    def make_education_form(self, uploaded_file=None):
+        return ApplicantEducationForm(
+            data={
+                'school_status_yes': 'on',
+                'highest_educational_attainment': 'college_grad',
+                'school_university': 'Test University',
+            },
+            files={'education_proof_document': uploaded_file} if uploaded_file else {},
+            instance=self.profile,
+        )
+
+    def test_education_change_accepts_a_valid_category_specific_pdf(self):
+        self.profile.status = 'approved'
+        uploaded_file = SimpleUploadedFile(
+            'diploma.pdf',
+            b'%PDF-1.7\nvalid test document',
+            content_type='application/pdf',
+        )
+        form = self.make_education_form(uploaded_file)
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_education_change_requires_a_valid_proof_upload_when_approved(self):
+        self.profile.status = 'approved'
+        missing_file_form = self.make_education_form()
+        invalid_pdf_form = self.make_education_form(
+            SimpleUploadedFile('proof.pdf', b'not a pdf'),
+        )
+
+        self.assertFalse(missing_file_form.is_valid())
+        self.assertTrue(missing_file_form.non_field_errors())
+        self.assertFalse(invalid_pdf_form.is_valid())
+        self.assertIn('education_proof_document', invalid_pdf_form.errors)
+
+    def test_final_document_form_has_no_generic_supporting_document_fields(self):
+        form = ApplicantDocumentsForm(instance=self.profile)
+
+        self.assertNotIn('supporting_doc', form.fields)
+        self.assertNotIn('supporting_doc_type', form.fields)
+
+    def test_final_document_page_does_not_render_generic_support_upload(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse('applicant-documents'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Upload Applicant ID Picture')
+        self.assertNotContains(response, 'Supporting Document')
+        self.assertNotContains(response, 'supporting_doc')
+
 class ApplicantNotificationTests(TestCase):
     def setUp(self):
         self.applicant = User.objects.create_user(
@@ -267,6 +490,24 @@ class ApplicantNotificationTests(TestCase):
             email='applicant-approval-notification-admin@example.com',
             password='test-password',
         )
+        self.profile.status = 'reverify_pending'
+        self.profile.education_proof_document = (
+            'applicant_docs/education_proofs/current-proof.pdf'
+        )
+        self.profile.save()
+        ProfileChangeLog.objects.create(
+            applicant=self.profile,
+            changed_by=self.applicant,
+            changes={
+                'school_university': {
+                    'label': 'School University',
+                    'old': 'Old School',
+                    'new': 'New School',
+                },
+            },
+        )
+        self.profile.education_proof_uploaded_at = timezone.now()
+        self.profile.save(update_fields=['education_proof_uploaded_at'])
         admin_client = self.client_class()
         admin_client.force_login(admin)
 

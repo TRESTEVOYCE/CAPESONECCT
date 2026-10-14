@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicant Modification Audit - {{ applicant.first_name }} {{ applicant.last_name }}{% endblock %}
+
+{% block content %}
+<main class="mx-auto max-w-6xl space-y-6 text-slate-700">
+    <a href="{% url 'AdminSide:applicant_verification' applicant.uuid %}" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 underline transition hover:text-slate-800">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Back to Applicant Verification
+    </a>
+
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header class="border-b border-slate-200 bg-slate-50 px-6 py-5 text-slate-800">
+            <h1 class="text-lg font-bold">Applicant Modification Audit</h1>
+            <p class="mt-1 text-sm text-slate-500">{{ applicant.first_name }} {{ applicant.last_name }}</p>
+        </header>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[700px] text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Field</th>
+                        <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Old Value</th>
+                        <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">New Value</th>
+                        <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Date and Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-600">
+                    {% for row in audit_rows %}
+                    <tr class="transition hover:bg-slate-50/50">
+                        <th scope="row" class="px-5 py-4 font-semibold text-slate-800">{{ row.field }}</th>
+                        <td class="max-w-sm break-all px-5 py-4">
+                            {% if row.old_url %}
+                            <a href="{{ row.old_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-700 underline hover:text-slate-900">View file{% if row.old_value %}: {{ row.old_value }}{% endif %}</a>
+                            {% else %}
+                            {{ row.old_value|default:"—" }}
+                            {% endif %}
+                        </td>
+                        <td class="max-w-sm break-all px-5 py-4">
+                            {% if row.new_url %}
+                            <a href="{{ row.new_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-700 underline hover:text-slate-900">View file{% if row.new_value %}: {{ row.new_value }}{% endif %}</a>
+                            {% else %}
+                            {{ row.new_value|default:"—" }}
+                            {% endif %}
+                        </td>
+                        <td class="whitespace-nowrap px-5 py-4">{{ row.changed_at|date:"M d, Y h:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-5 py-10 text-center font-medium text-slate-500">There are no pending profile changes to review.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+{% endblock %}

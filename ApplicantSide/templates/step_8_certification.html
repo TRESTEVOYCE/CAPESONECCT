@@ -16,8 +16,7 @@
         x-data="{
             applicantIdFrontName: '',
             applicantIdBackName: '',
-            resumeName: '',
-            supportingName: ''
+            resumeName: ''
         }"
         id="applicant-documents-form"
     >
@@ -282,11 +281,7 @@
                         </p>
                     {% endif %}
                 </div>
-                <!-- Supporting Document -->
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-medium text-stone-700">
-                        Supporting Certificate / ID (Optional)
-                    </label>
+                    {% comment %}
                     <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
                         <!-- Default State -->
                         <div
@@ -370,6 +365,11 @@
                                     Current
                                 </span>
                             </div>
+                            {% if form.instance.supporting_doc_type %}
+                                <p x-show="!supportingName" class="mt-2 text-[11px] text-stone-600">
+                                    Type: {{ form.instance.get_supporting_doc_type_display }}
+                                </p>
+                            {% endif %}
                         {% endif %}
                         <!-- Hidden Django Widget -->
                         <div class="sr-only">
@@ -388,6 +388,7 @@
                         </p>
                     {% endif %}
                 </div>
+                    {% endcomment %}
             </div>
         </div>
         <!-- Navigation and Submit -->
@@ -429,12 +430,6 @@ document.addEventListener('DOMContentLoaded', function () {
             extensions: ['pdf', 'docx'],
             label: 'Resume / CV'
         },
-        {
-            id: '{{ form.supporting_doc.id_for_label }}',
-            state: 'supportingName',
-            extensions: ['pdf', 'jpg', 'jpeg', 'png'],
-            label: 'Supporting document'
-        }
     ];
     const maxSize = 5 * 1024 * 1024;
     fileRules.forEach(function (rule) {

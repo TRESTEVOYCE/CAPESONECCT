@@ -34,7 +34,8 @@ from .models import (
     TupadBeneficiary, 
     DisplacedInformalLaborProgram, 
     CareerGuidanceBeneficiary,
-    PESOActivities
+    PESOActivities,
+    ProfileChangeLog,
 )
 from .forms import (
     SpecialProgramForEmploymentOfStudentsForm,
@@ -55,6 +56,11 @@ from .utils import (
     notify_applicant_verified,
     notify_employer_verified,
     send_notification,
+)
+from .services.profile_sensitivity import (
+    clear_profile_changes,
+    has_current_supporting_document,
+    profile_change_audit_rows,
 )
 
 logger = logging.getLogger(__name__)
@@ -549,6 +555,19 @@ class ApplicantListView(LoginRequiredMixin, ListView):
         
         if applicant_uuid and new_status in ['approved', 'rejected', 'pending']:
             applicant = get_object_or_404(ApplicantProfile, uuid=applicant_uuid)
+            if (
+                new_status == 'approved'
+                and applicant.status == 'reverify_pending'
+                and not has_current_supporting_document(applicant)
+            ):
+                messages.error(
+                    request,
+                    'A current, categorized supporting document must be uploaded before re-verification approval.',
+                )
+                return redirect(
+                    'AdminSide:applicant_verification',
+                    uuid=applicant.uuid,
+                )
             rejection_reason = request.POST.get('reason', '').strip()
             if new_status == 'rejected' and (
                 not rejection_reason or len(rejection_reason) > 2000
@@ -565,6 +584,8 @@ class ApplicantListView(LoginRequiredMixin, ListView):
                 applicant.verified_by = request.user
                 
             applicant.save()
+            if new_status == 'approved':
+                clear_profile_changes(applicant)
             if new_status == 'approved' and not was_approved:
                 notify_applicant_verified(applicant, request.user)
                 if send_applicant_verified_email(applicant):
@@ -578,6 +599,8 @@ class ApplicantListView(LoginRequiredMixin, ListView):
                         f'Applicant {applicant.first_name} {applicant.last_name} was verified, '
                         'but the confirmation email could not be sent. Check the email configuration and logs.',
                     )
+            if new_status == 'rejected':
+                clear_profile_changes(applicant)
             if new_status == 'rejected' and not was_rejected:
                 send_notification(
                     recipient=applicant.user,
@@ -606,17 +629,38 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
     slug_field = 'uuid'
     slug_url_kwarg = 'uuid'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['has_unreviewed_profile_changes'] = ProfileChangeLog.objects.filter(
+            applicant=self.object,
+            reviewed_at__isnull=True,
+        ).exists()
+        return context
+
     def post(self, request, *args, **kwargs):
         applicant = self.get_object()
         action = request.POST.get('action')
         
         if action == 'verify':
+            if (
+                applicant.status == 'reverify_pending'
+                and not has_current_supporting_document(applicant)
+            ):
+                messages.error(
+                    request,
+                    'A current, categorized supporting document must be uploaded before re-verification approval.',
+                )
+                return redirect(
+                    'AdminSide:applicant_verification',
+                    uuid=applicant.uuid,
+                )
             was_approved = applicant.status == 'approved'
             applicant.status = 'approved'
             # Optional: Record which PESO officer verified the account
             if hasattr(applicant, 'verified_by'):
                 applicant.verified_by = request.user
             applicant.save()
+            clear_profile_changes(applicant)
             if not was_approved:
                 notify_applicant_verified(applicant, request.user)
                 if send_applicant_verified_email(applicant):
@@ -638,6 +682,7 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
             was_rejected = applicant.status == 'rejected'
             applicant.status = 'rejected'
             applicant.save()
+            clear_profile_changes(applicant)
             if not was_rejected:
                 send_notification(
                     recipient=applicant.user,
@@ -651,6 +696,24 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
             return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
 
         return redirect('AdminSide:applicant_verification', uuid=applicant.uuid)
+
+
+class ProfileModificationAuditView(LoginRequiredMixin, DetailView):
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['audit_rows'] = profile_change_audit_rows(self.object)
+        context['profile'] = self.object
+        return context
+
+
+class ApplicantModificationAuditView(ProfileModificationAuditView):
+    model = ApplicantProfile
+    template_name = 'applicant_modification_audit.html'
+    context_object_name = 'applicant'
+
 
 class EmployerListView(LoginRequiredMixin, ListView):
     model = EmployerProfile
@@ -667,6 +730,7 @@ class EmployerListView(LoginRequiredMixin, ListView):
                 was_verified = employer.verification_status == 'verified'
                 employer.verification_status = 'verified'
                 employer.save()
+                clear_profile_changes(employer)
                 approval_notification_exists = Notification.objects.filter(
                     recipient=employer.user,
                     notification_type='VERIFICATION_APPROVED',
@@ -677,6 +741,7 @@ class EmployerListView(LoginRequiredMixin, ListView):
             elif action == 'reject':
                 employer.verification_status = 'rejected'
                 employer.save()
+                clear_profile_changes(employer)
                 messages.warning(request, f"{employer.business_name} registration rejected.")
             
         return redirect('AdminSide:employers_list') # Adjust URL name as needed
@@ -751,6 +816,14 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
     slug_field = 'uuid'
     slug_url_kwarg = 'uuid'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['has_unreviewed_profile_changes'] = ProfileChangeLog.objects.filter(
+            employer=self.object,
+            reviewed_at__isnull=True,
+        ).exists()
+        return context
+
     def post(self, request, *args, **kwargs):
         employer = self.get_object()
         action = request.POST.get('action')
@@ -760,6 +833,7 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
             was_verified = employer.verification_status == 'verified'
             employer.verification_status = 'verified'
             employer.save()
+            clear_profile_changes(employer)
             approval_notification_exists = Notification.objects.filter(
                 recipient=employer.user,
                 notification_type='VERIFICATION_APPROVED',
@@ -771,10 +845,10 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
             if not remarks:
                 messages.error(request, 'Provide a reason before rejecting this employer verification.')
                 return redirect('AdminSide:employer_verification', uuid=employer.uuid)
-
             was_rejected = employer.verification_status == 'rejected'
             employer.verification_status = 'rejected'
             employer.save()
+            clear_profile_changes(employer)
             if not was_rejected:
                 send_notification(
                     recipient=employer.user,
@@ -788,6 +862,13 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
 
         return redirect('AdminSide:employer_verification', uuid=employer.uuid)
     
+
+class EmployerModificationAuditView(ProfileModificationAuditView):
+    model = EmployerProfile
+    template_name = 'employer_modification_audit.html'
+    context_object_name = 'employer'
+
+
 class ReferralListView(LoginRequiredMixin, ListView):
     model = OfferedJobs
     template_name = 'referrals_list.html'
@@ -1901,12 +1982,12 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
 class NotificationHeaderApiView(LoginRequiredMixin, View):
     """
-    AJAX endpoint returning the unread count and the 5 newest notifications
+    AJAX endpoint returning the unread count and the 10 newest notifications
     for the navbar dropdown while keeping read notifications visible.
     """
     def get(self, request, *args, **kwargs):
         user_notifications = get_admin_notification_queryset(request.user)
-        latest_qs = user_notifications.order_by('-created_at', '-pk')[:5]
+        latest_qs = user_notifications.order_by('-created_at', '-pk')[:10]
 
         data = {
             'unread_count': user_notifications.filter(is_read=False).count(),
