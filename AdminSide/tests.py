@@ -622,6 +622,38 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertContains(response, 'Updated Academic Award')
         self.assertNotContains(response, 'Previous School')
 
+    def test_applicant_verification_links_education_proof_document(self):
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            education_proof_document=(
+                'applicant_docs/education_proofs/diploma.pdf'
+            ),
+            education_proof_uploaded_at=timezone.now(),
+        )
+        storage = ApplicantProfile._meta.get_field(
+            'education_proof_document'
+        ).storage
+        url = reverse(
+            'AdminSide:applicant_verification',
+            kwargs={'uuid': self.applicant.uuid},
+        )
+
+        with patch.object(
+            storage,
+            'url',
+            return_value='https://files.example/diploma.pdf',
+        ):
+            response = self.client.get(url)
+
+        self.assertContains(response, 'Profile Proof Documents')
+        self.assertContains(
+            response,
+            'href="https://files.example/diploma.pdf"',
+        )
+        self.assertContains(
+            response,
+            'View diploma / transcript / graduation certificate',
+        )
+
     def test_reverification_approval_requires_current_education_proof(self):
         self.applicant.status = 'reverify_pending'
         self.applicant.save(update_fields=['status'])
@@ -728,7 +760,7 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertRedirects(response, url)
         self.assertFalse(ProfileChangeLog.objects.filter(pk=log.pk).exists())
 
-    def test_applicant_audit_links_changed_file_values_and_omits_reviewed_history(self):
+    def test_applicant_audit_shows_education_proof_beside_changed_information(self):
         self.applicant.status = 'reverify_pending'
         self.applicant.save(update_fields=['status'])
         ProfileChangeLog.objects.create(
@@ -747,14 +779,31 @@ class ApplicantVerificationEmailTests(TestCase):
             applicant=self.applicant,
             changed_by=self.applicant_user,
             changes={
+                'school_university': {
+                    'label': 'School University',
+                    'old': 'Old University',
+                    'new': 'New University',
+                },
                 'supporting_doc': {
                     'label': 'Supporting Document',
                     'old': 'applicant_docs/supporting_docs/old.pdf',
                     'new': 'applicant_docs/supporting_docs/new.pdf',
                 },
+                'education_proof_document': {
+                    'label': 'Education Proof Document',
+                    'old': '',
+                    'new': 'applicant_docs/education_proofs/diploma.pdf',
+                },
             },
         )
-        storage = ApplicantProfile._meta.get_field('supporting_doc').storage
+        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
+            education_proof_document=(
+                'applicant_docs/education_proofs/diploma.pdf'
+            ),
+        )
+        storage = ApplicantProfile._meta.get_field(
+            'education_proof_document'
+        ).storage
         audit_url = reverse(
             'AdminSide:applicant_modification_audit',
             kwargs={'uuid': self.applicant.uuid},
@@ -768,12 +817,16 @@ class ApplicantVerificationEmailTests(TestCase):
             page = self.client.get(audit_url)
 
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'href="https://files.example/applicant_docs/supporting_docs/old.pdf"')
-        self.assertContains(page, 'href="https://files.example/applicant_docs/supporting_docs/new.pdf"')
+        self.assertContains(page, 'Supporting Document')
+        self.assertContains(page, 'href="https://files.example/applicant_docs/education_proofs/diploma.pdf"')
+        self.assertContains(page, 'New University')
+        self.assertNotContains(page, 'applicant_docs/supporting_docs/old.pdf')
+        self.assertNotContains(page, 'applicant_docs/supporting_docs/new.pdf')
+        self.assertNotContains(page, 'Education Proof Document')
         self.assertNotContains(page, 'OLD VERIFIED VALUE')
         self.assertNotContains(page, 'OLD REVIEWED VALUE')
 
-    def test_employer_audit_links_changed_file_values(self):
+    def test_employer_audit_shows_registration_document_beside_changed_information(self):
         employer_user = User.objects.create_user(
             username='employer-file-audit-user',
             email='employer-file-audit@example.com',
@@ -789,12 +842,20 @@ class ApplicantVerificationEmailTests(TestCase):
             employer=employer,
             changed_by=employer_user,
             changes={
+                'business_name': {
+                    'label': 'Business Name',
+                    'old': 'Old Business Name',
+                    'new': 'Updated Business Name',
+                },
                 'business_permit': {
                     'label': 'Business Permit',
                     'old': 'employer_docs/old-permit.pdf',
                     'new': 'employer_docs/new-permit.pdf',
                 },
             },
+        )
+        EmployerProfile.objects.filter(pk=employer.pk).update(
+            business_permit='employer_docs/new-permit.pdf',
         )
         storage = EmployerProfile._meta.get_field('business_permit').storage
         audit_url = reverse(
@@ -810,8 +871,11 @@ class ApplicantVerificationEmailTests(TestCase):
             page = self.client.get(audit_url)
 
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'href="https://files.example/employer_docs/old-permit.pdf"')
+        self.assertContains(page, 'Supporting Document')
         self.assertContains(page, 'href="https://files.example/employer_docs/new-permit.pdf"')
+        self.assertContains(page, 'Updated Business Name')
+        self.assertNotContains(page, 'employer_docs/old-permit.pdf')
+        self.assertNotContains(page, 'Business Permit</th>')
 
     def test_applicant_approval_from_registry_sends_verified_email(self):
         response = self.client.post(

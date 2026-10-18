@@ -16,12 +16,13 @@
         </header>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[700px] text-left text-sm">
+            <table class="w-full min-w-[900px] text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
                         <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Field</th>
                         <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Old Value</th>
                         <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">New Value</th>
+                        <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Supporting Document</th>
                         <th scope="col" class="border-b border-slate-200 px-5 py-3 font-bold">Date and Time</th>
                     </tr>
                 </thead>
@@ -29,25 +30,20 @@
                     {% for row in audit_rows %}
                     <tr class="transition hover:bg-slate-50/50">
                         <th scope="row" class="px-5 py-4 font-semibold text-slate-800">{{ row.field }}</th>
-                        <td class="max-w-sm break-all px-5 py-4">
-                            {% if row.old_url %}
-                            <a href="{{ row.old_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-700 underline hover:text-slate-900">View file{% if row.old_value %}: {{ row.old_value }}{% endif %}</a>
-                            {% else %}
-                            {{ row.old_value|default:"—" }}
-                            {% endif %}
-                        </td>
-                        <td class="max-w-sm break-all px-5 py-4">
-                            {% if row.new_url %}
-                            <a href="{{ row.new_url }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-700 underline hover:text-slate-900">View file{% if row.new_value %}: {{ row.new_value }}{% endif %}</a>
-                            {% else %}
-                            {{ row.new_value|default:"—" }}
-                            {% endif %}
+                        <td class="max-w-sm break-all px-5 py-4">{{ row.old_value|default:"—" }}</td>
+                        <td class="max-w-sm break-all px-5 py-4">{{ row.new_value|default:"—" }}</td>
+                        <td class="max-w-sm px-5 py-4">
+                            {% for document in row.supporting_documents %}
+                            <a href="{{ document.url }}" target="_blank" rel="noopener noreferrer" class="mb-1 block font-semibold text-slate-700 underline hover:text-slate-900">{{ document.label }}</a>
+                            {% empty %}
+                            <span class="text-slate-400">—</span>
+                            {% endfor %}
                         </td>
                         <td class="whitespace-nowrap px-5 py-4">{{ row.changed_at|date:"M d, Y h:i A" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="px-5 py-10 text-center font-medium text-slate-500">There are no pending profile changes to review.</td>
+                        <td colspan="5" class="px-5 py-10 text-center font-medium text-slate-500">There are no pending profile changes to review.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

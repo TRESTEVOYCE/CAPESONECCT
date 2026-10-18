@@ -312,6 +312,23 @@ class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return reverse_lazy('applicant-training')
 
     def form_valid(self, form):
+        attainment = form.cleaned_data.get('highest_educational_attainment')
+        for attainment_name in (
+            'no_formal',
+            'elem_level',
+            'elem_grad',
+            'hs_level',
+            'hs_grad',
+            'college_level',
+            'college_grad',
+            'tech_voc',
+            'post_grad',
+        ):
+            setattr(
+                form.instance,
+                f'edu_{attainment_name}',
+                attainment_name == attainment,
+            )
         changes = capture_profile_changes(form.instance)
         profile = form.save()
         record_profile_changes(profile, self.request.user, changes)

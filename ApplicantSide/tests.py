@@ -419,6 +419,50 @@ class ApplicantProofDocumentFormTests(TestCase):
         self.assertFalse(invalid_pdf_form.is_valid())
         self.assertIn('education_proof_document', invalid_pdf_form.errors)
 
+    def test_education_step_saves_attainment_change_and_fresh_proof(self):
+        self.profile.status = 'approved'
+        self.profile.edu_hs_grad = True
+        self.profile.save(update_fields=['status', 'edu_hs_grad'])
+        self.client.force_login(self.user)
+        uploaded_file = SimpleUploadedFile(
+            'diploma.pdf',
+            b'%PDF-1.7\nvalid test document',
+            content_type='application/pdf',
+        )
+        storage = ApplicantProfile._meta.get_field(
+            'education_proof_document'
+        ).storage
+
+        with patch.object(
+            storage,
+            'save',
+            return_value='applicant_docs/education_proofs/diploma.pdf',
+        ):
+            response = self.client.post(
+                reverse('applicant-education'),
+                {
+                    'school_status_yes': 'on',
+                    'highest_educational_attainment': 'college_grad',
+                    'school_university': 'Test University',
+                    'course_program': 'Computer Science',
+                    'year_graduated_attended': '2025-05',
+                    'education_proof_document': uploaded_file,
+                },
+            )
+
+        self.assertRedirects(response, reverse('applicant-training'))
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.edu_college_grad)
+        self.assertFalse(self.profile.edu_hs_grad)
+        self.assertEqual(
+            self.profile.education_proof_document.name,
+            'applicant_docs/education_proofs/diploma.pdf',
+        )
+        self.assertIsNotNone(self.profile.education_proof_uploaded_at)
+        changes = ProfileChangeLog.objects.get(applicant=self.profile).changes
+        self.assertIn('edu_college_grad', changes)
+        self.assertIn('edu_hs_grad', changes)
+
     def test_final_document_form_has_no_generic_supporting_document_fields(self):
         form = ApplicantDocumentsForm(instance=self.profile)
 

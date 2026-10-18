@@ -242,6 +242,10 @@ def profile_change_audit_rows(profile):
     change_logs = change_logs.order_by('created_at', 'pk')
     rows = []
     for change_log in change_logs:
+        supporting_documents = _supporting_documents_for_changes(
+            profile,
+            change_log.changes,
+        )
         for field_name, change in change_log.changes.items():
             field = None
             try:
@@ -249,22 +253,17 @@ def profile_change_audit_rows(profile):
             except FieldDoesNotExist:
                 pass
 
+            if isinstance(field, FileField):
+                continue
+
             old_value = change.get('old')
             new_value = change.get('new')
-            old_url = None
-            new_url = None
-            if isinstance(field, FileField):
-                if old_value:
-                    old_url = field.storage.url(old_value)
-                if new_value:
-                    new_url = field.storage.url(new_value)
 
             rows.append({
                 'field': change.get('label', field_name),
                 'old_value': ', '.join(map(str, old_value)) if isinstance(old_value, list) else old_value,
                 'new_value': ', '.join(map(str, new_value)) if isinstance(new_value, list) else new_value,
-                'old_url': old_url,
-                'new_url': new_url,
+                'supporting_documents': supporting_documents,
                 'changed_at': change_log.created_at,
             })
     return rows
@@ -311,6 +310,89 @@ SKILLS_PROOF_FIELDS = frozenset({
     'other_skills',
     'skills',
 })
+
+EMPLOYER_PROOF_FIELDS = (
+    ('certificate_of_registration', 'Certificate of Registration'),
+    ('dti_sec_registration', 'DTI / SEC Registration'),
+    ('business_permit', 'Business Permit'),
+    ('public_verification_document', 'Public Sector Verification Document'),
+)
+
+
+def _supporting_documents_for_changes(profile, field_names):
+    field_names = tuple(field_names)
+    if isinstance(profile, EmployerProfile):
+        supporting_documents = [
+            {
+                'label': label,
+                'url': getattr(profile, field_name).url,
+            }
+            for field_name, label in EMPLOYER_PROOF_FIELDS
+            if getattr(profile, field_name)
+        ]
+    else:
+        supporting_documents = []
+    changed_fields = set(field_names)
+    if isinstance(profile, ApplicantProfile):
+        applicant_proofs = (
+            (
+                EDUCATION_PROOF_FIELDS,
+                'education_proof_document',
+                'Education proof',
+            ),
+            (
+                TRAINING_PROOF_FIELDS,
+                'technical_certification_document',
+                'Technical / trade certificate',
+            ),
+            (
+                TRAINING_PROOF_FIELDS,
+                'professional_license_document',
+                'Professional license / eligibility',
+            ),
+            (
+                SKILLS_PROOF_FIELDS,
+                'technical_certification_document',
+                'Technical / trade certificate',
+            ),
+        )
+        for related_fields, document_field, label in applicant_proofs:
+            document = getattr(profile, document_field)
+            if changed_fields.intersection(related_fields) and document:
+                supporting_documents.append({
+                    'label': label,
+                    'url': document.url,
+                })
+
+        if 'work_experiences' in changed_fields:
+            supporting_documents.extend(
+                {
+                    'label': (
+                        f'{work.company} — {work.position} employment proof'
+                    ),
+                    'url': work.proof_document.url,
+                }
+                for work in profile.work_experiences.all()
+                if work.proof_document
+            )
+
+    for field_name in field_names:
+        try:
+            field = profile._meta.get_field(field_name)
+        except FieldDoesNotExist:
+            continue
+        document = getattr(profile, field_name, None)
+        if isinstance(field, FileField) and document:
+            supporting_documents.append({
+                'label': str(field.verbose_name).title(),
+                'url': document.url,
+            })
+
+    unique_documents = {}
+    for document in supporting_documents:
+        unique_documents.setdefault(document['url'], document)
+    supporting_documents = list(unique_documents.values())
+    return supporting_documents
 
 
 def has_current_supporting_document(applicant):
