@@ -200,6 +200,7 @@
                             <th class="py-3 px-4">Subtype Classification</th>
                         {% endif %}
 
+                        <th class="py-3 px-4 whitespace-nowrap">Date Added</th>
                         <th class="py-3 px-4 text-center">Status</th>
                         <th class="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -244,6 +245,7 @@
                             <td class="py-4 px-4 capitalize font-medium text-slate-500">{{ item.get_project_classification_display }}</td>
                         {% endif %}
 
+                        <td class="py-4 px-4 whitespace-nowrap text-slate-500">{{ item.created_at|date:"M d, Y" }}</td>
                         <td class="py-4 px-4 text-center whitespace-nowrap">
                             {% if item.is_done %}
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700">Completed</span>
@@ -265,11 +267,27 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="py-8 text-center text-slate-400 font-medium">No program beneficiaries found matching selection.</td>
+                        <td colspan="11" class="py-8 text-center text-slate-400 font-medium">No program beneficiaries found matching selection.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-500 font-mono">
+            Showing {{ beneficiaries|length }} of {{ page_obj.paginator.count }} beneficiaries
+            {% if is_paginated %}
+            <div class="mt-3 flex items-center justify-between gap-3 font-sans text-slate-600">
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                <div class="flex gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="{% querystring page=page_obj.previous_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Previous</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="{% querystring page=page_obj.next_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

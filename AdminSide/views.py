@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
+from django.core.paginator import Paginator
 from django.core.validators import validate_email
 from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
@@ -415,6 +416,7 @@ class JobVacancyCreateView(LoginRequiredMixin, View):
 
 class JobPostingsListView(LoginRequiredMixin, View):
     template_name = 'job_posting_list.html'
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get('search', '').strip()
@@ -439,11 +441,16 @@ class JobPostingsListView(LoginRequiredMixin, View):
         if status_filter and status_filter != "All":
             jobs = jobs.filter(status=status_filter)
 
+        paginator = Paginator(jobs, self.paginate_by)
+        page_obj = paginator.get_page(request.GET.get('page'))
         context = {
-            'jobs': jobs,
+            'jobs': page_obj.object_list,
+            'page_obj': page_obj,
+            'paginator': paginator,
+            'is_paginated': page_obj.has_other_pages(),
             'total_active': Jobs.objects.filter(status='Active').count(),
             'total_pending': Jobs.objects.filter(status='Pending').count(),
-            'total_results': jobs.count(),
+            'total_results': paginator.count,
             'search_query': search_query,
             'selected_sector': sector_filter,
             'selected_status': status_filter,
@@ -489,6 +496,7 @@ class ApplicantListView(LoginRequiredMixin, ListView):
     model = ApplicantProfile
     template_name = 'applicant_list.html'
     context_object_name = 'applicants'
+    paginate_by = 10
 
     def get_queryset(self):
         # 1. Capture user inputs from searchbars and dropdown select controls
@@ -543,6 +551,7 @@ class ApplicantListView(LoginRequiredMixin, ListView):
         context['search_query'] = self.search_query
         context['current_status'] = self.status_filter
         context['current_gender'] = self.gender_filter
+        context['total_results'] = context['page_obj'].paginator.count
         return context
 
     def post(self, request, *args, **kwargs):
@@ -719,6 +728,7 @@ class EmployerListView(LoginRequiredMixin, ListView):
     model = EmployerProfile
     template_name = 'employer_list.html'
     context_object_name = 'employers'
+    paginate_by = 10
 
     def post(self, request, *args, **kwargs):
         employer_id = request.POST.get('employer_id')
@@ -873,6 +883,7 @@ class ReferralListView(LoginRequiredMixin, ListView):
     model = OfferedJobs
     template_name = 'referrals_list.html'
     context_object_name = 'application_statuses'
+    paginate_by = 10
 
     def get_queryset(self):
         applications = AppliedJobs.objects.select_related(
@@ -970,7 +981,7 @@ class ReferralListView(LoginRequiredMixin, ListView):
             'selected_period': self.selected_period,
             'selected_job_type': self.selected_job_type,
             'job_type_choices': Jobs.NATURE_OF_WORK_CHOICES,
-            'total_results': len(context['application_statuses']),
+            'total_results': context['page_obj'].paginator.count,
         })
         return context
 
@@ -997,6 +1008,7 @@ class ReferralCreateView(LoginRequiredMixin, SuperuserRequiredMixin, View):
 class SpecialProgramsListView(LoginRequiredMixin, ListView):
     template_name = 'special_program.html'
     context_object_name = 'beneficiaries'
+    paginate_by = 10
 
     def get_queryset(self):
         self.active_program = self.request.GET.get('program', 'spes')

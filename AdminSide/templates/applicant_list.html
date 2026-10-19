@@ -53,6 +53,7 @@
                         <th class="py-3 px-4">Education</th>
                         <th class="py-3 px-4">Skills</th>
                         <th class="py-3 px-4">Preferred Job</th>
+                        <th class="py-3 px-4 whitespace-nowrap">Date Added</th>
                         <th class="py-3 px-4 text-center">Status</th>
                         <th class="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -100,6 +101,7 @@
                                 <span class="text-slate-400 font-normal italic">Open to Any</span>
                             {% endfor %}
                         </td>
+                        <td class="py-4 px-4 whitespace-nowrap text-slate-500">{{ applicant.created_at|date:"M d, Y" }}</td>
                         
                         <td class="py-4 px-4 text-center">
                             {% if applicant.status == 'approved' %}
@@ -117,21 +119,34 @@
                             <a href="{% url 'AdminSide:applicant_verification' applicant.uuid %}"
                                title="View applicant details"
                                aria-label="View applicant details"
-                               class="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded-md transition inline-flex items-center justify-center">
-                                <i class="fa-solid fa-eye text-slate-500" aria-hidden="true"></i>
+                               class="inline-flex items-center justify-center rounded-md bg-slate-100 px-3 py-2 text-[11px] font-bold text-slate-700 transition hover:bg-slate-200">
+                                VIEW
                             </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-slate-400 font-medium">No matching applicant records found.</td>
+                        <td colspan="9" class="py-8 text-center text-slate-400 font-medium">No matching applicant records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-400 font-mono">
-            Showing {{ applicants|length }} of {{ kpi.total|default:0 }} entries
+            Showing {{ applicants|length }} of {{ total_results|default:0 }} entries
+            {% if is_paginated %}
+            <div class="mt-3 flex items-center justify-between gap-3 font-sans text-slate-600">
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                <div class="flex gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="{% querystring page=page_obj.previous_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Previous</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="{% querystring page=page_obj.next_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

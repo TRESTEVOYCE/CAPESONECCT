@@ -96,7 +96,7 @@
                         {% else %}
                             <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold">PESO Referral</span>
                         {% endif %}
-                        <span class="text-slate-500">{{ referral.submitted_at|date:"M d, Y" }}</span>
+                        <span class="text-slate-500"><span class="font-semibold">Date added:</span> {{ referral.submitted_at|date:"M d, Y" }}</span>
                     </div>
                     <div class="flex flex-wrap justify-end gap-2">
                         <button type="button" onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.source_type }}', '{{ referral.status_label }}', '{{ referral.submitted_at|date:'M d, Y' }}')" class="px-3 py-1.5 border border-slate-200 rounded-md text-[11px] font-semibold text-slate-700">View details</button>
@@ -120,7 +120,7 @@
                         <th class="w-[21%] py-3 px-2 lg:px-3">Applicant</th>
                         <th class="w-[22%] py-3 px-2 lg:px-3">Job &amp; Employer</th>
                         <th class="w-[18%] py-3 px-2 lg:px-3">Source</th>
-                        <th class="w-[12%] py-3 px-2 lg:px-3">Date</th>
+                        <th class="w-[12%] py-3 px-2 lg:px-3">Date Added</th>
                         <th class="w-[10%] py-3 px-2 lg:px-3">Status</th>
                         <th class="w-[10%] py-3 px-2 lg:px-3 text-right">Actions</th>
                     </tr>
@@ -147,7 +147,7 @@
                                 <span class="inline-flex max-w-full px-2 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold whitespace-normal">PESO Referral</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-2 lg:px-3 text-slate-500 break-words">{{ referral.submitted_at|date:"M d, Y" }}</td>
+                        <td class="py-3 px-2 lg:px-3 text-slate-500 break-words whitespace-nowrap">{{ referral.submitted_at|date:"M d, Y" }}</td>
                         
                         <td class="py-3 px-2 lg:px-3 break-words">
                             {% if referral.status == 'hired' %}
@@ -175,8 +175,8 @@
                                         onclick="openAuditModal('{{ referral.id }}', '{{ referral.applicant.first_name }} {{ referral.applicant.last_name }}', '{{ referral.offered_job.job_title }}', '{{ referral.offered_job.employer.business_name }}', '{{ referral.source_type }}', '{{ referral.status_label }}', '{{ referral.submitted_at|date:'M d, Y' }}')"
                                         title="View Application Audit Timeline"
                                         aria-label="View application details"
-                                        class="w-8 h-8 shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded-md transition inline-flex items-center justify-center">
-                                    <i class="fa-solid fa-eye text-slate-500" aria-hidden="true"></i>
+                                        class="shrink-0 rounded-md bg-slate-100 hover:bg-slate-200 px-3 py-2 text-slate-700 text-[11px] font-bold transition inline-flex items-center justify-center">
+                                    VIEW
                                 </button>
 
                                 <!-- Re-trigger Notification (Nudge HR) for Pending or Reviewed Applications -->
@@ -204,6 +204,19 @@
         </div>
         <div class="px-4 py-3 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-500 font-mono">
             Showing {{ application_statuses|length }} of {{ total_results }} matching records
+            {% if is_paginated %}
+            <div class="mt-3 flex items-center justify-between gap-3 font-sans text-slate-600">
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                <div class="flex gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="{% querystring page=page_obj.previous_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Previous</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="{% querystring page=page_obj.next_page_number %}" class="rounded-md border border-slate-200 px-3 py-1.5 font-semibold hover:bg-white">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

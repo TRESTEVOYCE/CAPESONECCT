@@ -820,6 +820,10 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertContains(page, 'Supporting Document')
         self.assertContains(page, 'href="https://files.example/applicant_docs/education_proofs/diploma.pdf"')
         self.assertContains(page, 'New University')
+        self.assertNotContains(
+            page,
+            '<span class="text-slate-400">—</span>',
+        )
         self.assertNotContains(page, 'applicant_docs/supporting_docs/old.pdf')
         self.assertNotContains(page, 'applicant_docs/supporting_docs/new.pdf')
         self.assertNotContains(page, 'Education Proof Document')
@@ -874,6 +878,10 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertContains(page, 'Supporting Document')
         self.assertContains(page, 'href="https://files.example/employer_docs/new-permit.pdf"')
         self.assertContains(page, 'Updated Business Name')
+        self.assertNotContains(
+            page,
+            '<span class="text-slate-400">—</span>',
+        )
         self.assertNotContains(page, 'employer_docs/old-permit.pdf')
         self.assertNotContains(page, 'Business Permit</th>')
 
@@ -949,7 +957,7 @@ class AdminLoginViewTests(TestCase):
             self.assertEqual(response.content.decode().count(error_message), 1)
 
 
-class EnrollBeneficiaryViewTests(TestCase):
+class EnrollBeneficiaryLookupTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.view = EnrollBeneficiaryView()
@@ -979,9 +987,134 @@ class EnrollBeneficiaryViewTests(TestCase):
 
     def test_special_program_list_view_handles_search_query(self):
         request = self.factory.get('/special-programs/', {'program': 'spes', 'search': 'Ana'})
+        request.user = User.objects.create_superuser(
+            username='special-program-search-admin',
+            email='special-program-search-admin@example.com',
+            password='test-password',
+        )
         response = SpecialProgramsListView.as_view()(request)
 
         self.assertEqual(response.status_code, 200)
+
+
+class AdminListPaginationTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='list-pagination-admin',
+            email='list-pagination-admin@example.com',
+            password='test-password',
+        )
+        self.client.force_login(self.admin)
+
+    def test_admin_lists_show_at_most_ten_records_per_page(self):
+        applicants = []
+        employers = []
+        for index in range(11):
+            applicant_user = User.objects.create_user(
+                username=f'list-applicant-{index}',
+                email=f'list-applicant-{index}@example.com',
+                password='test-password',
+                role='applicant',
+            )
+            applicants.append(ApplicantProfile.objects.create(
+                user=applicant_user,
+                first_name=f'Applicant{index}',
+                last_name='Pagination',
+                date_of_birth='1995-01-01',
+                sex='F',
+            ))
+
+            employer_user = User.objects.create_user(
+                username=f'list-employer-{index}',
+                email=f'list-employer-{index}@example.com',
+                password='test-password',
+                role='employer',
+            )
+            employers.append(EmployerProfile.objects.create(
+                user=employer_user,
+                business_name=f'Employer {index}',
+            ))
+
+        jobs = []
+        for index in range(11):
+            jobs.append(Jobs.objects.create(
+                employer=employers[index],
+                job_title=f'Pagination Job {index}',
+                job_description='Test vacancy',
+                place_of_work='Carigara',
+                salary=10000,
+                vacancy=1,
+                job_posting_expiry='2099-12-31',
+            ))
+            OfferedJobs.objects.create(
+                applicant=applicants[index],
+                offered_job=jobs[index],
+            )
+            SpecialProgramForEmploymentOfStudents.objects.create(
+                first_name=f'Beneficiary{index}',
+                last_name='Pagination',
+                sex='F',
+                date_of_birth='2000-01-01',
+                phone_number='09123456789',
+                barangay='Poblacion',
+                municipality='Carigara',
+                province='Leyte',
+                region='Region VIII',
+                zip_code='6519',
+                daily_salary=1000,
+                start_date='2024-01-01',
+                end_date='2024-02-01',
+                education_level='college',
+            )
+
+        list_requests = (
+            (
+                'AdminSide:applicants_list',
+                'applicants',
+            ),
+            (
+                'AdminSide:job_postings_list',
+                'jobs',
+            ),
+            (
+                'AdminSide:employer_list',
+                'employers',
+            ),
+            (
+                'AdminSide:referrals_list',
+                'application_statuses',
+            ),
+            (
+                'AdminSide:special_programs_list',
+                'beneficiaries',
+            ),
+        )
+        query_params = {
+            'AdminSide:special_programs_list': '?program=spes',
+        }
+        for url_name, context_name in list_requests:
+            suffix = query_params.get(url_name, '')
+            response = self.client.get(reverse(url_name) + suffix)
+
+            self.assertEqual(response.status_code, 200, url_name)
+            self.assertEqual(len(response.context[context_name]), 10, url_name)
+            self.assertEqual(response.context['page_obj'].paginator.num_pages, 2, url_name)
+            self.assertIn('date added', response.content.decode().lower())
+
+        applicant_page = self.client.get(reverse('AdminSide:applicants_list'))
+        self.assertContains(applicant_page, 'VIEW')
+        job_page = self.client.get(reverse('AdminSide:job_postings_list'))
+        self.assertContains(job_page, 'VIEW')
+
+
+class EnrollBeneficiaryViewTests(TestCase):
+    def setUp(self):
+        admin = User.objects.create_superuser(
+            username='enroll-beneficiary-admin',
+            email='enroll-beneficiary-admin@example.com',
+            password='test-password',
+        )
+        self.client.force_login(admin)
 
     def test_edit_form_shows_unsaved_changes_warning_when_switching_programs(self):
         beneficiary = SpecialProgramForEmploymentOfStudents.objects.create(
@@ -1001,15 +1134,17 @@ class EnrollBeneficiaryViewTests(TestCase):
             education_level='college',
         )
 
-        client = Client()
-        response = client.get(f'/special-programs/enroll/?program=spes&edit={beneficiary.uuid}')
+        response = self.client.get(
+            reverse('AdminSide:enroll_beneficiary'),
+            {'program': 'spes', 'edit': beneficiary.uuid},
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please finish or save your changes before switching programs')
 
     def test_enroll_post_preserves_municipality_and_barangay_from_current_form_fields(self):
-        client = Client()
-        response = client.post('/special-programs/enroll/?program=spes', {
+        response = self.client.post(reverse('AdminSide:enroll_beneficiary'), {
+            'program': 'spes',
             'first_name': 'Ana',
             'middle_name': '',
             'last_name': 'Rivera',
@@ -1027,7 +1162,7 @@ class EnrollBeneficiaryViewTests(TestCase):
             'education_level': 'college',
         })
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         beneficiary = SpecialProgramForEmploymentOfStudents.objects.get(first_name='Ana')
         self.assertEqual(beneficiary.municipality, 'Carigara')
         self.assertEqual(beneficiary.barangay, 'Poblacion')
