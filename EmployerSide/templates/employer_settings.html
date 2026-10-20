@@ -1,0 +1,161 @@
+{% extends 'employer-base.html' %}
+{% block title %}Employer Settings — CAPESONNECT{% endblock %}
+{% block content %}
+
+<div class="w-full mx-auto space-y-8 font-sans">
+
+    <!-- Header -->
+    <div class="border-b border-stone-200/80 pb-6">
+        <p class="text-xs font-bold text-stone-500 uppercase tracking-widest">Portal Configuration</p>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 mt-1">Account Settings</h1>
+        <p class="text-sm sm:text-base text-stone-600 mt-1.5">Manage your notification triggers, candidate automation, and security preferences.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-semibold text-emerald-800 shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Profile Image Update Form -->
+    <div class="bg-white border border-stone-200/95 rounded-2xl p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="relative">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="h-20 w-20 rounded-2xl object-cover border border-stone-200 shadow-sm">
+                    {% else %}
+                        <div class="h-20 w-20 rounded-2xl bg-stone-100 flex items-center justify-center border border-stone-200 text-stone-700 font-bold text-xl shadow-sm">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-base font-bold text-stone-900">Profile Image</h2>
+                    <p class="text-xs text-stone-500">PNG, JPG or GIF. Maximum file size 2MB.</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'employer-profile-picture' %}" enctype="multipart/form-data" class="flex items-center gap-3">
+                {% csrf_token %}
+                <label for="id_profile_picture" class="cursor-pointer inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-700 text-sm font-semibold transition-colors shadow-sm">
+                    <i class="fa-solid fa-upload text-xs"></i> Upload Photo
+                </label>
+                <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*" class="hidden" onchange="this.form.submit()">
+            </form>
+        </div>
+    </div>
+
+    <!-- Unified Form for Credentials and Preferences -->
+    <form method="POST" class="space-y-8">
+        {% csrf_token %}
+
+        <!-- User Information & Credentials Details Card -->
+        <div class="bg-white border border-stone-200/95 rounded-2xl p-8 shadow-sm space-y-7">
+            
+            <!-- BUSINESS NAME / IDENTITY -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-6">
+                <div>
+                    <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Business Name</h3>
+                    <p class="text-xs text-stone-500 mt-1">Your official organization name used across operational audit logs.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <input type="text" name="business_name" value="{{ profile.business_name }}" class="w-full sm:w-64 h-11 px-4 rounded-xl border border-stone-300 text-sm text-stone-900 focus:border-stone-500 focus:ring-2 focus:ring-stone-900/10 outline-none transition-all" placeholder="Not provided">
+                </div>
+            </div>
+
+            <!-- LOGIN & CREDENTIALS HEADER -->
+            <div class="pt-1">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Login & Credentials</h2>
+                <p class="text-xs text-stone-500 mt-1">Manage email authentication and security access details.</p>
+            </div>
+
+            <!-- EMAIL ADDRESS -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-100 pb-6">
+                <div>
+                    <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Email Address</h3>
+                    <p class="text-xs text-stone-500 mt-1">Primary email linked for sign-in and recovery notices.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="px-4 py-2 bg-stone-100 border border-stone-200 text-stone-800 text-sm font-semibold rounded-xl break-all">
+                        {{ request.user.email }}
+                    </span>
+                    <a href="{% url 'employer-email-change' %}" class="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                        CHANGE EMAIL
+                    </a>
+                </div>
+            </div>
+
+            <!-- ACCOUNT PASSWORD -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div>
+                    <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Account Password</h3>
+                    <p class="text-xs text-stone-500 mt-1">Ensure your security with a unique password protocol.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="px-5 py-2 bg-stone-100 border border-stone-200 text-stone-400 text-sm tracking-widest rounded-xl">
+                        ••••••••••••
+                    </span>
+                    <a href="{% url 'send-password-otp' %}" class="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                        CHANGE PASSWORD
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Preferences -->
+        <div class="bg-white border border-stone-200/95 rounded-2xl p-8 shadow-sm space-y-6">
+            <div class="border-b border-stone-100 pb-4">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Notification Preferences</h2>
+                <p class="text-xs text-stone-500 mt-1">Control how and when you receive alerts about applicants.</p>
+            </div>
+
+            <div class="space-y-4 text-sm">
+                <label class="flex items-start gap-4 p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
+                    <input type="checkbox" name="email_notifications" checked class="w-5 h-5 mt-0.5 rounded border-stone-300 accent-stone-900 cursor-pointer">
+                    <div class="space-y-1">
+                        <p class="font-bold text-stone-900">Email Alerts for New Applications</p>
+                        <p class="text-xs text-stone-500">Receive an email notification immediately when a candidate applies to any of your active job listings.</p>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-4 p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
+                    <input type="checkbox" name="weekly_digest" class="w-5 h-5 mt-0.5 rounded border-stone-300 accent-stone-900 cursor-pointer">
+                    <div class="space-y-1">
+                        <p class="font-bold text-stone-900">Weekly Talent Pipeline Summary</p>
+                        <p class="text-xs text-stone-500">Get a weekly digest summarizing total views, application counts, and active vacancy status.</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Automation & Quota Settings -->
+        <div class="bg-white border border-stone-200/95 rounded-2xl p-8 shadow-sm space-y-6">
+            <div class="border-b border-stone-100 pb-4">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Job Posting Automation</h2>
+                <p class="text-xs text-stone-500 mt-1">Automate behavior for job vacancies and applicant limits.</p>
+            </div>
+
+            <div class="space-y-4 text-sm">
+                <label class="flex items-start gap-4 p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-stone-300 cursor-pointer transition">
+                    <input type="checkbox" name="auto_close_quota" checked class="w-5 h-5 mt-0.5 rounded border-stone-300 accent-stone-900 cursor-pointer">
+                    <div class="space-y-1">
+                        <p class="font-bold text-stone-900">Auto-Close Listings on Quota Reached</p>
+                        <p class="text-xs text-stone-500">Automatically update a job posting status to 'Closed' once the maximum application quota limit is met.</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex items-center justify-end gap-3 pb-10">
+            <button type="submit" class="px-7 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-base shadow-md transition-all active:scale-[0.98]">
+                Save Preferences
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

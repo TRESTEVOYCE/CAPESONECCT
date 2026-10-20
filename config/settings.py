@@ -8,6 +8,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
+from datetime import timedelta
 
 load_dotenv()
 
@@ -17,6 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security Settings
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key')
 DEBUG = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Host & Origin Settings
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
@@ -47,7 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cloudinary_storage', 
     'cloudinary',
-    'AdminSide',
+    'AdminSide.apps.AdminsideConfig',
     'rest_framework',
     'MSWDAPI',
     'django_filters',
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
     'LandingPage',
     'axes',
     'honeypot',
+    'SuperAdmin',
 ]
 
 MIDDLEWARE = [
@@ -111,6 +115,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'AdminSide.context_processor.applicant_profile', 
+                'ApplicantSide.context_processors.applicant_context',
+                'EmployerSide.context_processors.employer_context',
             ],
         },
     },
@@ -173,7 +180,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1 
+AXES_COOLOFF_TIME = timedelta(seconds=20)
 AXES_RESET_ON_SUCCESS = True
 
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
@@ -186,5 +193,5 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-HONEYPOT_FIELD_NAME = "phone_number"
+HONEYPOT_FIELD_NAME = "bisan_ano"
 HONEYPOT_VALUE = ""

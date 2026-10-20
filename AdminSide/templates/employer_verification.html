@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Employer Verification - {{ employer.business_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl space-y-6 pb-12">
+
+    <!-- TOP NAVIGATION & FORM HEADER -->
+    <div class="flex flex-col gap-4">
+        <div>
+            <a href="{% url 'AdminSide:employer_list' %}" class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-800">
+                <i class="fa-solid fa-arrow-left"></i> Back to Employers Registry
+            </a>
+        </div>
+
+        <div class="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Employer profile</p>
+                    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{{ employer.business_name }}</h1>
+                    <p class="mt-1 text-sm text-slate-500">
+                        TIN <span class="font-medium text-slate-700">{{ employer.tin_number|default:"N/A" }}</span>
+                        <span class="mx-2 text-slate-300">|</span>
+                        Registered {{ employer.created_at|date:"F d, Y" }}
+                    </p>
+                    <div class="mt-2">
+                        <span class="mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold
+                            {% if employer.verification_status == 'verified' %}bg-green-100 text-green-700
+                            {% elif employer.verification_status == 'pending' or employer.verification_status == 'reverify_pending' %}bg-amber-100 text-amber-700
+                            {% elif employer.verification_status == 'rejected' %}bg-rose-100 text-rose-800 border border-rose-300
+                            {% else %}bg-amber-100 text-amber-700{% endif %}"
+                            {% if employer.verification_status == 'rejected' %}style="background-color: #ffe4e6; color: #9f1239; border-color: #fda4af;"{% endif %}>
+                            Status: {{ employer.get_verification_status_display|default:employer.verification_status|title }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-nowrap items-end gap-3 overflow-x-auto">
+                {% if has_unreviewed_profile_changes %}
+                <a href="{% url 'AdminSide:employer_modification_audit' employer.uuid %}" class="inline-flex h-10 w-36 shrink-0 items-center justify-center rounded-lg bg-orange-500 px-4 text-center text-sm font-semibold text-white transition hover:bg-orange-600">
+                    Review Updates
+                </a>
+                {% endif %}
+                {% if employer.verification_status != 'verified' %}
+                    <form method="POST" action="" class="shrink-0">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="flex h-10 w-36 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800">
+                            Verify Employer
+                        </button>
+                    </form>
+                {% endif %}
+                {% if employer.verification_status != 'rejected' %}
+                    <button type="button" onclick="document.getElementById('employerRejectionModal').showModal()" class="flex h-10 w-36 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-white px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
+                            Reject
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if employer.verification_status != 'rejected' %}
+    <dialog id="employerRejectionModal" class="w-full max-w-lg rounded-xl border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/50">
+        <form method="POST" action="" class="space-y-5 p-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">Reject employer verification</h2>
+                <p class="mt-1 text-sm text-slate-500">Provide a reason. This will be included in the notification to the employer.</p>
+            </div>
+            <div>
+                <label for="employerRejectionReason" class="mb-1 block text-sm font-medium text-slate-700">Rejection reason</label>
+                <textarea id="employerRejectionReason" name="remarks" rows="4" maxlength="2000" required placeholder="Enter reason for rejection" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"></textarea>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('employerRejectionModal').close()" class="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="h-10 rounded-lg bg-rose-700 px-4 text-sm font-semibold text-white transition hover:bg-rose-800">Confirm rejection</button>
+            </div>
+        </form>
+    </dialog>
+    {% endif %}
+
+    <!-- MAIN TWO-COLUMN FORM LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT & CENTER (2 COLUMNS): Business & Contact Records -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- 1. Authorized Representative Contact Details -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-slate-50/80 px-6 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                         Authorized Representative Details
+                    </h2>
+                    <span class="text-xs font-medium text-slate-500">Section 1</span>
+                </div>
+                
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">
+                            Contact Person / Designation
+                        </label>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 leading-snug">
+                            <p class="font-bold text-slate-800 text-sm uppercase">{{ employer.contact_person }}</p>
+                            <p class="text-xs font-medium text-slate-600 capitalize mt-0.5">{{ employer.contact_position|default:"Authorized Representative" }}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Official email address</label>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800 text-sm">
+                            {{ employer.email }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Mobile contact number</label>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800 text-sm">
+                            {{ employer.mobile_number }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Landline telephone</label>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800 text-sm">
+                            {{ employer.telephone_number|default:"N/A" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Establishment Details -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-slate-50/80 px-6 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                         Establishment Information
+                    </h2>
+                    <span class="text-xs font-medium text-slate-500">Section 2</span>
+                </div>
+                
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Trade / business name</label>
+                        <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800">
+                            {{ employer.trade_name|default:employer.business_name }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Employer classification</label>
+                        <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800">
+                            {{ employer.get_employer_type_display }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Workforce size</label>
+                        <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800">
+                            {{ employer.get_total_workforce_display }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Industry / line of business</label>
+                        <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800">
+                            {{ employer.line_of_business|default:"N/A" }}
+                        </p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-xs font-medium text-slate-500">Official business address</label>
+                        <p class="p-3 bg-slate-50 rounded-lg border border-slate-200 font-bold text-slate-800 leading-relaxed">
+                            {{ employer.street_address }}, Barangay {{ employer.barangay }}, {{ employer.municipality }}, {{ employer.province }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Attached Documents Checklist -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200">
+                <h2 class="text-sm font-semibold text-slate-800">
+                    {% if employer.is_public_agency %}Public Agency Verification{% else %}Private Sector Verification{% endif %}
+                </h2>
+                <p class="mt-1 text-sm text-slate-500">Review the submitted supporting documents.</p>
+            </div>
+
+            <div class="p-5 space-y-3">
+                {% if employer.is_public_agency %}
+                    <!-- Public Agency Documents -->
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-building-columns text-sm text-slate-500"></i>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">Government Proof Document</p>
+                                <p class="text-xs font-medium text-slate-500">{{ employer.get_public_doc_type_display|default:"Document type not specified" }}</p>
+                            </div>
+                        </div>
+                        {% if employer.public_verification_document %}
+                            <a href="{{ employer.public_verification_document.url }}" target="_blank" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-[11px] font-bold rounded-md transition shadow-xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Inspect Public Document
+                            </a>
+                        {% else %}
+                            <span class="text-[11px] text-red-500 font-semibold italic block">Not Provided</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <!-- Private Sector Documents -->
+                    <!-- COR 2303 -->
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-contract text-blue-600 text-sm"></i>
+                            <p class="text-xs font-bold text-slate-800">BIR Form 2303 (COR)</p>
+                        </div>
+                        {% if employer.certificate_of_registration %}
+                            <a href="{{ employer.certificate_of_registration.url }}" target="_blank" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-[11px] font-bold rounded-md transition shadow-xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Inspect COR Document
+                            </a>
+                        {% else %}
+                            <span class="text-[11px] text-red-500 font-semibold italic block">Not Provided</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- DTI / SEC Registration -->
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-award text-sm text-slate-500"></i>
+                            <p class="text-xs font-bold text-slate-800">DTI / SEC Registration</p>
+                        </div>
+                        {% if employer.dti_sec_registration %}
+                            <a href="{{ employer.dti_sec_registration.url }}" target="_blank" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-[11px] font-bold rounded-md transition shadow-xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Inspect DTI/SEC Certificate
+                            </a>
+                        {% else %}
+                            <span class="text-[11px] text-red-500 font-semibold italic block">Not Provided</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mayor's Business Permit -->
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-passport text-sm text-slate-500"></i>
+                            <p class="text-xs font-bold text-slate-800">Mayor's / Business Permit</p>
+                        </div>
+                        {% if employer.business_permit %}
+                            <a href="{{ employer.business_permit.url }}" target="_blank" 
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-[11px] font-bold rounded-md transition shadow-xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Inspect Business Permit
+                            </a>
+                        {% else %}
+                            <span class="text-[11px] text-red-500 font-semibold italic block">Not Provided</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

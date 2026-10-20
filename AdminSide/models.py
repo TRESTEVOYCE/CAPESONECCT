@@ -1,8 +1,60 @@
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser,UserManager
 from django.utils import timezone
 import uuid
+from cloudinary_storage.storage import MediaCloudinaryStorage, RawMediaCloudinaryStorage
+from django.conf import settings
+
+
+from django.contrib.auth.models import UserManager
+
+
+class AdminUserManager(UserManager):
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        if not email:
+            raise ValueError("An email address is required.")
+
+        email = self.normalize_email(email)
+        extra_fields.setdefault("is_active", True)
+
+        user = self.model(
+            username=username,
+            email=email,
+            **extra_fields,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields["role"] = "admin"
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(
+            username=username,
+            email=email,
+            password=password,
+            **extra_fields,
+        )
+
+
+class CustomUserManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields["role"] = "admin"
+
+        return super().create_superuser(
+            username=username,
+            email=email,
+            password=password,
+            **extra_fields
+        )
 
 
 class User(AbstractUser):
@@ -23,11 +75,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    profile_picture = models.ImageField(
-        upload_to='profile_pictures/',
-        null=True,
-        blank=True
-    )
+    profile_picture = models.ImageField(upload_to='profile_pictures/', storage=MediaCloudinaryStorage(), null=True, blank=True)
+    email_verified = models.BooleanField(default=False)
+    email_verification_sent_at = models.DateTimeField(null=True,blank=True)
+
+    objects = AdminUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -69,6 +121,7 @@ class EmployerProfile(models.Model):
 
     VERIFICATION_STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('reverify_pending', 'Pending Re-Verification'),
         ('verified', 'Verified'),
         ('rejected', 'Rejected'),
     )
@@ -102,13 +155,13 @@ class EmployerProfile(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     # Verification Document Attachments for Private Sector
-    certificate_of_registration = models.FileField(upload_to='employer_docs/cor_2303/', blank=True, null=True, help_text="Photocopy of COR 2303")
-    dti_sec_registration = models.FileField(upload_to='employer_docs/dti_sec/', blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
-    business_permit = models.FileField(upload_to='employer_docs/business_permits/', blank=True, null=True, help_text="Photocopy of Latest Business Permit")
+    certificate_of_registration = models.FileField(upload_to='employer_docs/private_sector/cor_2303/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of COR 2303")
+    dti_sec_registration = models.FileField(upload_to='employer_docs/private_sector/dti_sec/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of DTI or SEC Registration")
+    business_permit = models.FileField(upload_to='employer_docs/private_sector/business_permits/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Photocopy of Latest Business Permit")
 
     # Verification Document Attachments for Public Sector
     public_doc_type = models.CharField(max_length=30, choices=PUBLIC_DOC_CHOICES, blank=True, null=True, help_text="Type of primary document submitted for public agency verification")
-    public_verification_document = models.FileField(upload_to='employer_docs/public_verifications/', blank=True, null=True, help_text="Uploaded verification document for public agency")
+    public_verification_document = models.FileField(upload_to='employer_docs/public_sector/verification_documents/', storage=RawMediaCloudinaryStorage(), blank=True, null=True, help_text="Uploaded verification document for public agency")
 
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -191,10 +244,22 @@ class Jobs(models.Model):
     def formatted_job_id(self):
         return f"JP-{self.id:04d}"
 
+    @property
+    def total_applicants_count(self):
+        """Returns the total number of applicants who applied or were referred."""
+        applied = self.applied_applicants.count()
+        offered = self.offered_to_applicants.count()
+        return applied + offered
+
+    @property
+    def is_expired(self):
+        """Checks whether the job posting has past its expiry date."""
+        if self.job_posting_expiry:
+            return timezone.localdate() >= self.job_posting_expiry
+        return False
+
     def check_and_close(self):
-        """
-        Evaluates quota or expiry and automatically updates status to 'Closed'.
-        """
+        """Evaluates quota or expiry and automatically updates status to 'Closed'."""
         today = timezone.localdate()
         total_applications = self.applied_applicants.count()
         quota_reached = self.application_quota is not None and total_applications >= self.application_quota
@@ -216,6 +281,7 @@ class ApplicantProfile(models.Model):
 
     APPLICATION_STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('reverify_pending', 'Pending Re-Verification'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     )
@@ -234,6 +300,13 @@ class ApplicantProfile(models.Model):
         ('university', 'University'),
         ('vocational', 'Vocational'),
         ('other', 'Other'),
+    )
+    SUPPORTING_DOCUMENT_TYPE_CHOICES = (
+        ('education_proof', 'Diploma / TOR / Certificate of Graduation'),
+        ('national_certification', 'TESDA / National Certification / Trade Certificate'),
+        ('professional_license', 'Professional License / Eligibility Certificate'),
+        ('employment_proof', 'Certificate of Employment / Service Record'),
+        ('government_id', 'Barangay Clearance / Government-Issued ID'),
     )
 
     SEX_CHOICES = (
@@ -274,13 +347,13 @@ class ApplicantProfile(models.Model):
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
-    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES)
-    phone_number = models.CharField(max_length=20)
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS_CHOICES, default='single', blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     house_street = models.CharField(max_length=255, blank=True, null=True)
-    barangay = models.CharField(max_length=100)
-    municipality = models.CharField(max_length=100)
-    province = models.CharField(max_length=100)
+    barangay = models.CharField(max_length=100, blank=True, null=True)
+    municipality = models.CharField(max_length=100, blank=True, null=True)
+    province = models.CharField(max_length=100, blank=True, null=True)
     region = models.CharField(max_length=100, blank=True, null=True)
     zip_code = models.CharField(max_length=10, blank=True, null=True)
 
@@ -293,16 +366,17 @@ class ApplicantProfile(models.Model):
     is_ofw = models.BooleanField(default=False)
     expected_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES)
+    education_level = models.CharField(max_length=100, choices=EDUCATIONAL_ATTACHMENT_CHOICES, blank=True, null=True)
     school_name = models.CharField(max_length=255, blank=True, null=True)
     course_program = models.CharField(max_length=255, blank=True, null=True)
     year_graduated = models.CharField(max_length=10, blank=True, null=True)
     skills = models.ManyToManyField(ApplicantSkills, blank=True, related_name='applicants')
     preferred_job = models.ManyToManyField(Jobs, blank=True, related_name='preferred_applicants')
 
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
-    curriculum_vitae = models.FileField(upload_to='curriculum_vitae/', blank=True, null=True)
-    applicant_id_picture = models.ImageField(upload_to='applicant_id_pictures/', blank=True, null=True)
+    resume = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    curriculum_vitae = models.FileField(upload_to='applicant_docs/curriculum_vitae/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture_back = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
+    applicant_id_picture_front = models.ImageField(upload_to='applicant_docs/id_pictures/', storage=MediaCloudinaryStorage(), blank=True, null=True)
     status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -312,7 +386,6 @@ class ApplicantProfile(models.Model):
     place_of_birth = models.CharField(max_length=255, blank=True, null=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Weight in kg")
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Height in cm")
-    willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
     nationality = models.CharField(max_length=100, default='Filipino')
     willing_to_work_immediately = models.BooleanField(default=True, null=True, blank=True)
     when_willing_to_work = models.CharField(max_length=100, blank=True, null=True)  
@@ -322,7 +395,6 @@ class ApplicantProfile(models.Model):
     mobile_number_secondary = models.CharField(max_length=20, blank=True, null=True)
     landline_number = models.CharField(max_length=20, blank=True, null=True)
     email_address = models.EmailField(unique=True, blank=True, null=True)
-    
     
     school_status_yes = models.BooleanField(default=False)
     school_status_no = models.BooleanField(default=False)
@@ -336,7 +408,6 @@ class ApplicantProfile(models.Model):
     edu_college_level = models.BooleanField(default=False)
     edu_tech_voc = models.BooleanField(default=False)
     school_university = models.CharField(max_length=255, blank=True, null=True)
-    course_program = models.CharField(max_length=255, blank=True, null=True)
     year_graduated_attended = models.CharField(max_length=50, blank=True, null=True)
     award_1 = models.CharField(max_length=255, blank=True, null=True)
     award_2 = models.CharField(max_length=255, blank=True, null=True)
@@ -351,8 +422,36 @@ class ApplicantProfile(models.Model):
     other_skills = models.CharField(max_length=500, blank=True, null=True)
     
     certification_agree = models.BooleanField(default=False)
-    resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)
-    supporting_doc = models.FileField(upload_to='supporting_docs/', blank=True, null=True)
+    resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc = models.FileField(upload_to='applicant_docs/supporting_docs/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
+    supporting_doc_type = models.CharField(
+        max_length=40,
+        choices=SUPPORTING_DOCUMENT_TYPE_CHOICES,
+        blank=True,
+    )
+    supporting_doc_uploaded_at = models.DateTimeField(blank=True, null=True)
+
+    education_proof_document = models.FileField(
+        upload_to='applicant_docs/education_proofs/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    education_proof_uploaded_at = models.DateTimeField(blank=True, null=True)
+    technical_certification_document = models.FileField(
+        upload_to='applicant_docs/technical_certifications/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
+    professional_license_document = models.FileField(
+        upload_to='applicant_docs/professional_licenses/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    professional_license_uploaded_at = models.DateTimeField(blank=True, null=True)
     
 
     training_title_1 = models.CharField(max_length=255, blank=True, null=True)
@@ -410,6 +509,30 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
+
+
+class ApplicantWorkExperience(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='work_experiences'
+    )
+
+    company = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True)
+    position = models.CharField(max_length=255)
+    dates = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=100, blank=True)
+    proof_document = models.FileField(
+        upload_to='applicant_docs/employment_proofs/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
+    )
+    proof_document_uploaded_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.company} - {self.position}"
 
 class AppliedJobs(models.Model):
 
@@ -763,20 +886,92 @@ class PESOActivities(models.Model):
     def __str__(self):
         return f"{self.activity_name} - {self.activity_date}"
 
-class AuditLog(models.Model):
+# ============================================================
+# NOTIFICATIONS FUNCTIONALITY
+# ============================================================
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='audit_logs'
+class Notification(models.Model):
+    NOTIFICATION_TYPES = (
+        ('VERIFICATION_APPROVED', 'Verification Approved'),
+        ('VERIFICATION_REJECTED', 'Verification Rejected'),
+        ('APPLICATION_STATUS', 'Application Status Update'),
+        ('NEW_REGISTRATION', 'New Registration Pending Verification'),
+        ('RESUBMISSION', 'Account Re-submitted for Verification'),
+        ('NEW_APPLICANT', 'New Applicant'),
+        ('NEW_EMPLOYER', 'New Employer'),
+        ('NEW_JOB_POST', 'New Job Post'),
+        ('APPEAL_REVERIFICATION', 'Appeal for Reverification'),
     )
 
-    action = models.CharField(max_length=255)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
+
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    reason = models.TextField(blank=True, null=True)  # Specifically holds rejection reasons
+    
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
+    target_url = models.CharField(max_length=255, blank=True, null=True)  # Redirect link when clicked
+    
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.email} - {self.action} - {self.timestamp}"
+        return f"To {self.recipient.username} - {self.title}"
 
-        
+class AuditLog(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    action = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.email if self.user else 'Unknown user'} - {self.action} - {self.timestamp}"
+
+
+class ProfileChangeLog(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='change_logs',
+    )
+    employer = models.ForeignKey(
+        EmployerProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='change_logs',
+    )
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='profile_change_logs',
+    )
+    changes = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_profile_change_logs',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        profile = self.applicant or self.employer
+        return f'Profile changes for {profile} at {self.created_at}'

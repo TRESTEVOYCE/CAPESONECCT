@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if edit_mode %}Edit Job Vacancy{% else %}Post Direct Vacancy (NSRP Form 2){% endif %} - CAPESONNECT{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6 pb-12">
+
+    <!-- BACK NAVIGATION LINK -->
+    <a href="{% url 'AdminSide:job_postings_list' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+        <i class="fa-solid fa-arrow-left"></i> Back to Job Postings Registry
+    </a>
+
+    <!-- HEADER & PAGE TITLE BAR -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">
+                {% if edit_mode %}Edit Job Vacancy{% else %}Post Direct Vacancy (NSRP Form 2){% endif %}
+            </h1>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+                DOLE National Skills Registration Program — Job Establishment & Qualification Record
+            </p>
+        </div>
+        <div>
+            <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-700 inline-block">
+                NSRP Form 2
+            </span>
+        </div>
+    </div>
+
+    <!-- ERROR ALERT MESSAGING -->
+    {% if form.errors %}
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl shadow-sm space-y-1">
+            <p class="font-bold flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Please correct the highlighted errors below before saving:
+            </p>
+            <ul class="list-disc pl-5 space-y-0.5 text-rose-700">
+                {% for field, errors in form.errors.items %}
+                    <li>
+                        <strong class="capitalize">{{ field|capfirst }}:</strong> 
+                        {% for error in errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- MAIN FORM -->
+    <form method="POST" action="" onsubmit="this.querySelector('button[type=submit]').disabled = true;" class="space-y-6">
+        {% csrf_token %}
+
+        <input type="hidden" name="status" value="Active">
+
+        <!-- SECTION I: ESTABLISHMENT & POSITION -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-building text-slate-400"></i> I. Establishment & Position Title
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.employer.label }} <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.employer }}
+                    {% if form.employer.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.employer.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.job_title.label }} <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.job_title }}
+                    {% if form.job_title.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.job_title.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION II: VACANCY, WORK NATURE & COMPENSATION -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-briefcase text-slate-400"></i> II. Work Nature, Vacancies & Compensation
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.nature_of_work.label }}
+                    </label>
+                    {{ form.nature_of_work }}
+                    {% if form.nature_of_work.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.nature_of_work.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.vacancy.label }} <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.vacancy }}
+                    {% if form.vacancy.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.vacancy.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.salary.label }} (₱)
+                    </label>
+                    {{ form.salary }}
+                    {% if form.salary.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.salary.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION III: WORK LOCATION, EXPIRY & QUOTA -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-location-dot text-slate-400"></i> III. Work Location & Schedule Limits
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.place_of_work.label }}
+                    </label>
+                    {{ form.place_of_work }}
+                    {% if form.place_of_work.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.place_of_work.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.job_posting_expiry.label }}
+                    </label>
+                    {{ form.job_posting_expiry }}
+                    {% if form.job_posting_expiry.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.job_posting_expiry.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        Application Quota <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {{ form.application_quota }}
+                    {% if form.application_quota.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.application_quota.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION IV: MINIMUM QUALIFICATIONS -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-slate-400"></i> IV. Minimum Qualifications & Experience
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.educational_level.label }}
+                    </label>
+                    {{ form.educational_level }}
+                    {% if form.educational_level.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.educational_level.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.course_or_strand.label }}
+                    </label>
+                    {{ form.course_or_strand }}
+                    {% if form.course_or_strand.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.course_or_strand.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.work_experience_months.label }} (in Months) <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.work_experience_months }}
+                    {% if form.work_experience_months.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.work_experience_months.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.languages_spoken.label }}
+                    </label>
+                    {{ form.languages_spoken }}
+                    {% if form.languages_spoken.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.languages_spoken.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.required_license.label }}
+                    </label>
+                    {{ form.required_license }}
+                    {% if form.required_license.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.required_license.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.required_eligibility.label }}
+                    </label>
+                    {{ form.required_eligibility }}
+                    {% if form.required_eligibility.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.required_eligibility.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.required_certification.label }}
+                    </label>
+                    {{ form.required_certification }}
+                    {% if form.required_certification.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.required_certification.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION V: SPECIAL ACCOMMODATIONS & TARGET GROUPS -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-[#112954] fa-wheelchair text-slate-400"></i> V. Inclusive Employment & Special Accommodations
+            </h2>
+
+            <div class="space-y-4">
+                <div class="flex flex-wrap items-center gap-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-900">
+                        {{ form.accepts_pwd }} {{ form.accepts_pwd.label }}
+                    </label>S
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-900">
+                        {{ form.accepts_ofw }} {{ form.accepts_ofw.label }}
+                    </label>
+                </div>
+
+                <!-- CONDITIONAL PWD DISABILITIES SELECTOR CONTAINER -->
+                <div id="pwdDisabilitiesContainer" class="hidden transition-all duration-200 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.pwd_disabilities.label }} <span class="text-slate-400 font-normal">(Specify acceptable disability types)</span>
+                    </label>
+                    {{ form.pwd_disabilities }}
+                    {% if form.pwd_disabilities.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.pwd_disabilities.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION VI: DESCRIPTION & OTHER REQUIREMENTS -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <h2 class="text-xs font-bold text-[#112954] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-slate-400"></i> VI. Detailed Description & Other Qualifications
+            </h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.job_description.label }} <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.job_description }}
+                    {% if form.job_description.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.job_description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-900 mb-1">
+                        {{ form.other_qualifications.label }} <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {{ form.other_qualifications }}
+                    {% if form.other_qualifications.errors %}
+                        <p class="text-rose-500 text-[11px] mt-1 font-medium">{{ form.other_qualifications.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION FOOTER BUTTONS -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+            <a href="{% url 'AdminSide:job_postings_list' %}" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2 bg-[#112954] hover:bg-[#0c1e3f] text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk text-[11px]"></i>
+                Save Job Vacancy
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function togglePwdContainer() {
+        const pwdCheckbox = document.querySelector('input[name="accepts_pwd"]');
+        const pwdContainer = document.getElementById('pwdDisabilitiesContainer');
+        
+        if (pwdCheckbox && pwdContainer) {
+            if (pwdCheckbox.checked) {
+                pwdContainer.classList.remove('hidden');
+            } else {
+                pwdContainer.classList.add('hidden');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const pwdCheckbox = document.querySelector('input[name="accepts_pwd"]');
+        if (pwdCheckbox) {
+            togglePwdContainer(); // Initial check on page load
+            pwdCheckbox.addEventListener('change', togglePwdContainer);
+        }
+    });
+</script>
+{% endblock %}

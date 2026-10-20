@@ -44,6 +44,27 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Apply / Save buttons -->
+        <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+
+            <!-- Apply Job -->
+            <form action="{% url 'apply-for-job' pk=job.pk %}" method="post" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-5 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                    Apply Now
+                </button>
+            </form>
+
+            <!-- Save Job -->
+            <form action="{% url 'save_job' pk=job.pk %}" method="post" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-5 py-3 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition">
+                    Save Job
+                </button>
+            </form>
+
+        </div>
     </div>
 </div>
 {% endblock %}

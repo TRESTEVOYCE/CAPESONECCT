@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import get_user_model
 
 from .models import (
+    ApplicantProfile,
+    OfferedJobs,
     User,
     EmployerProfile,
     Jobs, 
@@ -11,6 +14,8 @@ from .models import (
     SpecialProgramForEmploymentOfStudents,
     CareerGuidanceBeneficiary,
 )
+
+User = get_user_model() 
 
 class TailwindFormMixin:
     """Applies clean Tailwind CSS classes automatically to all form fields."""
@@ -26,6 +31,21 @@ class TailwindFormMixin:
                     'class': 'w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#112954]'
                 })
 
+class EditProfileNameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition',
+                'placeholder': 'First Name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition',
+                'placeholder': 'Last Name'
+            }),
+        }
+
 class EmployerRegistrationForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = EmployerProfile
@@ -33,8 +53,10 @@ class EmployerRegistrationForm(TailwindFormMixin, forms.ModelForm):
             'business_name', 'trade_name', 'acronym', 'office_type', 
             'tin_number', 'employer_type', 'total_workforce', 'line_of_business',
             'street_address', 'barangay', 'municipality', 'province',
-            'owner_name', 'contact_person', 'contact_position',
-            'telephone_number', 'mobile_number', 'email'
+            'owner_name', 'designation', 'contact_person', 'contact_position',
+            'telephone_number', 'mobile_number', 'email',
+            'certificate_of_registration', 'dti_sec_registration', 'business_permit',
+            'public_doc_type', 'public_verification_document'
         ]
 
 class EmployerJobVacancyForm(TailwindFormMixin, forms.ModelForm):
@@ -48,6 +70,32 @@ class EmployerJobVacancyForm(TailwindFormMixin, forms.ModelForm):
             'other_qualifications': forms.Textarea(attrs={'rows': 2}),
         }
 
+class EmployerVerificationForm(forms.ModelForm):
+    class Meta:
+        model = EmployerProfile
+        fields = ['employer_type', 'office_type', 'public_doc_type', 'public_verification_document']
+        widgets = {
+            'employer_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_employer_type'}),
+            'office_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_office_type'}),
+            'public_doc_type': forms.Select(attrs={'class': 'form-select', 'id': 'id_public_doc_type'}),
+            'public_verification_document': forms.FileInput(attrs={'class': 'form-control', 'id': 'id_public_verification_document'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        employer_type = cleaned_data.get('employer_type')
+        public_doc_type = cleaned_data.get('public_doc_type')
+        document = cleaned_data.get('public_verification_document')
+
+        # Enforce document requirements for government agencies
+        if self.instance and self.instance.is_public_agency:
+            if not public_doc_type:
+                self.add_error('public_doc_type', 'Please select a document type for government verification.')
+            if not document and not self.instance.public_verification_document:
+                self.add_error('public_verification_document', 'Please upload a proof document to proceed.')
+
+        return cleaned_data
+    
 class JobVacancyForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Jobs
@@ -67,10 +115,28 @@ class JobVacancyForm(TailwindFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] += ' text-slate-900'
         # Limit employers choices to verified employers only
         self.fields['employer'].queryset = EmployerProfile.objects.filter(verification_status='verified')
 
-        
+class ReferralForm(TailwindFormMixin, forms.ModelForm):
+    class Meta:
+        model = OfferedJobs
+        fields = ['applicant', 'offered_job', 'referred_by', 'remarks', 'status']
+        widgets = {
+            'remarks': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Optional notes or recommendations...'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Limit job options to active job vacancies only
+        self.fields['offered_job'].queryset = Jobs.objects.filter(status='Active')
+        # Limit applicant options to active/approved jobseekers
+        self.fields['applicant'].queryset = ApplicantProfile.objects.filter(status='approved')
+
+                
 BASE_BENEFICIARY_FIELDS = [
     'first_name',
     'middle_name',

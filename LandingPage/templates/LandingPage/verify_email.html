@@ -1,0 +1,490 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify Your Email | CAPESCONNECT</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': {
+                                transform: 'translateY(0px)'
+                            },
+                            '50%': {
+                                transform: 'translateY(-8px)'
+                            },
+                        },
+                        fadeIn: {
+                            '0%': {
+                                opacity: '0',
+                                transform: 'translateY(15px)'
+                            },
+                            '100%': {
+                                opacity: '1',
+                                transform: 'translateY(0)'
+                            },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-slate-800 min-h-screen flex items-center justify-center p-4 relative overflow-x-hidden">
+
+    <!-- Background -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+
+        <div
+            class="absolute top-1/4 -left-20 w-80 h-80
+                   bg-blue-500/20 rounded-full blur-3xl
+                   animate-pulse-slow">
+        </div>
+
+        <div
+            class="absolute bottom-1/4 -right-20 w-96 h-96
+                   bg-indigo-500/20 rounded-full blur-3xl
+                   animate-pulse-slow"
+            style="animation-delay: 2s;">
+        </div>
+
+        <div
+            class="absolute top-1/2 left-1/2
+                   -translate-x-1/2 -translate-y-1/2
+                   w-[500px] h-[500px]
+                   bg-purple-500/10 rounded-full blur-3xl">
+        </div>
+
+    </div>
+
+
+    <!-- Main -->
+    <main class="w-full max-w-md relative z-10 animate-fade-in">
+
+        <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+
+            <!-- Top Accent -->
+            <div
+                class="absolute top-0 left-0 right-0 h-1.5
+                       bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
+            </div>
+
+
+            <!-- Logo -->
+            <div class="flex justify-center mb-7 pt-2">
+
+                <div
+                    class="bg-white p-3 rounded-2xl
+                           shadow-sm border border-slate-100
+                           flex items-center justify-center">
+                    <img
+                        src="{% static 'LandingPage/images/PESO_LOGO.png' %}"
+                        alt="PESO Logo"
+                        class="h-16 w-auto object-contain"
+                    >
+                </div>
+
+            </div>
+
+
+            <!-- Email Icon -->
+            <div class="flex justify-center mb-6">
+
+                <div class="relative">
+
+                    <div
+                        class="w-20 h-20
+                               bg-gradient-to-tr from-blue-50 to-indigo-100
+                               rounded-3xl
+                               flex items-center justify-center
+                               text-blue-600 text-3xl
+                               shadow-inner
+                               animate-float">
+
+                        <i class="fa-regular fa-envelope"></i>
+
+                    </div>
+
+                    <span class="absolute -top-1 -right-1 flex h-5 w-5">
+
+                        <span
+                            class="animate-ping absolute inline-flex
+                                   h-full w-full rounded-full
+                                   bg-blue-400 opacity-75">
+                        </span>
+
+                        <span
+                            class="relative inline-flex
+                                   rounded-full h-5 w-5
+                                   bg-blue-500 text-white
+                                   text-[10px]
+                                   items-center justify-center
+                                   font-bold">
+                            <i class="fa-solid fa-check text-[9px]"></i>
+                        </span>
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Heading -->
+            <div class="text-center">
+
+                <h1
+                    class="text-2xl font-extrabold
+                           text-slate-900 tracking-tight mb-3">
+                    Check Your Email
+                </h1>
+
+                <p
+                    class="text-sm text-slate-600
+                           leading-relaxed mb-5">
+                    Your CAPESCONNECT account has been created successfully.
+                    We've sent a verification link to the email address
+                    you provided.
+                </p>
+
+            </div>
+
+
+            <!-- Information Box -->
+            <div
+                class="bg-blue-50 border border-blue-100
+                       rounded-2xl p-4 mb-6">
+
+                <div class="flex gap-3">
+
+                    <div
+                        class="w-9 h-9 flex-shrink-0
+                               bg-blue-100 text-blue-600
+                               rounded-xl
+                               flex items-center justify-center">
+
+                        <i class="fa-solid fa-envelope"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h2
+                            class="text-sm font-bold
+                                   text-slate-800 mb-1">
+                            Verification email sent
+                        </h2>
+
+                        <p
+                            class="text-xs text-slate-600
+                                   leading-relaxed">
+                            Open your email inbox and click the
+                            <strong>verification link</strong> to verify
+                            your account.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Steps -->
+            <div class="mb-6">
+
+                <p
+                    class="text-[11px] font-bold uppercase
+                           tracking-wider text-slate-400 mb-3">
+                    What happens next?
+                </p>
+
+                <div class="space-y-3">
+
+                    <!-- Step 1 -->
+                    <div class="flex items-start gap-3">
+
+                        <div
+                            class="w-7 h-7 flex-shrink-0
+                                   rounded-full
+                                   bg-blue-100 text-blue-600
+                                   flex items-center justify-center
+                                   text-xs font-bold">
+                            1
+                        </div>
+
+                        <p class="text-xs text-slate-600 pt-1">
+                            Check your inbox for the CAPESCONNECT
+                            verification email.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Step 2 -->
+                    <div class="flex items-start gap-3">
+
+                        <div
+                            class="w-7 h-7 flex-shrink-0
+                                   rounded-full
+                                   bg-blue-100 text-blue-600
+                                   flex items-center justify-center
+                                   text-xs font-bold">
+                            2
+                        </div>
+
+                        <p class="text-xs text-slate-600 pt-1">
+                            Click the verification link inside the email.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Step 3 -->
+                    <div class="flex items-start gap-3">
+
+                        <div
+                            class="w-7 h-7 flex-shrink-0
+                                   rounded-full
+                                   bg-emerald-100 text-emerald-600
+                                   flex items-center justify-center
+                                   text-xs font-bold">
+                            3
+                        </div>
+
+                        <p class="text-xs text-slate-600 pt-1">
+                            Your account will be verified and you will
+                            be automatically logged in.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Open Gmail -->
+            <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-full
+                       bg-gradient-to-r from-blue-600 to-indigo-600
+                       hover:from-blue-700 hover:to-indigo-700
+                       text-white font-semibold
+                       py-3 px-4 rounded-xl
+                       transition-all duration-200
+                       flex items-center justify-center gap-2
+                       shadow-lg shadow-blue-500/25
+                       active:scale-[0.99]">
+
+                <i class="fa-brands fa-google"></i>
+
+                <span>Open Gmail</span>
+
+                <i
+                    class="fa-solid fa-arrow-up-right-from-square
+                           text-xs ml-1">
+                </i>
+
+            </a>
+
+
+            <!-- Troubleshooting -->
+            <div
+                class="mt-5
+                       border border-slate-200/70
+                       rounded-2xl overflow-hidden
+                       bg-slate-50/50">
+
+                <button
+                    type="button"
+                    onclick="toggleHelp()"
+                    class="w-full p-3
+                           text-left
+                           flex items-center justify-between
+                           text-xs font-semibold
+                           text-slate-700
+                           hover:bg-slate-100/60
+                           transition-colors">
+
+                    <span class="flex items-center gap-2">
+
+                        <i
+                            class="fa-regular fa-circle-question
+                                   text-blue-600">
+                        </i>
+
+                        Didn't receive the email?
+
+                    </span>
+
+                    <i
+                        id="help-arrow"
+                        class="fa-solid fa-chevron-down
+                               text-slate-400 text-[10px]
+                               transition-transform duration-200">
+                    </i>
+
+                </button>
+
+
+                <div
+                    id="help-content"
+                    class="hidden
+                           px-3 pb-3
+                           text-xs text-slate-600">
+
+                    <ul
+                        class="list-disc list-inside
+                               space-y-2 text-slate-500">
+
+                        <li>
+                            Check your spam or junk folder.
+                        </li>
+
+                        <li>
+                            Make sure you entered the correct email address.
+                        </li>
+
+                        <li>
+                            Wait a few minutes for the email to arrive.
+                        </li>
+
+                        <li>
+                            If the verification link has expired,
+                            you may need to request a new one.
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+
+            <!-- Login -->
+            <div class="mt-6 text-center">
+
+                <a
+                    href="{% url 'signin' %}"
+                    class="inline-flex items-center gap-2
+                           text-xs font-semibold
+                           text-slate-500
+                           hover:text-blue-600
+                           transition-colors">
+
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+
+                    Back to Login
+
+                </a>
+
+            </div>
+
+
+            <!-- Footer -->
+            <div
+                class="mt-6 pt-5
+                       border-t border-slate-200/60
+                       text-center">
+
+                <p class="text-[10px] text-slate-400">
+
+                    CAPESCONNECT
+                    <span class="mx-1">•</span>
+                    PESO / MSWDO
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- JavaScript -->
+    <script>
+
+        function toggleHelp() {
+
+            const content =
+                document.getElementById('help-content');
+
+            const arrow =
+                document.getElementById('help-arrow');
+
+            const isHidden =
+                content.classList.contains('hidden');
+
+            if (isHidden) {
+
+                content.classList.remove('hidden');
+
+                arrow.style.transform =
+                    'rotate(180deg)';
+
+            } else {
+
+                content.classList.add('hidden');
+
+                arrow.style.transform =
+                    'rotate(0deg)';
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
