@@ -20,7 +20,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.views import PasswordChangeView
-from JobMatchingEngine.config import embedding_function
+from JobMatchingEngine.config import get_embedding_function
 from django.urls import reverse_lazy
 import random
 from django.core.mail import send_mail
@@ -680,7 +680,7 @@ class JobDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                 ]
 
                 # Generate all embeddings in one batch.
-                embeddings = embedding_function(
+                embeddings = get_embedding_function(
                     [job_text] + applicant_texts
                 )
 
