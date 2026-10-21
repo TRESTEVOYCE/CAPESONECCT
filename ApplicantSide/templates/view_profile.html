@@ -224,77 +224,9 @@
                 </div>
 
                 <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Religion</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.religion|default:"Not specified" }}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
                     <span class="block text-stone-400 font-medium">Height / Weight</span>
                     <span class="text-stone-900 font-semibold mt-1.5 block break-words">
                         {% if profile.height %}{{ profile.height }}{% else %}N/A{% endif %} / {% if profile.weight %}{{ profile.weight }}{% else %}N/A{% endif %}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Disability / Details</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {% if profile.disability %}{{ profile.disability }}{% else %}None specified{% endif %}
-                    </span>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Government Identification Numbers Section -->
-        <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
-
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
-                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                    Government ID &amp; Registration Numbers
-                </h2>
-
-                <a href="{% url 'personal_info' %}"
-                   class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
-                    Edit
-                </a>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">TIN No.</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.tin|default:"Not specified" }}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">GSIS ID No.</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.gsis_no|default:"Not specified" }}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">SSS No.</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.sss_no|default:"Not specified" }}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Pag-IBIG No.</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.pagibig_no|default:"Not specified" }}
-                    </span>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">PhilHealth No.</span>
-                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                        {{ profile.philhealth_no|default:"Not specified" }}
                     </span>
                 </div>
 
@@ -558,8 +490,8 @@
                         {% endif %}
 
                         <!-- Applicant ID Picture (Front) -->
-                        {% if profile.applicant_id_picture %}
-                            <a href="{{ profile.applicant_id_picture.url }}" target="_blank" rel="noopener noreferrer"
+                        {% if profile.applicant_id_picture_front %}
+                            <a href="{{ profile.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
                                 <svg class="w-4 h-4 shrink-0 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
@@ -592,7 +524,7 @@
                         {% endif %}
                     </div>
 
-                    {% if not profile.resume_file and not profile.applicant_id_picture and not profile.applicant_id_picture_back and not profile.supporting_doc %}
+                    {% if not profile.resume_file and not profile.applicant_id_picture_front and not profile.applicant_id_picture_back and not profile.supporting_doc %}
                         <div class="w-full p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
                             <p class="text-stone-500 font-medium">No documents or IDs uploaded yet.</p>
                         </div>

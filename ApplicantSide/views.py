@@ -615,8 +615,9 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
+        # Bind request.FILES to the form so Cloudinary stores the image
+        form = self.form_class(request.POST, request.FILES, instance=self.object)
         
-        # CRITICAL FIX: Pass request.FILES so Cloudinary receives the uploaded files
         if form.is_valid():
             return self.form_valid(form)
         else:
@@ -670,7 +671,7 @@ class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, Delete
     success_url = reverse_lazy('login')
 
     def test_func(self):
-        return self.request.user.is_authenticated and getattr(self.request.user, 'role', None) == 'applicant'
+        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
@@ -685,10 +686,9 @@ class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
         AuditLog.objects.create(
             user=request.user,
             action='Logout',
-            description=f"Applicant {request.user.email} logged out."
+            details=f"Applicant {request.user.email} logged out."  # Changed from description to details
         )
         return super().post(request, *args, **kwargs)
-
 
 class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
