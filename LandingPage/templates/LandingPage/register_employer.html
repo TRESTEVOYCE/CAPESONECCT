@@ -145,6 +145,7 @@
                                 </div>
                                 <input type="text" name="{{ form.business_name.html_name }}" id="{{ form.business_name.id_for_label }}" value="{{ form.business_name.value|default_if_none:'' }}" placeholder="Enter your business name" autocomplete="organization" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:bg-white transition duration-200 placeholder-gray-400 font-medium" required>
                             </div>
+                            <p id="emp-business-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                             {% if form.business_name.errors %}<p class="text-red-500 text-sm mt-1 font-medium">{{ form.business_name.errors.0 }}</p>{% endif %}
                         </div>
 
@@ -157,6 +158,7 @@
                                 </div>
                                 <input type="text" name="{{ form.trade_name.html_name }}" id="{{ form.trade_name.id_for_label }}" value="{{ form.trade_name.value|default_if_none:'' }}" placeholder="Enter your trade name" autocomplete="organization" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:bg-white transition duration-200 placeholder-gray-400 font-medium">
                             </div>
+                            <p id="emp-trade-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                             {% if form.trade_name.errors %}<p class="text-red-500 text-sm mt-1 font-medium">{{ form.trade_name.errors.0 }}</p>{% endif %}
                         </div>
 
@@ -186,6 +188,7 @@
                                 </div>
                                 <input type="text" name="{{ form.owner_name.html_name }}" id="{{ form.owner_name.id_for_label }}" value="{{ form.owner_name.value|default_if_none:'' }}" placeholder="Enter owner's name" autocomplete="name" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:bg-white transition duration-200 placeholder-gray-400 font-medium" required>
                             </div>
+                            <p id="emp-owner-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                             {% if form.owner_name.errors %}<p class="text-red-500 text-sm mt-1 font-medium">{{ form.owner_name.errors.0 }}</p>{% endif %}
                         </div>
 
@@ -237,6 +240,52 @@
     <!-- Form Validation Script -->
     <script>
         document.getElementById("employer-form").addEventListener("submit", function(e) {
+            let isValid = true;
+            const hasNumberRegex = /\d/;
+
+            // 1. Business Name Validation (No Numbers)
+            const busInput = document.getElementById("id_business_name");
+            const busError = document.getElementById("emp-business-error");
+            if (hasNumberRegex.test(busInput.value)) {
+                e.preventDefault();
+                busInput.classList.add("border-red-500", "bg-red-50/50");
+                busError.textContent = "Business name must not contain numbers.";
+                busError.classList.remove("hidden");
+                if(isValid) { busInput.focus(); isValid = false; }
+            } else {
+                busInput.classList.remove("border-red-500", "bg-red-50/50");
+                busError.classList.add("hidden");
+            }
+
+            // 2. Trade Name Validation (No Numbers if filled)
+            const tradeInput = document.getElementById("id_trade_name");
+            const tradeError = document.getElementById("emp-trade-error");
+            if (tradeInput.value.trim() !== "" && hasNumberRegex.test(tradeInput.value)) {
+                e.preventDefault();
+                tradeInput.classList.add("border-red-500", "bg-red-50/50");
+                tradeError.textContent = "Trade name must not contain numbers.";
+                tradeError.classList.remove("hidden");
+                if(isValid) { tradeInput.focus(); isValid = false; }
+            } else {
+                tradeInput.classList.remove("border-red-500", "bg-red-50/50");
+                tradeError.classList.add("hidden");
+            }
+
+            // 3. Owner Name Validation (No Numbers)
+            const ownerInput = document.getElementById("id_owner_name");
+            const ownerError = document.getElementById("emp-owner-error");
+            if (hasNumberRegex.test(ownerInput.value)) {
+                e.preventDefault();
+                ownerInput.classList.add("border-red-500", "bg-red-50/50");
+                ownerError.textContent = "Owner name must not contain numbers.";
+                ownerError.classList.remove("hidden");
+                if(isValid) { ownerInput.focus(); isValid = false; }
+            } else {
+                ownerInput.classList.remove("border-red-500", "bg-red-50/50");
+                ownerError.classList.add("hidden");
+            }
+
+            // 4. Mobile Number Validation
             const phoneInput = document.getElementById("id_mobile_number");
             const phoneError = document.getElementById("emp-phone-error");
             const phoneVal = phoneInput.value.trim();
@@ -247,7 +296,7 @@
                 phoneInput.classList.add("border-red-500", "bg-red-50/50");
                 phoneError.textContent = "Mobile number must start with '09' and contain exactly 11 digits.";
                 phoneError.classList.remove("hidden");
-                phoneInput.focus();
+                if(isValid) { phoneInput.focus(); isValid = false; }
             } else {
                 phoneInput.classList.remove("border-red-500", "bg-red-50/50");
                 phoneError.classList.add("hidden");

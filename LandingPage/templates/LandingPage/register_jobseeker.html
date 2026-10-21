@@ -140,6 +140,7 @@
                             </div>
                             <input type="text" name="{{ form.first_name.html_name }}" id="{{ form.first_name.id_for_label }}" value="{{ form.first_name.value|default_if_none:'' }}" placeholder="Enter your first name" class="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:bg-white transition duration-200 placeholder-slate-400 font-medium" required>
                         </div>
+                        <p id="fname-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                         {% if form.first_name.errors %}<p class="text-red-500 text-sm mt-1 font-semibold">{{ form.first_name.errors.0 }}</p>{% endif %}
                     </div>
 
@@ -152,6 +153,7 @@
                             </div>
                             <input type="text" name="{{ form.middle_name.html_name }}" id="{{ form.middle_name.id_for_label }}" value="{{ form.middle_name.value|default_if_none:'' }}" placeholder="Enter your middle name" class="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:bg-white transition duration-200 placeholder-slate-400 font-medium">
                         </div>
+                        <p id="mname-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                         {% if form.middle_name.errors %}<p class="text-red-500 text-sm mt-1 font-semibold">{{ form.middle_name.errors.0 }}</p>{% endif %}
                     </div>
 
@@ -164,6 +166,7 @@
                             </div>
                             <input type="text" name="{{ form.last_name.html_name }}" id="{{ form.last_name.id_for_label }}" value="{{ form.last_name.value|default_if_none:'' }}" placeholder="Enter your last name" class="w-full pl-12 pr-5 py-4 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:bg-white transition duration-200 placeholder-slate-400 font-medium" required>
                         </div>
+                        <p id="lname-error" class="text-red-500 text-xs font-bold mt-1.5 hidden"></p>
                         {% if form.last_name.errors %}<p class="text-red-500 text-sm mt-1 font-semibold">{{ form.last_name.errors.0 }}</p>{% endif %}
                     </div>
 
@@ -247,8 +250,51 @@
     <script>
         document.getElementById("jobseeker-form").addEventListener("submit", function(e) {
             let isValid = true;
+            const hasNumberRegex = /\d/;
 
-            // 1. Phone Number Validation (Must start with 09 and have exactly 11 digits total)
+            // 1. First Name Validation (No Numbers)
+            const fNameInput = document.getElementById("id_first_name");
+            const fNameError = document.getElementById("fname-error");
+            if (hasNumberRegex.test(fNameInput.value)) {
+                e.preventDefault();
+                fNameInput.classList.add("border-red-500", "bg-red-50/50");
+                fNameError.textContent = "First name must not contain numbers.";
+                fNameError.classList.remove("hidden");
+                if (isValid) { fNameInput.focus(); isValid = false; }
+            } else {
+                fNameInput.classList.remove("border-red-500", "bg-red-50/50");
+                fNameError.classList.add("hidden");
+            }
+
+            // 2. Middle Name Validation (No Numbers if filled)
+            const mNameInput = document.getElementById("id_middle_name");
+            const mNameError = document.getElementById("mname-error");
+            if (mNameInput.value.trim() !== "" && hasNumberRegex.test(mNameInput.value)) {
+                e.preventDefault();
+                mNameInput.classList.add("border-red-500", "bg-red-50/50");
+                mNameError.textContent = "Middle name must not contain numbers.";
+                mNameError.classList.remove("hidden");
+                if (isValid) { mNameInput.focus(); isValid = false; }
+            } else {
+                mNameInput.classList.remove("border-red-500", "bg-red-50/50");
+                mNameError.classList.add("hidden");
+            }
+
+            // 3. Last Name Validation (No Numbers)
+            const lNameInput = document.getElementById("id_last_name");
+            const lNameError = document.getElementById("lname-error");
+            if (hasNumberRegex.test(lNameInput.value)) {
+                e.preventDefault();
+                lNameInput.classList.add("border-red-500", "bg-red-50/50");
+                lNameError.textContent = "Last name must not contain numbers.";
+                lNameError.classList.remove("hidden");
+                if (isValid) { lNameInput.focus(); isValid = false; }
+            } else {
+                lNameInput.classList.remove("border-red-500", "bg-red-50/50");
+                lNameError.classList.add("hidden");
+            }
+
+            // 4. Phone Number Validation
             const phoneInput = document.getElementById("id_phone_number");
             const phoneError = document.getElementById("phone-error");
             const phoneVal = phoneInput.value.trim();
@@ -265,7 +311,7 @@
                 phoneError.classList.add("hidden");
             }
 
-            // 2. Date of Birth Validation (Must be valid date and person must be at least 18 years old)
+            // 5. Date of Birth Validation
             const dobInput = document.getElementById("id_date_of_birth");
             const dobError = document.getElementById("dob-error");
             const dobVal = dobInput.value;
@@ -280,7 +326,6 @@
                 const birthDate = new Date(dobVal);
                 const today = new Date();
                 
-                // Check if valid date
                 if (isNaN(birthDate.getTime())) {
                     e.preventDefault();
                     dobInput.classList.add("border-red-500", "bg-red-50/50");
@@ -288,7 +333,6 @@
                     dobError.classList.remove("hidden");
                     if (isValid) { dobInput.focus(); isValid = false; }
                 } else {
-                    // Calculate age
                     let age = today.getFullYear() - birthDate.getFullYear();
                     const m = today.getMonth() - birthDate.getMonth();
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
