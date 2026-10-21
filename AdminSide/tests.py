@@ -520,6 +520,35 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertEqual(notifications[0]['title'], 'Notification 10')
         self.assertNotIn('Notification 0', [item['title'] for item in notifications])
 
+    def test_employer_verification_shows_review_link_for_profile_change_logs(self):
+        employer_user = User.objects.create_user(
+            username='employer-verification-log-user',
+            email='employer-verification-log@example.com',
+            password='test-password',
+            role='employer',
+        )
+        employer = EmployerProfile.objects.create(
+            user=employer_user,
+            business_name='Verification Log Employer',
+            verification_status='reverify_pending',
+        )
+        ProfileChangeLog.objects.create(
+            user=employer_user,
+            field_name='business_name',
+            old_value='Old Business Name',
+            new_value='Verification Log Employer',
+        )
+
+        response = self.client.get(
+            reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': employer.uuid},
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Review Updates')
+
     def test_verifying_applicant_sends_account_verified_email_once(self):
         url = reverse(
             'AdminSide:applicant_verification',

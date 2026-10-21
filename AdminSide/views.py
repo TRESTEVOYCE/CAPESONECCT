@@ -641,8 +641,7 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['has_unreviewed_profile_changes'] = ProfileChangeLog.objects.filter(
-            applicant=self.object,
-            reviewed_at__isnull=True,
+            user=self.object.user,
         ).exists()
         return context
 
@@ -829,8 +828,7 @@ class EmployerVerificationView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['has_unreviewed_profile_changes'] = ProfileChangeLog.objects.filter(
-            employer=self.object,
-            reviewed_at__isnull=True,
+            user=self.object.user,
         ).exists()
         return context
 
