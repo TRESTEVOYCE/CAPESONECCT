@@ -15,12 +15,8 @@
         x-data="{
             applicantIdFrontName: '',
             applicantIdBackName: '',
-<<<<<<< HEAD
-            resumeName: ''
-=======
             resumeName: '',
             supportingName: ''
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
         }"
         id="applicant-documents-form"
         novalidate
@@ -103,99 +99,12 @@
                             x-cloak
                             class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10"
                         >
-<<<<<<< HEAD
-                            <div class="flex items-center gap-2 min-w-0">
-                                <svg
-                                    class="w-4 h-4 text-stone-600 shrink-0"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                </svg>
-                                <span
-                                    class="truncate font-medium"
-                                    x-text="applicantIdFrontName"
-                                ></span>
-                            </div>
-                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
-                                Replace
-                            </span>
-                        </div>
-                        <!-- Existing ID Picture Filename Only -->
-                        {% if form.instance.applicant_id_picture_front %}
-                            <div
-                                x-show="!applicantIdFrontName"
-                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg mt-2"
-                            >
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <svg
-                                        class="w-4 h-4 text-stone-600 shrink-0"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                        />
-                                    </svg>
-                                    <span class="truncate font-medium">
-                                        {{ form.instance.applicant_id_picture_front.name }}
-                                    </span>
-                                </div>
-                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
-                                    Current
-                                </span>
-                            </div>
-                        {% endif %}
-                        <!-- Hidden Django Widget -->
-=======
                             <span class="truncate font-medium" x-text="applicantIdFrontName"></span>
                             <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">Replace</span>
                         </div>
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                         <div class="sr-only">
                             {{ form.applicant_id_picture_front }}
                         </div>
-<<<<<<< HEAD
-                        <!-- Clickable Upload Area -->
-                        <label
-                            for="{{ form.applicant_id_picture_front.id_for_label }}"
-                            class="absolute inset-0 z-20 cursor-pointer"
-                            aria-label="Choose applicant ID picture"
-                        ></label>
-                    </div>
-                    {% if form.applicant_id_picture_front.errors %}
-                        <p class="text-xs text-red-600">
-                            {{ form.applicant_id_picture_front.errors.0 }}
-                        </p>
-                    {% endif %}
-                </div>
-                <!-- Back of Applicant ID -->
-                <div class="space-y-1.5">
-                    <label for="{{ form.applicant_id_picture_back.id_for_label }}" class="block text-xs font-medium text-stone-700">
-                        Back of Applicant ID
-                    </label>
-                    <div class="space-y-2 rounded-xl border-2 border-dashed border-stone-300 bg-white p-4">
-                        {{ form.applicant_id_picture_back }}
-                        <p x-show="applicantIdBackName" x-text="applicantIdBackName" class="text-xs text-stone-600"></p>
-                        {% if form.instance.applicant_id_picture_back %}
-                            <p class="text-xs text-stone-500">Current: {{ form.instance.applicant_id_picture_back.name }}</p>
-                        {% endif %}
-                    </div>
-                    {% if form.applicant_id_picture_back.errors %}
-                        <p class="text-xs text-red-600">{{ form.applicant_id_picture_back.errors.0 }}</p>
-                    {% endif %}
-                </div>
-=======
                         <label for="{{ form.applicant_id_picture.id_for_label }}" class="absolute inset-0 z-20 cursor-pointer" aria-label="Choose front ID picture"></label>
                     </div>
                 </div>
@@ -229,7 +138,6 @@
                     </div>
                 </div>
 
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                 <!-- Resume -->
                 <div class="space-y-1.5">
                     <label class="block text-xs font-medium text-stone-700">
@@ -260,108 +168,6 @@
                         <label for="{{ form.resume_file.id_for_label }}" class="absolute inset-0 z-20 cursor-pointer" aria-label="Choose resume file"></label>
                     </div>
                 </div>
-<<<<<<< HEAD
-                    {% comment %}
-                    <div class="relative flex flex-col items-center justify-center min-h-40 p-5 border-2 border-dashed border-stone-300 rounded-xl bg-white hover:border-stone-400 hover:bg-stone-50/50 transition-all group overflow-hidden">
-                        <!-- Default State -->
-                        <div
-                            x-show="!supportingName"
-                            class="flex flex-col items-center text-center space-y-1.5 pointer-events-none"
-                        >
-                            <svg
-                                class="w-6 h-6 text-stone-400 group-hover:text-stone-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9v10a2 2 0 01-2 2z"
-                                />
-                            </svg>
-                            <span class="text-xs font-medium text-stone-700">
-                                Click to upload or drag &amp; drop
-                            </span>
-                            <span class="text-[11px] text-stone-400">
-                                PDF, JPG, or PNG · Max 5MB
-                            </span>
-                        </div>
-                        <!-- Newly Selected Filename -->
-                        <div
-                            x-show="supportingName"
-                            x-cloak
-                            class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10"
-                        >
-                            <div class="flex items-center gap-2 min-w-0">
-                                <svg
-                                    class="w-4 h-4 text-stone-600 shrink-0"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.5"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                </svg>
-                                <span
-                                    class="truncate font-medium"
-                                    x-text="supportingName"
-                                ></span>
-                            </div>
-                            <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
-                                Replace
-                            </span>
-                        </div>
-                        <!-- Existing Supporting Document Filename Only -->
-                        {% if form.instance.supporting_doc %}
-                            <div
-                                x-show="!supportingName"
-                                class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg mt-2"
-                            >
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <svg
-                                        class="w-4 h-4 text-stone-600 shrink-0"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                        />
-                                    </svg>
-                                    <span class="truncate font-medium">
-                                        {{ form.instance.supporting_doc.name }}
-                                    </span>
-                                </div>
-                                <span class="text-[10px] text-stone-500 font-semibold uppercase ml-2 shrink-0">
-                                    Current
-                                </span>
-                            </div>
-                            {% if form.instance.supporting_doc_type %}
-                                <p x-show="!supportingName" class="mt-2 text-[11px] text-stone-600">
-                                    Type: {{ form.instance.get_supporting_doc_type_display }}
-                                </p>
-                            {% endif %}
-                        {% endif %}
-                        <!-- Hidden Django Widget -->
-                        <div class="sr-only">
-                            {{ form.supporting_doc }}
-                        </div>
-                        <!-- Clickable Upload Area -->
-                        <label
-                            for="{{ form.supporting_doc.id_for_label }}"
-                            class="absolute inset-0 z-20 cursor-pointer"
-                            aria-label="Choose supporting document"
-                        ></label>
-=======
             </div>
 
             <!-- Supporting Document -->
@@ -375,7 +181,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9v10a2 2 0 01-2 2z"/>
                         </svg>
                         <span class="text-xs font-medium text-stone-700">Click to upload supporting document</span>
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                     </div>
                     <div x-show="supportingName" x-cloak class="flex items-center justify-between w-full text-xs text-stone-800 bg-stone-100 px-3 py-2 rounded-lg pointer-events-none z-10">
                         <span class="truncate font-medium" x-text="supportingName"></span>
@@ -435,18 +240,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const fileRules = [
         {
-<<<<<<< HEAD
-            id: '{{ form.applicant_id_picture_front.id_for_label }}',
-            state: 'applicantIdFrontName',
-            extensions: ['jpg', 'jpeg', 'png'],
-            label: 'Front of applicant ID'
-        },
-        {
-            id: '{{ form.applicant_id_picture_back.id_for_label }}',
-            state: 'applicantIdBackName',
-            extensions: ['jpg', 'jpeg', 'png'],
-            label: 'Back of applicant ID'
-=======
             id: '{{ form.applicant_id_picture.id_for_label }}',
             state: 'applicantIdFrontName',
             extensions: ['jpg', 'jpeg', 'png'],
@@ -457,7 +250,6 @@ document.addEventListener('DOMContentLoaded', function () {
             state: 'applicantIdBackName',
             extensions: ['jpg', 'jpeg', 'png'],
             label: 'Back ID picture'
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
         },
         {
             id: '{{ form.resume_file.id_for_label }}',

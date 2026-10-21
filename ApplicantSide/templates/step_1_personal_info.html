@@ -2,18 +2,7 @@
 {% block content %}
 <form method="POST" action="{% url 'personal_info' %}" class="space-y-6" id="personal-info-form" novalidate>
     {% csrf_token %}
-<<<<<<< HEAD
-
-    {% if form.non_field_errors %}
-        <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {{ form.non_field_errors }}
-        </div>
-    {% endif %}
-
-    <div class="space-y-4">
-=======
     <div class="space-y-6">
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
         <!-- ========================================= -->
         <!-- I. PERSONAL INFORMATION -->
         <!-- ========================================= -->
@@ -126,15 +115,12 @@
                         {{ form.civil_widowed }}
                         Widowed
                     </label>
-<<<<<<< HEAD
-=======
 
                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
                         {{ form.civil_divorced }}
                         Divorced
                     </label>
 
->>>>>>> updated-applicant-employer-ui
                 </div>
             </div>
         </div>

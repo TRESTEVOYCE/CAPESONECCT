@@ -1,7 +1,7 @@
 {% extends 'applicant-base.html' %}
 
 {% block content %}
-<<<<<<< HEAD
+
 {% with applicant=profile|default:None %}
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6" x-data="{ editMode: false }">
     
@@ -33,7 +33,7 @@
 </div>
 {% endwith %}
 {% endblock %}
-=======
+
 <div class="max-w-[1300px] w-full min-w-0 mx-auto py-6 px-4 space-y-6">
 
     <!-- Top Navigation -->
@@ -553,35 +553,6 @@
                     </a>
                 </div>
 
-<<<<<<< HEAD
-                <h3 class="font-semibold text-stone-700">
-                    Uploaded Documents and ID
-                </h3>
-
-                <div class="flex flex-wrap gap-2">
-
-                    {% if profile.applicant_id_picture_front or profile.applicant_id_picture_back %}
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                            {% if profile.applicant_id_picture_front %}
-                                <div class="space-y-2">
-                                    <p class="text-sm font-semibold text-stone-700">Front of ID</p>
-                                    <a href="{{ profile.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer">
-                                        <img src="{{ profile.applicant_id_picture_front.url }}" alt="Front of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
-                                    </a>
-                                </div>
-                            {% endif %}
-                            {% if profile.applicant_id_picture_back %}
-                                <div class="space-y-2">
-                                    <p class="text-sm font-semibold text-stone-700">Back of ID</p>
-                                    <a href="{{ profile.applicant_id_picture_back.url }}" target="_blank" rel="noopener noreferrer">
-                                        <img src="{{ profile.applicant_id_picture_back.url }}" alt="Back of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
-                                    </a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-
-=======
                 {% if profile.valid_id_type %}
                     <p class="text-stone-500 font-medium text-[11px]">
                         ID Type Selected: <span class="text-stone-800 font-semibold">{{ profile.valid_id_type }}</span>
@@ -590,7 +561,6 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <!-- Resume File -->
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                     {% if profile.resume_file %}
                         <a href="{{ profile.resume_file.url }}" target="_blank" rel="noopener noreferrer"
                            class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
@@ -635,21 +605,6 @@
                             Supporting Document{% if profile.supporting_doc_type %}: {{ profile.get_supporting_doc_type_display }}{% endif %}
                         </a>
                     {% endif %}
-<<<<<<< HEAD
-
-                    {% if not profile.applicant_id_picture_front and not profile.applicant_id_picture_back and not profile.resume_file and not profile.supporting_doc %}
-                        <div class="w-full p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
-                            <p class="text-stone-500 font-medium">
-                                No documents uploaded.
-                            </p>
-                            <p class="text-stone-400 mt-1">
-                                Your ID images, resume, and supporting documents will appear here.
-                            </p>
-                        </div>
-                    {% endif %}
-
-=======
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                 </div>
 
                 {% if not profile.resume_file and not profile.applicant_id_picture and not profile.applicant_id_picture_back and not profile.supporting_doc %}
@@ -736,9 +691,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
-<<<<<<< HEAD
 {% endblock %}
->>>>>>> b3d628683c53b9a5b8a2613dd63718b5b89c0fe4
-=======
-{% endblock %}
->>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
