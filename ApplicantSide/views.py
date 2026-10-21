@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text,query_matching_jobs
-from AdminSide.models import Jobs, ApplicantProfile, ApplicantWorkExperience, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User,AuditLog
+from AdminSide.models import Jobs, ApplicantProfile, ApplicantWorkExperience, AppliedJobs, SavedJobs, ApplicantSkills,OfferedJobs, Notification, User,AuditLog, ProfileChangeLog
 from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
 from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from django.db.models import Q
@@ -32,8 +32,31 @@ from AdminSide.services.profile_sensitivity import (
     capture_related_profile_changes,
     classify_profile_changes,
     mark_profile_for_reverification,
-    record_profile_changes,
 )
+
+
+def record_profile_changes(profile, user, changes, change_model=None):
+    """Safely record profile changes using the correct ProfileChangeLog model fields."""
+    if not changes:
+        return
+    target_user = user if isinstance(user, User) else getattr(profile, 'user', None)
+    for field, vals in changes.items():
+        old_val = None
+        new_val = None
+        if isinstance(vals, (list, tuple)) and len(vals) == 2:
+            old_val, new_val = vals
+        elif isinstance(vals, dict):
+            old_val = vals.get('old')
+            new_val = vals.get('new')
+        else:
+            new_val = vals
+        
+        ProfileChangeLog.objects.create(
+            user=target_user,
+            field_name=str(field),
+            old_value=str(old_val) if old_val is not None else '',
+            new_value=str(new_val) if new_val is not None else ''
+        )
 
 
 def _stamp_uploaded_profile_proofs(profile, uploaded_fields, files):
