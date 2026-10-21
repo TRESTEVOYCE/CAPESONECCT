@@ -443,7 +443,7 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
 class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
-    template_name = 'step_5_job_pref.html'
+    template_name = 'step_5_job_pref.html' # Or 'step_5_job_pref_2.html' matching your file name
 
     def test_func(self):
         return self.request.user.role == 'applicant'
@@ -457,12 +457,19 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
     def form_valid(self, form):
         profile = form.save(commit=False)
         
-        # Capture dynamic occupations from POST array and ignore blanks
+        # Capture dynamic occupations and industries from POST arrays
         occupations = [occ.strip() for occ in self.request.POST.getlist('pref_occupation[]') if occ and occ.strip()]
+        industries = [ind.strip() for ind in self.request.POST.getlist('pref_industry[]') if ind and ind.strip()]
+        
         profile.pref_occupation_1 = occupations[0] if len(occupations) > 0 else ''
         profile.pref_occupation_2 = occupations[1] if len(occupations) > 1 else ''
         profile.pref_occupation_3 = occupations[2] if len(occupations) > 2 else ''
         
+        # If your model supports storing industries, map them here as well:
+        # profile.pref_industry_1 = industries[0] if len(industries) > 0 else ''
+        # profile.pref_industry_2 = industries[1] if len(industries) > 1 else ''
+        # profile.pref_industry_3 = industries[2] if len(industries) > 2 else ''
+
         changes = capture_profile_changes(
             profile,
             many_to_many_values={
@@ -476,11 +483,13 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
             profile,
             form.changed_data,
         )
+        
         if profile.status == 'approved':
             matches = query_matching_jobs(applicant=profile, total_results=10)
             self.request.session['job_matches'] = matches['ids']
         else:
             self.request.session.pop('job_matches', None)
+            
         messages.success(self.request, 'Job preferences saved successfully.')
         return redirect(self.get_success_url())
 

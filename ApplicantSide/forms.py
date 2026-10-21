@@ -393,6 +393,8 @@ class ApplicantPreferredJobForm(forms.ModelForm):
             'pref_local', 'pref_overseas',
             'pref_occupation_1', 'pref_occupation_2', 'pref_occupation_3',
             'pref_salary',
+            'employment_status'
+            
         ]
 
 
