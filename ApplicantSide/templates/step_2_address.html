@@ -1,138 +1,211 @@
 {% extends 'applicant-base.html' %}
 {% block content %}
-<form method="POST" action="{% url 'applicant-address' %}" class="space-y-4">
+<form method="POST" action="{% url 'applicant-address' %}" class="space-y-6" id="applicant-address-form" novalidate>
     {% csrf_token %}
-    <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+    <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
         II. Address & Contact Information
     </h2>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Address -->
-        <div class="space-y-4">
-            <h3 class="text-xs font-bold text-stone-700">
-                Address
-            </h3>
-            <!-- House / Street / Purok -->
-            <div>
-                <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                    {{ form.house_street.label|default:"House No. / Street / Purok*" }}
-                </label>
-                <div class="field-wrap">
-                    {{ form.house_street }}
-                </div>
-                {% if form.house_street.errors %}
-                    <p class="mt-1 text-xs text-red-600">
-                        {{ form.house_street.errors|striptags }}
-                    </p>
-                {% endif %}
-            </div>
-            <!-- Barangay / Municipality / Province -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <!-- Barangay -->
+    <div class="space-y-6">
+        <!-- Addresses Container (Present & Permanent) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- PRESENT ADDRESS -->
+            <div class="space-y-5 bg-stone-50 p-6 rounded-2xl border border-stone-200">
+                <h3 class="text-sm font-bold text-stone-800 uppercase tracking-wide">
+                    Present Address
+                </h3>
+                <!-- House / Street / Village -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        {{ form.barangay.label|default:"Barangay*" }}
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        House No. / Street Village *
                     </label>
                     <div class="field-wrap">
-                        {{ form.barangay }}
+                        {{ form.house_street }}
                     </div>
-                    {% if form.barangay.errors %}
-                        <p class="mt-1 text-xs text-red-600">
-                            {{ form.barangay.errors|striptags }}
+                    {% if form.house_street.errors %}
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
+                            {{ form.house_street.errors|striptags }}
                         </p>
                     {% endif %}
                 </div>
-                <!-- Municipality -->
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        {{ form.municipality.label|default:"Municipality*" }}
-                    </label>
-                    <div class="field-wrap">
-                        {{ form.municipality }}
+
+                <!-- Region / Province -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="region_select" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Region *
+                        </label>
+                        <select id="region_select" name="region_select" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" required>
+                            <option value="" disabled selected>Select Region</option>
+                        </select>
+                        <div class="hidden">{{ form.region }}</div>
+                        {% if form.region.errors %}
+                            <p class="mt-1.5 text-xs text-red-600 font-medium">
+                                {{ form.region.errors|striptags }}
+                            </p>
+                        {% endif %}
                     </div>
-                    {% if form.municipality.errors %}
-                        <p class="mt-1 text-xs text-red-600">
-                            {{ form.municipality.errors|striptags }}
-                        </p>
-                    {% endif %}
-                </div>
-                <!-- Province -->
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        {{ form.province.label|default:"Province*" }}
-                    </label>
-                    <div class="field-wrap">
-                        {{ form.province }}
+                    <div>
+                        <label for="{{ form.province.id_for_label }}" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Province *
+                        </label>
+                        <select name="{{ form.province.html_name }}" id="{{ form.province.id_for_label }}" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" required disabled>
+                            <option value="" disabled selected>Select Region first</option>
+                        </select>
+                        {% if form.province.errors %}
+                            <p class="mt-1.5 text-xs text-red-600 font-medium">
+                                {{ form.province.errors|striptags }}
+                            </p>
+                        {% endif %}
                     </div>
-                    {% if form.province.errors %}
-                        <p class="mt-1 text-xs text-red-600">
-                            {{ form.province.errors|striptags }}
-                        </p>
-                    {% endif %}
                 </div>
-            </div>
-            <!-- Region / Zip Code -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Region -->
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        {{ form.region.label|default:"Region" }}
-                    </label>
-                    <div class="field-wrap">
-                        {{ form.region }}
+
+                <!-- Municipality / Barangay -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.municipality.id_for_label }}" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Municipality / City *
+                        </label>
+                        <select name="{{ form.municipality.html_name }}" id="{{ form.municipality.id_for_label }}" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" required disabled>
+                            <option value="" disabled selected>Select Province first</option>
+                        </select>
+                        {% if form.municipality.errors %}
+                            <p class="mt-1.5 text-xs text-red-600 font-medium">
+                                {{ form.municipality.errors|striptags }}
+                            </p>
+                        {% endif %}
                     </div>
-                    {% if form.region.errors %}
-                        <p class="mt-1 text-xs text-red-600">
-                            {{ form.region.errors|striptags }}
-                        </p>
-                    {% endif %}
+                    <div>
+                        <label for="{{ form.barangay.id_for_label }}" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Barangay *
+                        </label>
+                        <select name="{{ form.barangay.html_name }}" id="{{ form.barangay.id_for_label }}" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" required disabled>
+                            <option value="" disabled selected>Select Municipality first</option>
+                        </select>
+                        {% if form.barangay.errors %}
+                            <p class="mt-1.5 text-xs text-red-600 font-medium">
+                                {{ form.barangay.errors|striptags }}
+                            </p>
+                        {% endif %}
+                    </div>
                 </div>
+
                 <!-- Zip Code -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        {{ form.zip_code.label|default:"Zipcode*" }}
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        Zipcode *
                     </label>
                     <div class="field-wrap">
                         {{ form.zip_code }}
                     </div>
                     {% if form.zip_code.errors %}
-                        <p class="mt-1 text-xs text-red-600">
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
                             {{ form.zip_code.errors|striptags }}
                         </p>
                     {% endif %}
                 </div>
             </div>
+
+            <!-- PERMANENT ADDRESS -->
+            <div class="space-y-5 bg-stone-50 p-6 rounded-2xl border border-stone-200">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <h3 class="text-sm font-bold text-stone-800 uppercase tracking-wide">
+                        Permanent Address
+                    </h3>
+                    <label class="inline-flex items-center gap-2 text-xs font-semibold text-stone-700 cursor-pointer">
+                        <input type="checkbox" id="same_as_present" class="h-4 w-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500">
+                        <span>check if same as Present Address</span>
+                    </label>
+                </div>
+
+                <!-- Permanent House / Street / Village -->
+                <div>
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        House No. / Street Village *
+                    </label>
+                    <input type="text" name="perm_house_street" id="perm_house_street" class="w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                </div>
+
+                <!-- Permanent Region / Province -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="perm_region_select" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Region *
+                        </label>
+                        <select id="perm_region_select" name="perm_region_select" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                            <option value="" disabled selected>Select Region</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="perm_province" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Province *
+                        </label>
+                        <select name="perm_province" id="perm_province" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" disabled>
+                            <option value="" disabled selected>Select Region first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Permanent Municipality / Barangay -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="perm_municipality" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Municipality / City *
+                        </label>
+                        <select name="perm_municipality" id="perm_municipality" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" disabled>
+                            <option value="" disabled selected>Select Province first</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="perm_barangay" class="block text-sm font-semibold text-stone-800 mb-2">
+                            Barangay *
+                        </label>
+                        <select name="perm_barangay" id="perm_barangay" class="w-full h-14 px-4.5 py-3.5 text-base rounded-xl border border-stone-200 bg-white text-stone-900 focus:ring-2 focus:ring-stone-900 focus:outline-none" disabled>
+                            <option value="" disabled selected>Select Municipality first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Permanent Zip Code -->
+                <div>
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        Zipcode *
+                    </label>
+                    <input type="text" name="perm_zip_code" id="perm_zip_code" class="w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none">
+                </div>
+            </div>
         </div>
+
         <!-- Contact Information -->
-        <div class="space-y-4">
-            <h3 class="text-xs font-bold text-stone-700">
+        <div class="space-y-5 bg-stone-50 p-6 rounded-2xl border border-stone-200">
+            <h3 class="text-sm font-bold text-stone-800 uppercase tracking-wide">
                 Contact Information
             </h3>
             <!-- Primary / Secondary Mobile -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Primary Mobile -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Mobile Number (Primary)*
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        Mobile Number (Primary) *
                     </label>
                     <div class="field-wrap">
                         {{ form.phone_number }}
                     </div>
+                    <p id="error-phone_number" class="mt-1.5 text-xs text-red-600 hidden font-medium">Mobile number must be exactly 11 digits starting with "09".</p>
                     {% if form.phone_number.errors %}
-                        <p class="mt-1 text-xs text-red-600">
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
                             {{ form.phone_number.errors|striptags }}
                         </p>
                     {% endif %}
                 </div>
-                <!-- Secondary Mobile -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Mobile Number (Secondary)
                     </label>
                     <div class="field-wrap">
                         {{ form.mobile_number_secondary }}
                     </div>
+                    <p id="error-mobile_number_secondary" class="mt-1.5 text-xs text-red-600 hidden font-medium">Mobile number must be exactly 11 digits starting with "09".</p>
                     {% if form.mobile_number_secondary.errors %}
-                        <p class="mt-1 text-xs text-red-600">
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
                             {{ form.mobile_number_secondary.errors|striptags }}
                         </p>
                     {% endif %}
@@ -140,30 +213,29 @@
             </div>
             <!-- Landline / Email -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Landline -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
-                        Landline Number (Optional)
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
+                        Landline Number (Optional) <span class="text-xs text-stone-400 font-normal">Format: (0xx) xxx-xxxx or 9 digits</span>
                     </label>
                     <div class="field-wrap">
                         {{ form.landline_number }}
                     </div>
+                    <p id="error-landline_number" class="mt-1.5 text-xs text-red-600 hidden font-medium">Landline number must contain exactly 9 numeric digits.</p>
                     {% if form.landline_number.errors %}
-                        <p class="mt-1 text-xs text-red-600">
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
                             {{ form.landline_number.errors|striptags }}
                         </p>
                     {% endif %}
                 </div>
-                <!-- Email -->
                 <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Email Address
                     </label>
                     <div class="field-wrap">
                         {{ form.email_address }}
                     </div>
                     {% if form.email_address.errors %}
-                        <p class="mt-1 text-xs text-red-600">
+                        <p class="mt-1.5 text-xs text-red-600 font-medium">
                             {{ form.email_address.errors|striptags }}
                         </p>
                     {% endif %}
@@ -171,26 +243,421 @@
             </div>
         </div>
     </div>
+
     <!-- General Form Errors -->
     {% if form.non_field_errors %}
         <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {{ form.non_field_errors }}
         </div>
     {% endif %}
+
     <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
         <a
             href="{% url 'my_profile' %}"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all text-sm"
         >
             Back
         </a>
-    </div>
-    <div class="flex justify-end pt-6 border-t border-stone-200">
         <button
             type="submit"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all text-sm"
         >
-            Save & Changes
+            Save Changes
         </button>
     </div>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        const form = document.getElementById("applicant-address-form");
+        const regionSelect = document.getElementById("region_select");
+        const provinceSelect = document.getElementById("id_province");
+        const municipalitySelect = document.getElementById("id_municipality");
+        const barangaySelect = document.getElementById("id_barangay");
+        const formRegionInput = document.getElementById("{{ form.region.id_for_label }}");
+
+        // Present Address fields
+        const presentHouseStreet = document.getElementById("{{ form.house_street.id_for_label }}");
+        const presentZipCode = document.getElementById("{{ form.zip_code.id_for_label }}");
+
+        // Permanent Address elements
+        const sameAsPresentCb = document.getElementById("same_as_present");
+        const permHouseStreet = document.getElementById("perm_house_street");
+        const permRegionSelect = document.getElementById("perm_region_select");
+        const permProvinceSelect = document.getElementById("perm_province");
+        const permMuniSelect = document.getElementById("perm_municipality");
+        const permBgySelect = document.getElementById("perm_barangay");
+        const permZipCode = document.getElementById("perm_zip_code");
+
+        // Apply large sizing class to inputs
+        document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]').forEach(el => {
+            if (!el.classList.contains('w-full')) {
+                el.className = "w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none";
+            } else {
+                el.classList.add('h-14', 'text-base', 'rounded-xl', 'px-4.5', 'py-3.5');
+            }
+        });
+
+        // Toggle Same as Present and Copy/Clear Data
+        if (sameAsPresentCb) {
+            sameAsPresentCb.addEventListener("change", async function() {
+                const isChecked = this.checked;
+
+                if (isChecked) {
+                    if (presentHouseStreet && permHouseStreet) permHouseStreet.value = presentHouseStreet.value;
+                    if (presentZipCode && permZipCode) permZipCode.value = presentZipCode.value;
+
+                    if (regionSelect && permRegionSelect) {
+                        permRegionSelect.value = regionSelect.value;
+                        permRegionSelect.dispatchEvent(new Event('change'));
+                        
+                        setTimeout(async () => {
+                            if (provinceSelect && permProvinceSelect) {
+                                permProvinceSelect.innerHTML = provinceSelect.innerHTML;
+                                permProvinceSelect.value = provinceSelect.value;
+                                permProvinceSelect.disabled = false;
+                                permProvinceSelect.dispatchEvent(new Event('change'));
+
+                                setTimeout(async () => {
+                                    if (municipalitySelect && permMuniSelect) {
+                                        permMuniSelect.innerHTML = municipalitySelect.innerHTML;
+                                        permMuniSelect.value = municipalitySelect.value;
+                                        permMuniSelect.disabled = false;
+                                        permMuniSelect.dispatchEvent(new Event('change'));
+
+                                        setTimeout(() => {
+                                            if (barangaySelect && permBgySelect) {
+                                                permBgySelect.innerHTML = barangaySelect.innerHTML;
+                                                permBgySelect.value = barangaySelect.value;
+                                                permBgySelect.disabled = false;
+                                            }
+                                        }, 400);
+                                    }
+                                }, 400);
+                            }
+                        }, 400);
+                    }
+
+                    permHouseStreet.disabled = true;
+                    permRegionSelect.disabled = true;
+                    permProvinceSelect.disabled = true;
+                    permMuniSelect.disabled = true;
+                    permBgySelect.disabled = true;
+                    permZipCode.disabled = true;
+                } else {
+                    if (permHouseStreet) permHouseStreet.value = "";
+                    if (permZipCode) permZipCode.value = "";
+                    if (permRegionSelect) permRegionSelect.selectedIndex = 0;
+
+                    permProvinceSelect.innerHTML = '<option value="" disabled selected>Select Region first</option>';
+                    permProvinceSelect.disabled = true;
+
+                    permMuniSelect.innerHTML = '<option value="" disabled selected>Select Province first</option>';
+                    permMuniSelect.disabled = true;
+
+                    permBgySelect.innerHTML = '<option value="" disabled selected>Select Municipality first</option>';
+                    permBgySelect.disabled = true;
+
+                    permHouseStreet.disabled = false;
+                    permRegionSelect.disabled = false;
+                    permZipCode.disabled = false;
+                }
+            });
+        }
+
+        // Phone and Landline validation setup
+        const primaryPhone = document.getElementById("{{ form.phone_number.id_for_label }}");
+        const primaryPhoneError = document.getElementById("error-phone_number");
+        const secondaryPhone = document.getElementById("{{ form.mobile_number_secondary.id_for_label }}");
+        const secondaryPhoneError = document.getElementById("error-mobile_number_secondary");
+        const landlineInput = document.getElementById("{{ form.landline_number.id_for_label }}");
+        const landlineError = document.getElementById("error-landline_number");
+
+        function validatePhoneInput(input) {
+            if (!input) return true;
+            let val = input.value.replace(/\D/g, "");
+            if (val.length > 11) {
+                val = val.slice(0, 11);
+            }
+            input.value = val;
+            const phoneRegex = /^09\d{9}$/;
+            return phoneRegex.test(val);
+        }
+
+        if (primaryPhone) {
+            primaryPhone.addEventListener("input", function() {
+                validatePhoneInput(this);
+                if (validatePhoneInput(this)) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    primaryPhoneError.classList.add("hidden");
+                }
+            });
+        }
+
+        if (secondaryPhone) {
+            secondaryPhone.addEventListener("input", function() {
+                validatePhoneInput(this);
+                if (this.value.trim() === "" || validatePhoneInput(this)) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    secondaryPhoneError.classList.add("hidden");
+                }
+            });
+        }
+
+        if (landlineInput) {
+            landlineInput.addEventListener("input", function() {
+                // Allow user to type standard formatting characters (parentheses, spaces, hyphens)
+                // but validate that the extracted digits count equals exactly 9 if not empty.
+                let rawDigits = this.value.replace(/\D/g, "");
+                if (rawDigits.trim() === "" || rawDigits.length === 9) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    landlineError.classList.add("hidden");
+                }
+            });
+        }
+
+        form.addEventListener("submit", function(e) {
+            let isValid = true;
+
+            if (primaryPhone && !validatePhoneInput(primaryPhone)) {
+                primaryPhone.classList.add("border-red-500", "bg-red-50/50");
+                primaryPhoneError.classList.remove("hidden");
+                isValid = false;
+            }
+
+            if (secondaryPhone && secondaryPhone.value.trim() !== "" && !validatePhoneInput(secondaryPhone)) {
+                secondaryPhone.classList.add("border-red-500", "bg-red-50/50");
+                secondaryPhoneError.classList.remove("hidden");
+                isValid = false;
+            }
+
+            if (landlineInput && landlineInput.value.trim() !== "") {
+                let landlineDigits = landlineInput.value.replace(/\D/g, "");
+                if (landlineDigits.length !== 9) {
+                    landlineInput.classList.add("border-red-500", "bg-red-50/50");
+                    landlineError.classList.remove("hidden");
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+
+        function resetSelect(selectElement, defaultText) {
+            selectElement.innerHTML = `<option value="" disabled selected>${defaultText}</option>`;
+            selectElement.disabled = true;
+        }
+
+        // Fetch Regions for both selects
+        try {
+            const res = await fetch("https://psgc.cloud/api/regions");
+            const regions = await res.json();
+            regions.sort((a, b) => a.name.localeCompare(b.name));
+            
+            regions.forEach(region => {
+                const opt1 = document.createElement("option");
+                opt1.value = region.name;
+                opt1.dataset.code = region.code;
+                opt1.textContent = region.name;
+                regionSelect.appendChild(opt1);
+
+                const opt2 = document.createElement("option");
+                opt2.value = region.name;
+                opt2.dataset.code = region.code;
+                opt2.textContent = region.name;
+                permRegionSelect.appendChild(opt2);
+            });
+
+            if (formRegionInput && formRegionInput.value) {
+                regionSelect.value = formRegionInput.value;
+                regionSelect.dispatchEvent(new Event('change'));
+            }
+        } catch (error) {
+            console.error("Failed to load regions:", error);
+        }
+
+        // Region Change -> Load Provinces (Present)
+        regionSelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const regionCode = selectedOpt.dataset.code;
+            
+            if (formRegionInput) formRegionInput.value = this.value;
+
+            resetSelect(provinceSelect, "Select Province");
+            resetSelect(municipalitySelect, "Select Municipality first");
+            resetSelect(barangaySelect, "Select Barangay first");
+
+            if (!regionCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/regions/${regionCode}/provinces`);
+                const provinces = await res.json();
+                provinces.sort((a, b) => a.name.localeCompare(b.name));
+
+                provinces.forEach(prov => {
+                    const opt = document.createElement("option");
+                    opt.value = prov.name;
+                    opt.dataset.code = prov.code;
+                    opt.textContent = prov.name;
+                    provinceSelect.appendChild(opt);
+                });
+                provinceSelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load provinces:", error);
+            }
+        });
+
+        // Region Change -> Load Provinces (Permanent)
+        permRegionSelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const regionCode = selectedOpt.dataset.code;
+
+            resetSelect(permProvinceSelect, "Select Province");
+            resetSelect(permMuniSelect, "Select Municipality first");
+            resetSelect(permBgySelect, "Select Barangay first");
+
+            if (!regionCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/regions/${regionCode}/provinces`);
+                const provinces = await res.json();
+                provinces.sort((a, b) => a.name.localeCompare(b.name));
+
+                provinces.forEach(prov => {
+                    const opt = document.createElement("option");
+                    opt.value = prov.name;
+                    opt.dataset.code = prov.code;
+                    opt.textContent = prov.name;
+                    permProvinceSelect.appendChild(opt);
+                });
+                permProvinceSelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load permanent provinces:", error);
+            }
+        });
+
+        // Province Change -> Load Municipalities (Present)
+        provinceSelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const provinceCode = selectedOpt.dataset.code;
+            
+            resetSelect(municipalitySelect, "Select Municipality / City");
+            resetSelect(barangaySelect, "Select Barangay first");
+
+            if (!provinceCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/provinces/${provinceCode}/cities-municipalities`);
+                const munis = await res.json();
+                munis.sort((a, b) => a.name.localeCompare(b.name));
+
+                munis.forEach(muni => {
+                    const opt = document.createElement("option");
+                    opt.value = muni.name;
+                    opt.dataset.code = muni.code;
+                    opt.textContent = muni.name;
+                    municipalitySelect.appendChild(opt);
+                });
+                municipalitySelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load municipalities:", error);
+            }
+        });
+
+        // Province Change -> Load Municipalities (Permanent)
+        permProvinceSelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const provinceCode = selectedOpt.dataset.code;
+
+            resetSelect(permMuniSelect, "Select Municipality / City");
+            resetSelect(permBgySelect, "Select Barangay first");
+
+            if (!provinceCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/provinces/${provinceCode}/cities-municipalities`);
+                const munis = await res.json();
+                munis.sort((a, b) => a.name.localeCompare(b.name));
+
+                munis.forEach(muni => {
+                    const opt = document.createElement("option");
+                    opt.value = muni.name;
+                    opt.dataset.code = muni.code;
+                    opt.textContent = muni.name;
+                    permMuniSelect.appendChild(opt);
+                });
+                permMuniSelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load permanent municipalities:", error);
+            }
+        });
+
+        // Municipality Change -> Load Barangays (Present)
+        municipalitySelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const muniCode = selectedOpt.dataset.code;
+
+            resetSelect(barangaySelect, "Select Barangay");
+
+            if (!muniCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/municipalities/${muniCode}/barangays`);
+                let barangays = await res.json();
+                
+                if (!barangays.length) {
+                    const resCity = await fetch(`https://psgc.cloud/api/cities/${muniCode}/barangays`);
+                    barangays = await resCity.json();
+                }
+
+                barangays.sort((a, b) => a.name.localeCompare(b.name));
+
+                barangays.forEach(bgy => {
+                    const opt = document.createElement("option");
+                    opt.value = bgy.name;
+                    opt.textContent = bgy.name;
+                    barangaySelect.appendChild(opt);
+                });
+                barangaySelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load barangays:", error);
+            }
+        });
+
+        // Municipality Change -> Load Barangays (Permanent)
+        permMuniSelect.addEventListener("change", async function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            const muniCode = selectedOpt.dataset.code;
+
+            resetSelect(permBgySelect, "Select Barangay");
+
+            if (!muniCode) return;
+
+            try {
+                const res = await fetch(`https://psgc.cloud/api/municipalities/${muniCode}/barangays`);
+                let barangays = await res.json();
+                
+                if (!barangays.length) {
+                    const resCity = await fetch(`https://psgc.cloud/api/cities/${muniCode}/barangays`);
+                    barangays = await resCity.json();
+                }
+
+                barangays.sort((a, b) => a.name.localeCompare(b.name));
+
+                barangays.forEach(bgy => {
+                    const opt = document.createElement("option");
+                    opt.value = bgy.name;
+                    opt.textContent = bgy.name;
+                    permBgySelect.appendChild(opt);
+                });
+                permBgySelect.disabled = false;
+            } catch (error) {
+                console.error("Failed to load permanent barangays:", error);
+            }
+        });
+    });
+</script>
 {% endblock %}

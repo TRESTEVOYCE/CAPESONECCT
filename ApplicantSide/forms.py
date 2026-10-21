@@ -1,5 +1,5 @@
 from django import forms
-from AdminSide.models import ApplicantProfile,ApplicantSkills,ApplicantWorkExperience,User
+from AdminSide.models import ApplicantProfile, ApplicantSkills, ApplicantWorkExperience, User
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -13,7 +13,6 @@ TAILWIND_INPUT_CLASSES = {
         'focus:border-indigo-600 w-full bg-white text-slate-800'
     )
 }
-
 
 def apply_tailwind_widgets(form):
     for field_name, field in form.fields.items():
@@ -96,22 +95,13 @@ class ApplicantProofDocumentFormMixin:
 
 
 class ApplicantPersonalInfoForm(forms.ModelForm):
-
-    # SEX
     sex_male = forms.BooleanField(required=False)
     sex_female = forms.BooleanField(required=False)
-
-    # CIVIL STATUS
     civil_single = forms.BooleanField(required=False)
     civil_married = forms.BooleanField(required=False)
     civil_widowed = forms.BooleanField(required=False)
-    civil_divorced = forms.BooleanField(required=False)
-
-    # EMPLOYMENT STATUS
     emp_employed = forms.BooleanField(required=False)
     emp_unemployed = forms.BooleanField(required=False)
-
-    # UNEMPLOYMENT REASON
     emp_retired = forms.BooleanField(required=False)
     emp_new_entrant = forms.BooleanField(required=False)
     emp_terminated_local = forms.BooleanField(required=False)
@@ -121,60 +111,35 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         apply_tailwind_widgets(self)
-
-        # -------------------------
-        # SEX
-        # -------------------------
 
         if self.instance.sex == 'M':
             self.initial['sex_male'] = True
-
         elif self.instance.sex == 'F':
             self.initial['sex_female'] = True
 
-        # -------------------------
-        # CIVIL STATUS
-        # -------------------------
-
         if self.instance.civil_status == 'single':
             self.initial['civil_single'] = True
-
         elif self.instance.civil_status == 'married':
             self.initial['civil_married'] = True
-
         elif self.instance.civil_status == 'widowed':
             self.initial['civil_widowed'] = True
 
-        # -------------------------
-        # EMPLOYMENT STATUS
-        # -------------------------
-
         if self.instance.employment_status == 'employed':
             self.initial['emp_employed'] = True
-
         elif self.instance.employment_status == 'unemployed':
             self.initial['emp_unemployed'] = True
-
-            # Restore unemployment reason
             reason = self.instance.unemployment_reason
-
             if reason == 'retired':
                 self.initial['emp_retired'] = True
-
             elif reason == 'fresh_grad':
                 self.initial['emp_new_entrant'] = True
-
             elif reason == 'laid_off_local':
                 self.initial['emp_terminated_local'] = True
-
             elif reason == 'finished_contract':
                 self.initial['emp_finished_contract'] = True
-
             elif reason == 'laid_off_abroad':
                 self.initial['emp_terminated_abroad'] = True
-
             elif reason == 'resigned':
                 self.initial['emp_resigned'] = True
 
@@ -201,72 +166,40 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-
-        # -------------------------
-        # SEX
-        # -------------------------
-
         if self.cleaned_data.get('sex_male'):
             instance.sex = 'M'
-
         elif self.cleaned_data.get('sex_female'):
             instance.sex = 'F'
 
-        # -------------------------
-        # CIVIL STATUS
-        # -------------------------
-
         if self.cleaned_data.get('civil_single'):
             instance.civil_status = 'single'
-
         elif self.cleaned_data.get('civil_married'):
             instance.civil_status = 'married'
-
         elif self.cleaned_data.get('civil_widowed'):
             instance.civil_status = 'widowed'
-
-        elif self.cleaned_data.get('civil_divorced'):
-            instance.civil_status = 'divorced'
-
-        # -------------------------
-        # EMPLOYMENT STATUS
-        # -------------------------
 
         if self.cleaned_data.get('emp_employed'):
             instance.employment_status = 'employed'
             instance.unemployment_reason = None
-
         elif self.cleaned_data.get('emp_unemployed'):
             instance.employment_status = 'unemployed'
-
-            # -------------------------
-            # UNEMPLOYMENT REASON
-            # -------------------------
-
             if self.cleaned_data.get('emp_new_entrant'):
                 instance.unemployment_reason = 'fresh_grad'
-
             elif self.cleaned_data.get('emp_finished_contract'):
                 instance.unemployment_reason = 'finished_contract'
-
             elif self.cleaned_data.get('emp_resigned'):
                 instance.unemployment_reason = 'resigned'
-
             elif self.cleaned_data.get('emp_retired'):
                 instance.unemployment_reason = 'retired'
-
             elif self.cleaned_data.get('emp_terminated_local'):
                 instance.unemployment_reason = 'laid_off_local'
-
             elif self.cleaned_data.get('emp_terminated_abroad'):
                 instance.unemployment_reason = 'laid_off_abroad'
-
             else:
                 instance.unemployment_reason = None
 
         if commit:
             instance.save()
-
         return instance
 
     def clean_date_of_birth(self):
@@ -289,55 +222,21 @@ class ApplicantPersonalInfoForm(forms.ModelForm):
 
     class Meta:
         model = ApplicantProfile
-
         fields = [
-            'first_name',
-            'middle_name',
-            'last_name',
-            'suffix',
-
-            'date_of_birth',
-            'place_of_birth',
-            'nationality',
-
-            'weight',
-            'height',
-
-            'actively_looking',
-            'looking_duration',
-            'willing_to_work_immediately',
-            'when_willing_to_work',
-            'is_4ps_beneficiary',
-            'household_id_no',
-            'is_ofw',
-            'returning_to_ph_to_work',
+            'first_name', 'middle_name', 'last_name', 'suffix',
+            'date_of_birth', 'place_of_birth', 'nationality',
+            'weight', 'height', 'actively_looking', 'looking_duration',
+            'willing_to_work_immediately', 'when_willing_to_work',
+            'is_4ps_beneficiary', 'household_id_no', 'is_ofw', 'returning_to_ph_to_work',
         ]
-
         widgets = {
-            'date_of_birth': forms.DateInput(
-                attrs={
-                    'type': 'date'
-                }
-            ),
-
-            'height': forms.NumberInput(
-                attrs={
-                    'step': '0.01',
-                    'placeholder': 'cm'
-                }
-            ),
-
-            'weight': forms.NumberInput(
-                attrs={
-                    'step': '0.01',
-                    'placeholder': 'kg'
-                }
-            ),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'height': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'cm'}),
+            'weight': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'kg'}),
         }
 
 
 class ApplicantAddressForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -383,39 +282,10 @@ class ApplicantAddressForm(forms.ModelForm):
 
     class Meta:
         model = ApplicantProfile
-
-        fields = [
-            'house_street',
-            'barangay',
-            'municipality',
-            'province',
-            'region',
-            'zip_code',
-            'phone_number',
-            'mobile_number_secondary',
-            'landline_number',
-            'email_address',
-        ]
+        fields = ['house_street', 'barangay', 'municipality', 'province', 'region', 'zip_code', 'phone_number', 'mobile_number_secondary', 'landline_number', 'email_address'] 
 
 
-class ApplicantEducationForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
-    proof_document_fields = ('education_proof_document',)
-    proof_required_for_fields = (
-        'school_status_yes',
-        'school_status_no',
-        'highest_educational_attainment',
-        'school_university',
-        'course_program',
-        'year_graduated_attended',
-        'award_1',
-        'award_2',
-        'award_3',
-    )
-    proof_required_message = (
-        'Upload a diploma, transcript of records, or certificate of graduation '
-        'to support these education changes.'
-    )
-
+class ApplicantEducationForm(forms.ModelForm):
     highest_educational_attainment = forms.ChoiceField(
         required=False,
         choices=[
@@ -433,142 +303,85 @@ class ApplicantEducationForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         education_fields = [
-            'no_formal',
-            'elem_level',
-            'elem_grad',
-            'hs_level',
-            'hs_grad',
-            'college_level',
-            'college_grad',
-            'tech_voc',
-            'post_grad',
+            'no_formal', 'elem_level', 'elem_grad', 'hs_level',
+            'hs_grad', 'college_level', 'college_grad', 'tech_voc', 'post_grad',
         ]
-
         for field_name in education_fields:
             if getattr(self.instance, f'edu_{field_name}', False):
                 self.initial['highest_educational_attainment'] = field_name
                 break
-
         apply_tailwind_widgets(self)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-
-        attainment = self.cleaned_data.get(
-            'highest_educational_attainment'
-        )
-
+        attainment = self.cleaned_data.get('highest_educational_attainment')
         education_fields = [
-            'edu_no_formal',
-            'edu_elem_level',
-            'edu_elem_grad',
-            'edu_hs_level',
-            'edu_hs_grad',
-            'edu_college_level',
-            'edu_college_grad',
-            'edu_tech_voc',
-            'edu_post_grad',
+            'edu_no_formal', 'edu_elem_level', 'edu_elem_grad',
+            'edu_hs_level', 'edu_hs_grad', 'edu_college_level',
+            'edu_college_grad', 'edu_tech_voc', 'edu_post_grad',
         ]
-
         for field in education_fields:
             setattr(instance, field, False)
-
         if attainment:
             setattr(instance, f'edu_{attainment}', True)
-
         if commit:
             instance.save()
-
         return instance
 
     class Meta:
         model = ApplicantProfile
-
         fields = [
-            'school_status_yes',
-            'school_status_no',
-
-            'school_university',
-            'course_program',
-            'year_graduated_attended',
-
-            'award_1',
-            'award_2',
-            'award_3',
-            'education_proof_document',
+            'school_status_yes', 'school_status_no',
+            'school_university', 'course_program', 'year_graduated_attended',
+            'award_1', 'award_2', 'award_3',
         ]
-
         widgets = {
-            'year_graduated_attended': forms.DateInput(
-                attrs={'type': 'month'}
-            ),
+            'year_graduated_attended': forms.DateInput(attrs={'type': 'month'}),
         }
 
 
-class ApplicantTrainingForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
-    proof_document_fields = (
-        'technical_certification_document',
-        'professional_license_document',
-    )
-    proof_required_for_fields = (
-        'training_title_1',
-        'training_hours_1',
-        'training_institution_1',
-        'training_date_1',
-        'training_title_2',
-        'training_hours_2',
-        'training_institution_2',
-        'training_date_2',
-    )
-    proof_required_message = (
-        'Upload a TESDA/trade certificate or a professional license/eligibility '
-        'document to support these changes.'
-    )
-
+class ApplicantTrainingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
 
     class Meta:
         model = ApplicantProfile
-
         fields = [
-            'training_title_1',
-            'training_hours_1',
-            'training_institution_1',
-            'training_date_1',
-
-            'training_title_2',
-            'training_hours_2',
-            'training_institution_2',
-            'training_date_2',
-            'technical_certification_document',
-            'professional_license_document',
+            'training_title_1', 'training_hours_1', 'training_institution_1', 'training_date_1',
+            'training_title_2', 'training_hours_2', 'training_institution_2', 'training_date_2',
         ]
-
         widgets = {
-            'training_hours_1': forms.NumberInput(
-                attrs={'min': '0'}
-            ),
-
-            'training_hours_2': forms.NumberInput(
-                attrs={'min': '0'}
-            ),
-
-            'training_date_1': forms.DateInput(
-                attrs={'type': 'date'}
-            ),
-
-            'training_date_2': forms.DateInput(
-                attrs={'type': 'date'}
-            ),
+            'training_hours_1': forms.NumberInput(attrs={'min': '0'}),
+            'training_hours_2': forms.NumberInput(attrs={'min': '0'}),
+            'training_date_1': forms.DateInput(attrs={'type': 'date'}),
+            'training_date_2': forms.DateInput(attrs={'type': 'date'}),
         }
-
 
 
 class ApplicantPreferredJobForm(forms.ModelForm):
+    pref_salary = forms.ChoiceField(
+        required=True,
+        choices=[
+            ('', 'Select expected salary range'),
+            ('Below 10,000', 'Below ₱10,000'),
+            ('10,000 - 15,000', '₱10,000 - ₱15,000'),
+            ('15,001 - 20,000', '₱15,001 - ₱20,000'),
+            ('20,001 - 30,000', '₱20,001 - ₱30,000'),
+            ('30,001 - 50,000', '₱30,001 - ₱50,000'),
+            ('50,001 - 80,000', '₱50,001 - ₱80,000'),
+            ('80,001 and above', '₱80,001 and above'),
+        ]
+    )
+    
+    pref_location_local_1 = forms.CharField(required=False)
+    pref_location_local_2 = forms.CharField(required=False)
+    pref_location_local_3 = forms.CharField(required=False)
+    
+    pref_location_overseas_1 = forms.CharField(required=False)
+    pref_location_overseas_2 = forms.CharField(required=False)
+    pref_location_overseas_3 = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -576,46 +389,21 @@ class ApplicantPreferredJobForm(forms.ModelForm):
 
     class Meta:
         model = ApplicantProfile
-
         fields = [
-            'pref_local',
-            'pref_overseas',
-
-            'pref_occupation_1',
-            'pref_occupation_2',
-            'pref_occupation_3',
-
-            'pref_location_local',
-            'pref_location_overseas',
-
+            'pref_local', 'pref_overseas',
+            'pref_occupation_1', 'pref_occupation_2', 'pref_occupation_3',
             'pref_salary',
         ]
 
 
-
-class ApplicantWorkExperienceForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
-    proof_document_fields = ('proof_document',)
-    proof_required_for_fields = ('company', 'address', 'position', 'dates', 'status')
-    proof_required_message = (
-        'Upload a Certificate of Employment, service record, or employer '
-        'clearance to support this work experience.'
-    )
-
+class ApplicantWorkExperienceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
 
     class Meta:
         model = ApplicantWorkExperience
-
-        fields = [
-            'company',
-            'address',
-            'position',
-            'dates',
-            'status',
-            'proof_document',
-        ]
+        fields = ['company', 'address', 'position', 'dates', 'status']
 
 
 ApplicantWorkExperienceFormSet = forms.inlineformset_factory(
@@ -632,21 +420,35 @@ ApplicantWorkExperienceFormSet = forms.inlineformset_factory(
 # SKILLS
 # ============================================================
 
-class ApplicantSkillsForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
-    proof_document_fields = ('technical_certification_document',)
-    proof_required_for_fields = (
-        'skill_computer',
-        'skill_driving',
-        'skill_customer_service',
-        'skill_bookkeeping',
-        'skill_carpentry',
-        'skill_welding',
-        'other_skills',
-    )
-    proof_required_message = (
-        'Upload a TESDA national certification or official trade certificate '
-        'to support these skill changes.'
-    )
+class ApplicantSkillsForm(forms.ModelForm):
+    skill_innovation = forms.BooleanField(required=False)
+    skill_team_work = forms.BooleanField(required=False)
+    skill_multitasking = forms.BooleanField(required=False)
+    skill_work_ethics = forms.BooleanField(required=False)
+    skill_self_motivation = forms.BooleanField(required=False)
+    skill_creative_problem_solving = forms.BooleanField(required=False)
+    skill_problem_solving = forms.BooleanField(required=False)
+    skill_critical_thinking = forms.BooleanField(required=False)
+    skill_decision_making = forms.BooleanField(required=False)
+    skill_stress_tolerance = forms.BooleanField(required=False)
+    skill_planning_organizing = forms.BooleanField(required=False)
+    skill_social_perceptiveness = forms.BooleanField(required=False)
+    skill_english_functional = forms.BooleanField(required=False)
+    skill_english_comprehension = forms.BooleanField(required=False)
+    skill_math_functional = forms.BooleanField(required=False)
+
+    skill_carpentry = forms.BooleanField(required=False)
+    skill_masonry = forms.BooleanField(required=False)
+    skill_welding = forms.BooleanField(required=False)
+    skill_auto_mechanic = forms.BooleanField(required=False)
+    skill_plumbing = forms.BooleanField(required=False)
+    skill_driving = forms.BooleanField(required=False)
+    skill_gardening = forms.BooleanField(required=False)
+    skill_tailoring = forms.BooleanField(required=False)
+    skill_photography = forms.BooleanField(required=False)
+    skill_hairdressing = forms.BooleanField(required=False)
+    skill_cooking = forms.BooleanField(required=False)
+    skill_baking = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -654,31 +456,28 @@ class ApplicantSkillsForm(ApplicantProofDocumentFormMixin, forms.ModelForm):
 
     class Meta:
         model = ApplicantProfile
-
         fields = [
-            'skill_computer',
-            'skill_driving',
-            'skill_customer_service',
-            'skill_bookkeeping',
-            'skill_carpentry',
-            'skill_welding',
+            'skill_innovation', 'skill_team_work', 'skill_multitasking', 'skill_work_ethics', 
+            'skill_self_motivation', 'skill_creative_problem_solving', 'skill_problem_solving', 
+            'skill_critical_thinking', 'skill_decision_making', 'skill_stress_tolerance', 
+            'skill_planning_organizing', 'skill_social_perceptiveness', 'skill_english_functional', 
+            'skill_english_comprehension', 'skill_math_functional',
+            'skill_carpentry', 'skill_masonry', 'skill_welding', 'skill_auto_mechanic', 
+            'skill_plumbing', 'skill_driving', 'skill_gardening', 'skill_tailoring', 
+            'skill_photography', 'skill_hairdressing', 'skill_cooking', 'skill_baking',
             'other_skills',
             'technical_certification_document',
         ]
 
 
 class ApplicantSkillForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
 
     class Meta:
         model = ApplicantSkills
-
-        fields = [
-            'skill_name',
-        ]
+        fields = ['skill_name']
 
 
 ApplicantSkillFormSet = forms.modelformset_factory(
@@ -692,29 +491,22 @@ ApplicantSkillFormSet = forms.modelformset_factory(
 class ApplicantDocumentsForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
-        fields = [
-            'applicant_id_picture_front',
-            'applicant_id_picture_back',
-            'certification_agree',
-            'resume_file',
-        ]
+        fields = ['applicant_id_picture_front', 'applicant_id_picture_back', 'certification_agree', 'resume_file', 'supporting_doc']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        apply_tailwind_widgets(self)
 
 
 class ProfilePictureForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
 
     class Meta:
         model = User
+        fields = ['profile_picture']
 
-        fields = [
-            'profile_picture'
-        ]
 
 class UpdateEmailForm(forms.ModelForm):
     class Meta:
@@ -725,14 +517,8 @@ class UpdateEmailForm(forms.ModelForm):
 class UpdatePasswordForm(SetPasswordForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(user, *args, **kwargs)
-
-        self.fields['new_password1'].widget.attrs.update({
-            'class': 'form-control'
-        })
-
-        self.fields['new_password2'].widget.attrs.update({
-            'class': 'form-control'
-        })
+        self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
 
 
 class UpdateUsernameForm(forms.ModelForm):

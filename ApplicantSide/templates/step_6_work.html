@@ -1,125 +1,127 @@
 {% extends 'applicant-base.html' %}
 {% block content %}
+<<<<<<< HEAD
 <form method="POST" action="{% url 'applicant-work-experience' %}" enctype="multipart/form-data" class="space-y-6">
+=======
+<form method="POST" action="{% url 'applicant-work-experience' %}" class="space-y-6" id="work-exp-form" novalidate>
+>>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
     {% csrf_token %}
     <div x-data="workExperienceFormset()" class="space-y-6">
-        <div>
-            <h2 class="text-lg font-semibold text-stone-900">
-                Work Experience
+        <div class="border-b border-stone-200 pb-3">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                VI. Work Experience (Limit the occupation for the last 10 years. Start with the most recent employment)
             </h2>
-            <p class="mt-1 text-sm text-stone-500">
-                Please provide your previous or current work experience.
+            <p class="mt-1 text-xs text-stone-500">
+                Status of appointment can be either of the ff.: Permanent, Contractual, Part-time, or Probationary.
             </p>
         </div>
+        
         <!-- Django Formset Management Form -->
         {{ work_formset.management_form }}
+        
         <div id="work-experience-container" class="space-y-5">
             {% for work_form in work_formset %}
-                <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5" data-form-index="{{ forloop.counter0 }}">
-                    <div class="flex items-center justify-between mb-5">
-                        <div>
-                            <h3 class="text-sm font-semibold text-stone-900">
-                                Work Experience {{ forloop.counter }}
-                            </h3>
-                            <p class="text-xs text-stone-500 mt-1">
-                                Enter the details of your employment.
-                            </p>
-                        </div>
+                <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50 p-6 space-y-4" data-form-index="{{ forloop.counter0 }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-stone-700 uppercase experience-title-label">
+                            Work Experience {{ forloop.counter }}
+                        </span>
                         {% if work_form.instance.pk %}
-                            <label class="flex items-center gap-2 text-xs text-red-600 cursor-pointer">
-                                {{ work_form.DELETE }}
-                                <span>
-                                    Remove
-                                </span>
-                            </label>
+                            <div class="hidden">{{ work_form.DELETE }}</div>
+                            <button
+                                type="button"
+                                class="remove-work-btn text-sm font-semibold text-red-600 hover:text-red-700"
+                            >
+                                Remove
+                            </button>
                         {% else %}
                             <button
                                 type="button"
-                                @click="removeForm($el.closest('.work-experience-item'))"
-                                class="text-xs font-semibold text-red-600 hover:text-red-700"
+                                class="remove-work-btn text-sm font-semibold text-red-600 hover:text-red-700"
                             >
                                 Remove
                             </button>
                         {% endif %}
                     </div>
                     {{ work_form.id }}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <!-- Company -->
-                        <div>
-                            <label
-                                for="{{ work_form.company.id_for_label }}"
-                                class="block mb-2 text-xs font-semibold text-stone-700"
-                            >
-                                Company / Employer
+                        <div class="sm:col-span-2">
+                            <label for="{{ work_form.company.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
+                                Name of Office / Company *
                             </label>
                             {{ work_form.company }}
+                            <p class="error-company mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                             {% if work_form.company.errors %}
-                                <p class="mt-1 text-xs text-red-600">
+                                <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.company.errors.0 }}
                                 </p>
                             {% endif %}
                         </div>
-                        <!-- Address -->
-                        <div>
-                            <label
-                                for="{{ work_form.address.id_for_label }}"
-                                class="block mb-2 text-xs font-semibold text-stone-700"
-                            >
-                                Company Address
+                        <!-- Address with Map Autocomplete -->
+                        <div class="relative address-field-wrapper">
+                            <label for="{{ work_form.address.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
+                                Address *
                             </label>
                             {{ work_form.address }}
+                            <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
+                            <p class="error-address mt-1.5 text-xs text-red-600 hidden font-medium">Please select a valid location from map suggestions.</p>
                             {% if work_form.address.errors %}
-                                <p class="mt-1 text-xs text-red-600">
+                                <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.address.errors.0 }}
                                 </p>
                             {% endif %}
                         </div>
-                        <!-- Position -->
-                        <div>
-                            <label
-                                for="{{ work_form.position.id_for_label }}"
-                                class="block mb-2 text-xs font-semibold text-stone-700"
-                            >
-                                Position / Job Title
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <!-- Position Held -->
+                        <div class="sm:col-span-1">
+                            <label for="{{ work_form.position.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
+                                Position Held *
                             </label>
                             {{ work_form.position }}
+                            <p class="error-position mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                             {% if work_form.position.errors %}
-                                <p class="mt-1 text-xs text-red-600">
+                                <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.position.errors.0 }}
                                 </p>
                             {% endif %}
                         </div>
-                        <!-- Dates -->
-                        <div>
-                            <label
-                                for="{{ work_form.dates.id_for_label }}"
-                                class="block mb-2 text-xs font-semibold text-stone-700"
-                            >
-                                Dates of Employment
+                        <!-- Inclusive Dates (Calendar Picker) -->
+                        <div class="sm:col-span-1">
+                            <label for="{{ work_form.dates.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
+                                Inclusive Dates *
                             </label>
                             {{ work_form.dates }}
                             {% if work_form.dates.errors %}
-                                <p class="mt-1 text-xs text-red-600">
+                                <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.dates.errors.0 }}
                                 </p>
                             {% endif %}
                         </div>
-                        <!-- Status -->
-                        <div class="md:col-span-2">
-                            <label
-                                for="{{ work_form.status.id_for_label }}"
-                                class="block mb-2 text-xs font-semibold text-stone-700"
-                            >
-                                Employment Status
+                        <!-- Status of Appointment (Dropdown Select) -->
+                        <div class="sm:col-span-1">
+                            <label for="{{ work_form.status.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
+                                Status of Appointment *
                             </label>
-                            {{ work_form.status }}
+                            <select name="{{ work_form.status.html_name }}" id="{{ work_form.status.id_for_label }}" class="w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required>
+                                <option value="" disabled {% if not work_form.status.value %}selected{% endif %}>Select appointment status...</option>
+                                <option value="Permanent" {% if work_form.status.value == "Permanent" %}selected{% endif %}>Permanent</option>
+                                <option value="Contractual" {% if work_form.status.value == "Contractual" %}selected{% endif %}>Contractual</option>
+                                <option value="Part-time" {% if work_form.status.value == "Part-time" %}selected{% endif %}>Part-time</option>
+                                <option value="Probationary" {% if work_form.status.value == "Probationary" %}selected{% endif %}>Probationary</option>
+                                <option value="Temporary" {% if work_form.status.value == "Temporary" %}selected{% endif %}>Temporary</option>
+                            </select>
                             {% if work_form.status.errors %}
-                                <p class="mt-1 text-xs text-red-600">
+                                <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.status.errors.0 }}
                                 </p>
                             {% endif %}
                         </div>
                     </div>
+<<<<<<< HEAD
                     <div class="mt-5 border-t border-stone-200 pt-4">
                         <label for="{{ work_form.proof_document.id_for_label }}" class="mb-1.5 block text-xs font-semibold text-stone-700">
                             Employment proof
@@ -133,73 +135,80 @@
                             <p class="mt-1 text-xs text-red-600">{{ work_form.proof_document.errors.0 }}</p>
                         {% endif %}
                     </div>
+=======
+
+>>>>>>> 500e498b2c688c7d559560b4b71deb7aca6e3276
                     {% if work_form.non_field_errors %}
-                        <div class="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
+                        <div class="mt-4 p-4 rounded-xl bg-red-50 border border-red-200">
                             {% for error in work_form.non_field_errors %}
-                                <p class="text-xs text-red-600">
-                                    {{ error }}
-                                </p>
+                                <p class="text-sm text-red-600 font-medium">{{ error }}</p>
                             {% endfor %}
                         </div>
                     {% endif %}
                 </div>
             {% endfor %}
         </div>
+
         <!-- Empty Form Template -->
         <template id="empty-work-form">
-            <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50/50 p-5">
-                <div class="flex items-center justify-between mb-5">
-                    <div>
-                        <h3 class="text-sm font-semibold text-stone-900">
-                            Work Experience <span class="experience-number"></span>
-                        </h3>
-                        <p class="text-xs text-stone-500 mt-1">
-                            Enter the details of your employment.
-                        </p>
-                    </div>
+            <div class="work-experience-item rounded-2xl border border-stone-200 bg-stone-50 p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-stone-700 uppercase experience-title-label">
+                        Work Experience <span class="experience-number"></span>
+                    </span>
                     <button
                         type="button"
-                        class="remove-work-form text-xs font-semibold text-red-600 hover:text-red-700"
+                        class="remove-work-btn text-sm font-semibold text-red-600 hover:text-red-700"
                     >
                         Remove
                     </button>
                 </div>
                 {{ work_formset.empty_form.id }}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <!-- Company -->
-                    <div>
-                        <label class="block mb-2 text-xs font-semibold text-stone-700">
-                            Company / Employer
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="sm:col-span-2">
+                        <label class="block mb-2 text-sm font-semibold text-stone-800">
+                            Name of Office / Company *
                         </label>
                         {{ work_formset.empty_form.company }}
+                        <p class="error-company mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                     </div>
-                    <!-- Address -->
-                    <div>
-                        <label class="block mb-2 text-xs font-semibold text-stone-700">
-                            Company Address
+                    <div class="relative address-field-wrapper">
+                        <label class="block mb-2 text-sm font-semibold text-stone-800">
+                            Address *
                         </label>
                         {{ work_formset.empty_form.address }}
+                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
+                        <p class="error-address mt-1.5 text-xs text-red-600 hidden font-medium">Please select a valid location from map suggestions.</p>
                     </div>
-                    <!-- Position -->
-                    <div>
-                        <label class="block mb-2 text-xs font-semibold text-stone-700">
-                            Position / Job Title
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="sm:col-span-1">
+                        <label class="block mb-2 text-sm font-semibold text-stone-800">
+                            Position Held *
                         </label>
                         {{ work_formset.empty_form.position }}
+                        <p class="error-position mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                     </div>
-                    <!-- Dates -->
-                    <div>
-                        <label class="block mb-2 text-xs font-semibold text-stone-700">
-                            Dates of Employment
+                    <div class="sm:col-span-1">
+                        <label class="block mb-2 text-sm font-semibold text-stone-800">
+                            Inclusive Dates *
                         </label>
                         {{ work_formset.empty_form.dates }}
                     </div>
-                    <!-- Status -->
-                    <div class="md:col-span-2">
-                        <label class="block mb-2 text-xs font-semibold text-stone-700">
-                            Employment Status
+                    <div class="sm:col-span-1">
+                        <label class="block mb-2 text-sm font-semibold text-stone-800">
+                            Status of Appointment *
                         </label>
-                        {{ work_formset.empty_form.status }}
+                        <select name="{{ work_formset.empty_form.status.html_name }}" id="{{ work_formset.empty_form.status.id_for_label }}" class="w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required>
+                            <option value="" disabled selected>Select appointment status...</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contractual">Contractual</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Probationary">Probationary</option>
+                            <option value="Temporary">Temporary</option>
+                        </select>
                     </div>
                 </div>
                 <div class="mt-5 border-t border-stone-200 pt-4">
@@ -209,19 +218,18 @@
                 </div>
             </div>
         </template>
-        <!-- Add Button -->
-        <div class="flex justify-start">
+
+        <!-- Add Button Placed on the Right -->
+        <div class="flex justify-end pt-2">
             <button
                 type="button"
                 @click="addForm()"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-sm font-semibold text-stone-700 hover:bg-stone-50 transition"
+                class="px-5 py-2.5 rounded-xl font-bold bg-amber-400 text-stone-900 hover:bg-amber-500 shadow-sm transition-all inline-flex items-center gap-2 text-xs"
             >
-                <span class="text-lg leading-none">
-                    +
-                </span>
-                Add Another Work Experience
+                <span class="text-sm font-extrabold">+</span> Add Another Work Experience
             </button>
         </div>
+
         {% if work_formset.non_form_errors %}
             <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
                 {% for error in work_formset.non_form_errors %}
@@ -229,10 +237,11 @@
                 {% endfor %}
             </div>
         {% endif %}
+
         <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
             <a
                 href="{% url 'my_profile' %}"
-                class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
+                class="px-6 py-3 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all text-sm"
             >
                 Back
             </a>
@@ -240,94 +249,238 @@
         <div class="flex justify-end pt-6 border-t border-stone-200">
             <button
                 type="submit"
-                class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+                class="px-6 py-3 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all text-sm"
             >
                  Save Changes
             </button>
         </div>
     </div>
 </form>
+
 <script>
 function workExperienceFormset() {
     return {
+        init() {
+            this.attachHandlersToAll();
+        },
         addForm() {
-            const container = document.getElementById(
-                'work-experience-container'
-            );
-            const totalForms = document.querySelector(
-                '[name$="-TOTAL_FORMS"]'
-            );
-            const template = document.getElementById(
-                'empty-work-form'
-            );
+            const container = document.getElementById('work-experience-container');
+            const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+            const template = document.getElementById('empty-work-form');
             if (!container || !totalForms || !template) {
                 return;
             }
-            const formIndex = parseInt(
-                totalForms.value
-            );
+            const formIndex = parseInt(totalForms.value);
             let html = template.innerHTML;
-            html = html.replace(
-                /__prefix__/g,
-                formIndex
-            );
+            html = html.replace(/__prefix__/g, formIndex);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = html.trim();
             const newForm = wrapper.firstElementChild;
             container.appendChild(newForm);
             totalForms.value = formIndex + 1;
             this.updateNumbers();
+            this.applyStylesToElement(newForm);
+            this.attachHandlersToElement(newForm);
         },
         removeForm(element) {
             if (!element) {
                 return;
             }
-            const deleteInput = element.querySelector(
-                'input[name$="-DELETE"]'
-            );
+            const deleteInput = element.querySelector('input[name$="-DELETE"]');
             if (deleteInput) {
                 deleteInput.checked = true;
-                element.classList.add(
-                    'hidden'
-                );
+                element.classList.add('hidden');
             } else {
                 element.remove();
             }
             this.updateNumbers();
         },
         updateNumbers() {
-            const forms = document.querySelectorAll(
-                '#work-experience-container .work-experience-item'
-            );
+            const forms = document.querySelectorAll('#work-experience-container .work-experience-item');
             let number = 1;
             forms.forEach(function (form) {
-                if (
-                    !form.classList.contains('hidden')
-                ) {
-                    const numberElement =
-                        form.querySelector(
-                            '.experience-number'
-                        );
-                    const title =
-                        form.querySelector(
-                            'h3'
-                        );
+                if (!form.classList.contains('hidden')) {
+                    const numberElement = form.querySelector('.experience-number');
+                    const title = form.querySelector('.experience-title-label');
                     if (numberElement) {
-                        numberElement.textContent =
-                            number;
+                        numberElement.textContent = number;
                     }
-                    if (
-                        title &&
-                        !numberElement
-                    ) {
-                        title.textContent =
-                            'Work Experience ' + number;
+                    if (title && !numberElement) {
+                        title.textContent = 'Work Experience ' + number;
                     }
                     number++;
                 }
             });
+        },
+        applyStylesToElement(el) {
+            el.querySelectorAll('input[type="text"], input[type="date"], select, textarea').forEach(input => {
+                if (!input.classList.contains('w-full')) {
+                    input.className = "w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none";
+                } else {
+                    input.classList.add('h-14', 'text-base', 'rounded-xl', 'px-4.5', 'py-3.5');
+                }
+            });
+        },
+        attachHandlersToElement(el) {
+            const removeBtn = el.querySelector('.remove-work-btn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    this.removeForm(el);
+                });
+            }
+
+            const companyInput = el.querySelector('input[name$="-company"]');
+            const addressInput = el.querySelector('input[name$="-address"]');
+            const positionInput = el.querySelector('input[name$="-position"]');
+
+            const errCompany = el.querySelector('.error-company');
+            const errAddress = el.querySelector('.error-address');
+            const errPosition = el.querySelector('.error-position');
+
+            function hasNumbers(val) {
+                return /\d/.test(val);
+            }
+
+            function validateLettersOnly(val) {
+                const lettersRegex = /^[A-Za-zÑñ\s\-\.]+$/;
+                return lettersRegex.test(val);
+            }
+
+            function countLetters(val) {
+                const lettersOnlyStr = val.replace(/[^A-Za-zÑñ]/g, "");
+                return lettersOnlyStr.length;
+            }
+
+            function setupField(input, errorEl) {
+                if (!input) return;
+                input.addEventListener('input', function() {
+                    if (hasNumbers(this.value)) {
+                        this.value = this.value.replace(/\d/g, "");
+                    }
+                    const val = this.value.trim();
+                    const letterCount = countLetters(val);
+
+                    if (val === "" || (letterCount >= 5 && validateLettersOnly(val))) {
+                        this.classList.remove('border-red-500', 'bg-red-50/50');
+                        if (errorEl) errorEl.classList.add('hidden');
+                    } else {
+                        this.classList.add('border-red-500', 'bg-red-50/50');
+                        if (errorEl) errorEl.classList.remove('hidden');
+                    }
+                });
+            }
+
+            setupField(companyInput, errCompany);
+            setupField(positionInput, errPosition);
+
+            // Map Geocoding Autocomplete for Address Field
+            if (addressInput) {
+                const wrapper = addressInput.closest('.address-field-wrapper');
+                const suggestionsBox = wrapper ? wrapper.querySelector('.suggestions-box') : null;
+                let debounceTimer;
+                let isAddressSelectedFromMap = false;
+
+                addressInput.addEventListener('input', function() {
+                    isAddressSelectedFromMap = false;
+                    const query = this.value.trim();
+                    
+                    if (query.length < 3) {
+                        if (suggestionsBox) suggestionsBox.classList.add('hidden');
+                        return;
+                    }
+
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+                            const data = await response.json();
+                            
+                            if (suggestionsBox) {
+                                suggestionsBox.innerHTML = "";
+                                if (data.length > 0) {
+                                    data.forEach(item => {
+                                        const div = document.createElement("div");
+                                        div.className = "px-4 py-2.5 hover:bg-stone-100 cursor-pointer text-sm text-stone-800 border-b border-stone-100 last:border-b-0";
+                                        div.textContent = item.display_name;
+                                        div.addEventListener("click", () => {
+                                            addressInput.value = item.display_name;
+                                            isAddressSelectedFromMap = true;
+                                            suggestionsBox.classList.add("hidden");
+                                            addressInput.classList.remove("border-red-500", "bg-red-50/50");
+                                            if (errAddress) errAddress.classList.add("hidden");
+                                        });
+                                        suggestionsBox.appendChild(div);
+                                    });
+                                    suggestionsBox.classList.remove("hidden");
+                                } else {
+                                    suggestionsBox.classList.add("hidden");
+                                }
+                            }
+                        } catch (err) {
+                            if (suggestionsBox) suggestionsBox.classList.add("hidden");
+                        }
+                    }, 300);
+                });
+
+                addressInput.addEventListener("blur", function() {
+                    setTimeout(() => {
+                        if (suggestionsBox) suggestionsBox.classList.add("hidden");
+                        if (addressInput.value.trim() !== "" && !isAddressSelectedFromMap) {
+                            addressInput.classList.add("border-red-500", "bg-red-50/50");
+                            if (errAddress) errAddress.classList.remove("hidden");
+                        }
+                    }, 200);
+                });
+            }
+        },
+        attachHandlersToAll() {
+            document.querySelectorAll('.work-experience-item').forEach(item => {
+                this.applyStylesToElement(item);
+                this.attachHandlersToElement(item);
+            });
         }
     };
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('input[name$="-dates"]').forEach(el => {
+        el.type = 'date';
+        el.className = "w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none";
+    });
+
+    const form = document.getElementById("work-exp-form");
+    if (form) {
+        form.addEventListener("submit", function(e) {
+            let isValid = true;
+            document.querySelectorAll('.work-experience-item:not(.hidden)').forEach(item => {
+                const inputs = item.querySelectorAll('input[name$="-company"], input[name$="-position"]');
+                inputs.forEach(input => {
+                    const val = input.value.trim();
+                    const err = item.querySelector('.' + (input.name.includes('company') ? 'error-company' : 'error-position'));
+                    const lettersOnlyStr = val.replace(/[^A-Za-zÑñ]/g, "");
+                    if (val !== "" && (/\d/.test(val) || lettersOnlyStr.length < 5 || !/^[A-Za-zÑñ\s\-\.]+$/.test(val))) {
+                        input.classList.add('border-red-500', 'bg-red-50/50');
+                        if (err) err.classList.remove('hidden');
+                        isValid = false;
+                    }
+                });
+
+                // Check address selection
+                const addressInput = item.querySelector('input[name$="-address"]');
+                const errAddress = item.querySelector('.error-address');
+                if (addressInput && addressInput.value.trim() !== "") {
+                    if (addressInput.classList.contains('border-red-500')) {
+                        isValid = false;
+                    }
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

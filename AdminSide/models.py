@@ -230,7 +230,6 @@ class Jobs(models.Model):
     required_certification = models.CharField(max_length=150, blank=True, null=True)
     languages_spoken = models.CharField(max_length=255, blank=True, null=True)
 
-    # Added default to prevent validation errors on missing POST fields
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     application_quota = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum allowed applicants before automatic closure.")
     
@@ -239,6 +238,37 @@ class Jobs(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # 21st Century Skills Required
+    skill_innovation = models.BooleanField(default=False)
+    skill_team_work = models.BooleanField(default=False)
+    skill_multitasking = models.BooleanField(default=False)
+    skill_work_ethics = models.BooleanField(default=False)
+    skill_self_motivation = models.BooleanField(default=False)
+    skill_creative_problem_solving = models.BooleanField(default=False)
+    skill_problem_solving = models.BooleanField(default=False)
+    skill_critical_thinking = models.BooleanField(default=False)
+    skill_decision_making = models.BooleanField(default=False)
+    skill_stress_tolerance = models.BooleanField(default=False)
+    skill_planning_organizing = models.BooleanField(default=False)
+    skill_social_perceptiveness = models.BooleanField(default=False)
+    skill_english_functional = models.BooleanField(default=False)
+    skill_english_comprehension = models.BooleanField(default=False)
+    skill_math_functional = models.BooleanField(default=False)
+
+    # Technical Skills Required
+    skill_carpentry = models.BooleanField(default=False)
+    skill_masonry = models.BooleanField(default=False)
+    skill_welding = models.BooleanField(default=False)
+    skill_auto_mechanic = models.BooleanField(default=False)
+    skill_plumbing = models.BooleanField(default=False)
+    skill_driving = models.BooleanField(default=False)
+    skill_gardening = models.BooleanField(default=False)
+    skill_tailoring = models.BooleanField(default=False)
+    skill_photography = models.BooleanField(default=False)
+    skill_hairdressing = models.BooleanField(default=False)
+    skill_cooking = models.BooleanField(default=False)
+    skill_baking = models.BooleanField(default=False)
 
     @property
     def formatted_job_id(self):
@@ -246,20 +276,17 @@ class Jobs(models.Model):
 
     @property
     def total_applicants_count(self):
-        """Returns the total number of applicants who applied or were referred."""
         applied = self.applied_applicants.count()
         offered = self.offered_to_applicants.count()
         return applied + offered
 
     @property
     def is_expired(self):
-        """Checks whether the job posting has past its expiry date."""
         if self.job_posting_expiry:
             return timezone.localdate() >= self.job_posting_expiry
         return False
 
     def check_and_close(self):
-        """Evaluates quota or expiry and automatically updates status to 'Closed'."""
         today = timezone.localdate()
         total_applications = self.applied_applicants.count()
         quota_reached = self.application_quota is not None and total_applications >= self.application_quota
@@ -271,6 +298,15 @@ class Jobs(models.Model):
 
     def __str__(self):
         return f"{self.job_title} - {self.employer.business_name}"
+
+
+class JobSkills(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True, blank=True, null=True)
+    job = models.ForeignKey(Jobs, on_delete=models.CASCADE, related_name='custom_skills')
+    skill_name = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.skill_name or "Unnamed Skill"
         
 class ApplicantSkills(models.Model):
 
@@ -921,57 +957,35 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"To {self.recipient.username} - {self.title}"
-
+    
 class AuditLog(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
     action = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
+
+    def __str__(self):
+        return f"{self.action} - {self.user} ({self.timestamp})"
+
+class ProfileChangeLog(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='profile_change_logs')
+    field_name = models.CharField(max_length=100)
+    old_value = models.TextField(blank=True, null=True)
+    new_value = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-timestamp']
+        verbose_name = "Profile Change Log"
+        verbose_name_plural = "Profile Change Logs"
 
     def __str__(self):
-        return f"{self.user.email if self.user else 'Unknown user'} - {self.action} - {self.timestamp}"
-
-
-class ProfileChangeLog(models.Model):
-    applicant = models.ForeignKey(
-        ApplicantProfile,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='change_logs',
-    )
-    employer = models.ForeignKey(
-        EmployerProfile,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='change_logs',
-    )
-    changed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='profile_change_logs',
-    )
-    changes = models.JSONField(default=dict)
-    created_at = models.DateTimeField(auto_now_add=True)
-    reviewed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='reviewed_profile_change_logs',
-    )
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        profile = self.applicant or self.employer
-        return f'Profile changes for {profile} at {self.created_at}'
+        return f"{self.user} changed {self.field_name} at {self.timestamp}"
