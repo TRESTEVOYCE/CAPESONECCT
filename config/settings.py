@@ -201,7 +201,7 @@ HONEYPOT_FIELD_NAME = "bisan_ano"
 HONEYPOT_VALUE = ""
 
 
-if DEBUG == False:
+if DEBUG == True:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
