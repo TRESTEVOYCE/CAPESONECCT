@@ -105,7 +105,7 @@
                         <div class="sr-only">
                             {{ form.applicant_id_picture_front }}
                         </div>
-                        <label for="{{ form.applicant_id_picture.id_for_label }}" class="absolute inset-0 z-20 cursor-pointer" aria-label="Choose front ID picture"></label>
+                        <label for="{{ form.applicant_id_picture_front.id_for_label }}" class="absolute inset-0 z-20 cursor-pointer" aria-label="Choose front ID picture"></label>
                     </div>
                 </div>
 
@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const fileRules = [
         {
-            id: '{{ form.applicant_id_picture.id_for_label }}',
+            id: '{{ form.applicant_id_picture_front.id_for_label }}',
             state: 'applicantIdFrontName',
             extensions: ['jpg', 'jpeg', 'png'],
             label: 'Front ID picture'
