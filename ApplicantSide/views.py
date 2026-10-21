@@ -612,6 +612,16 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
     def get_success_url(self):
         return reverse_lazy('applicant-dashboard')
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        
+        # CRITICAL FIX: Pass request.FILES so Cloudinary receives the uploaded files
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
     def form_valid(self, form):
         changes = capture_profile_changes(form.instance)
         profile = form.save()
