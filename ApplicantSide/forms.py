@@ -491,11 +491,13 @@ ApplicantSkillFormSet = forms.modelformset_factory(
 class ApplicantDocumentsForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
-        fields = ['applicant_id_picture_front', 'applicant_id_picture_back', 'certification_agree', 'resume_file', 'supporting_doc']
+        fields = ['valid_id_type','applicant_id_picture_front', 'applicant_id_picture_back', 'certification_agree', 'resume_file', 'supporting_doc']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
+        
+        
 
 
 class ProfilePictureForm(forms.ModelForm):
@@ -525,3 +527,5 @@ class UpdateUsernameForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username']
+        
+

@@ -417,13 +417,21 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
         return reverse_lazy('applicant-work-experience')
 
     def form_valid(self, form):
+        profile = form.save(commit=False)
+        
+        # Capture dynamic occupations from POST array
+        occupations = self.request.POST.getlist('pref_occupation[]')
+        profile.pref_occupation_1 = occupations[0] if len(occupations) > 0 else ''
+        profile.pref_occupation_2 = occupations[1] if len(occupations) > 1 else ''
+        profile.pref_occupation_3 = occupations[2] if len(occupations) > 2 else ''
+        
         changes = capture_profile_changes(
-            form.instance,
+            profile,
             many_to_many_values={
                 'preferred_job': form.cleaned_data.get('preferred_job', []),
             },
         )
-        profile = form.save()
+        profile.save()
         record_profile_changes(profile, self.request.user, changes)
         _mark_applicant_for_reverification(
             self.request,
@@ -1077,29 +1085,24 @@ class EditProfilePictureView(ApplicantRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 class ViewProfileView(ApplicantRequiredMixin, UpdateView):
-  model = ApplicantProfile
-  form_class = ProfilePictureForm
-  template_name = 'view_profile.html'
+    model = User
+    form_class = ProfilePictureForm
+    template_name = 'view_profile.html'
+    success_url = reverse_lazy('view_profile')
 
-  def get_object(self, queryset=None):
-    profile, created = ApplicantProfile.objects.get_or_create(
-        user=self.request.user
-    )
-    return profile
+    def get_object(self, queryset=None):
+        return self.request.user
 
-  def get_success_url(self):
-    return reverse_lazy('view_profile')
+    def form_valid(self, form):
+        messages.success(self.request, 'Profile picture updated successfully.')
+        return super().form_valid(form)
 
-  def form_valid(self, form):
-    messages.success(self.request, 'Profile picture updated successfully.')
-    return super().form_valid(form)
-
-  def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    profile = self.get_object()
-    context['profile'] = profile
-    context['applicant_profile'] = profile
-    return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        context['profile'] = profile
+        context['applicant_profile'] = profile
+        return context
 
 
 class MyProfileView(ApplicantRequiredMixin, TemplateView):

@@ -365,6 +365,7 @@ class ApplicantProfile(models.Model):
     ]
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    valid_id_type = models.CharField(max_length=100, blank=True, null=True)
 
     user = models.OneToOneField(
         User,
