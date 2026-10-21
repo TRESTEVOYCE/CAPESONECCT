@@ -439,8 +439,15 @@
 
                 <div class="space-y-3">
                     <div>
-                        <span class="text-stone-400">Preferred Occupation (1):</span>
-                        <p class="font-semibold text-stone-900 mt-1 break-words">{{ profile.pref_occupation_1|default:"Not specified" }}</p>
+                        <span class="text-stone-400">Preferred Occupations:</span>
+                        <div class="flex flex-wrap gap-1.5 mt-1">
+                            {% if profile.pref_occupation_1 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_1 }}</span>{% endif %}
+                            {% if profile.pref_occupation_2 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_2 }}</span>{% endif %}
+                            {% if profile.pref_occupation_3 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_3 }}</span>{% endif %}
+                            {% if not profile.pref_occupation_1 and not profile.pref_occupation_2 and not profile.pref_occupation_3 %}
+                                <p class="font-semibold text-stone-900">Not specified</p>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div>
