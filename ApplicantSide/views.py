@@ -383,9 +383,42 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
         return reverse_lazy('applicant-preferred-job')
 
     def form_valid(self, form):
-        changes = capture_profile_changes(form.instance)
-        profile = form.save()
+        profile = form.save(commit=False)
+
+        # Extract multi-entry array fields from step_4_training_2.html
+        titles = self.request.POST.getlist('training_title[]')
+        hours = self.request.POST.getlist('training_hours[]')
+        institutions = self.request.POST.getlist('training_institution[]')
+        dates = self.request.POST.getlist('training_date[]')
+
+        # Map entry 1
+        if len(titles) > 0 and titles[0].strip():
+            profile.training_title_1 = titles[0].strip()
+            profile.training_hours_1 = int(hours[0]) if len(hours) > 0 and hours[0].isdigit() else None
+            profile.training_institution_1 = institutions[0].strip() if len(institutions) > 0 else ''
+            profile.training_date_1 = dates[0] if len(dates) > 0 and dates[0] else None
+        else:
+            profile.training_title_1 = ''
+            profile.training_hours_1 = None
+            profile.training_institution_1 = ''
+            profile.training_date_1 = None
+
+        # Map entry 2
+        if len(titles) > 1 and titles[1].strip():
+            profile.training_title_2 = titles[1].strip()
+            profile.training_hours_2 = int(hours[1]) if len(hours) > 1 and hours[1].isdigit() else None
+            profile.training_institution_2 = institutions[1].strip() if len(institutions) > 1 else ''
+            profile.training_date_2 = dates[1] if len(dates) > 1 and dates[1] else None
+        else:
+            profile.training_title_2 = ''
+            profile.training_hours_2 = None
+            profile.training_institution_2 = ''
+            profile.training_date_2 = None
+
+        changes = capture_profile_changes(profile)
+        profile.save()
         record_profile_changes(profile, self.request.user, changes)
+
         _stamp_uploaded_profile_proofs(
             profile,
             {

@@ -264,21 +264,19 @@
                     </span>
                 </div>
 
-
-<!--  Permanent Address -->
-<div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
-    <span class="block text-stone-400 font-medium">Permanent Address</span>
-    <span class="text-stone-900 font-semibold mt-1.5 block break-words leading-relaxed">
-        {% if profile.house_street or profile.barangay %}
-            {{ profile.house_street|default:"" }}{% if profile.house_street and profile.barangay %}, {% endif %}
-            {{ profile.barangay|default:"" }}{% if profile.barangay and profile.municipality %}, {% endif %}
-            {{ profile.municipality|default:"" }}{% if profile.municipality and profile.province %}, {% endif %}
-            {{ profile.province|default:"" }} {{ profile.zip_code|default:"" }}
-        {% else %}
-            Not specified
-        {% endif %}
-    </span>
-</div>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
+                    <span class="block text-stone-400 font-medium">Permanent Address</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words leading-relaxed">
+                        {% if profile.house_street or profile.barangay %}
+                            {{ profile.house_street|default:"" }}{% if profile.house_street and profile.barangay %}, {% endif %}
+                            {{ profile.barangay|default:"" }}{% if profile.barangay and profile.municipality %}, {% endif %}
+                            {{ profile.municipality|default:"" }}{% if profile.municipality and profile.province %}, {% endif %}
+                            {{ profile.province|default:"" }} {{ profile.zip_code|default:"" }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </span>
+                </div>
 
                 <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
                     <span class="block text-stone-400 font-medium">Primary Mobile</span>
@@ -369,28 +367,56 @@
                 </a>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="space-y-4">
+                <!-- Training Entry 1 -->
+                {% if profile.training_title_1 %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Title (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_title_1 }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Hours (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{% if profile.training_hours_1 %}{{ profile.training_hours_1 }} hours{% else %}Not specified{% endif %}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Institution (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_institution_1|default:"Not specified" }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Date (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_date_1|default:"Not specified" }}</strong>
+                        </div>
+                    </div>
+                {% endif %}
 
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Training Title (1)</span>
-                    <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_title_1|default:"No training provided" }}</strong>
-                </div>
+                <!-- Training Entry 2 -->
+                {% if profile.training_title_2 %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Title (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_title_2 }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Hours (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{% if profile.training_hours_2 %}{{ profile.training_hours_2 }} hours{% else %}Not specified{% endif %}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Institution (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_institution_2|default:"Not specified" }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Date (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_date_2|default:"Not specified" }}</strong>
+                        </div>
+                    </div>
+                {% endif %}
 
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Training Hours (1)</span>
-                    <strong class="block mt-1.5 text-stone-900 break-words">{% if profile.training_hours_1 %}{{ profile.training_hours_1 }} hours{% else %}Not specified{% endif %}</strong>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Institution (1)</span>
-                    <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_institution_1|default:"Not specified" }}</strong>
-                </div>
-
-                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                    <span class="block text-stone-400 font-medium">Training Date (1)</span>
-                    <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_date_1|date:"F d, Y"|default:"Not specified" }}</strong>
-                </div>
-
+                {% if not profile.training_title_1 and not profile.training_title_2 %}
+                    <div class="p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50 text-xs text-stone-500 font-medium">
+                        No training or eligibility records provided.
+                    </div>
+                {% endif %}
             </div>
         </section>
 
@@ -464,9 +490,46 @@
                     <h3 class="font-semibold text-stone-700">Competencies &amp; Skills</h3>
 
                     <div class="flex flex-wrap gap-2">
+                        <!-- Custom Skill Formset Entries -->
                         {% for skill in profile.skills.all %}
-                            <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 break-words">{{ skill.skill_name }}</span>
+                            <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 break-words font-medium">{{ skill.skill_name }}</span>
                         {% endfor %}
+
+                        <!-- 21st Century Skills Booleans -->
+                        {% if profile.skill_innovation %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Innovation</span>{% endif %}
+                        {% if profile.skill_team_work %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Team Work</span>{% endif %}
+                        {% if profile.skill_multitasking %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Multitasking</span>{% endif %}
+                        {% if profile.skill_work_ethics %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Work Ethics</span>{% endif %}
+                        {% if profile.skill_self_motivation %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Self-Motivation</span>{% endif %}
+                        {% if profile.skill_creative_problem_solving %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Creative Problem Solving</span>{% endif %}
+                        {% if profile.skill_problem_solving %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Problem Solving</span>{% endif %}
+                        {% if profile.skill_critical_thinking %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Critical Thinking</span>{% endif %}
+                        {% if profile.skill_decision_making %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Decision Making</span>{% endif %}
+                        {% if profile.skill_stress_tolerance %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Stress Tolerance</span>{% endif %}
+                        {% if profile.skill_planning_organizing %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Planning & Organizing</span>{% endif %}
+                        {% if profile.skill_social_perceptiveness %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Social Perceptiveness</span>{% endif %}
+                        {% if profile.skill_english_functional %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">English Functional</span>{% endif %}
+                        {% if profile.skill_english_comprehension %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">English Comprehension</span>{% endif %}
+                        {% if profile.skill_math_functional %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Math Functional</span>{% endif %}
+
+                        <!-- Technical Skills Booleans -->
+                        {% if profile.skill_carpentry %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Carpentry</span>{% endif %}
+                        {% if profile.skill_masonry %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Masonry</span>{% endif %}
+                        {% if profile.skill_welding %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Welding</span>{% endif %}
+                        {% if profile.skill_auto_mechanic %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Auto Mechanic</span>{% endif %}
+                        {% if profile.skill_plumbing %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Plumbing</span>{% endif %}
+                        {% if profile.skill_driving %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Driving</span>{% endif %}
+                        {% if profile.skill_gardening %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Gardening</span>{% endif %}
+                        {% if profile.skill_tailoring %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Tailoring</span>{% endif %}
+                        {% if profile.skill_photography %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Photography</span>{% endif %}
+                        {% if profile.skill_hairdressing %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Hairdressing</span>{% endif %}
+                        {% if profile.skill_cooking %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Cooking</span>{% endif %}
+                        {% if profile.skill_baking %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Baking</span>{% endif %}
+
+                        <!-- Other Skills Field -->
+                        {% if profile.other_skills %}
+                            <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">{{ profile.other_skills }}</span>
+                        {% endif %}
                     </div>
                 </div>
 
