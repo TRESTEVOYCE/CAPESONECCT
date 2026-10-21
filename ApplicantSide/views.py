@@ -671,26 +671,41 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         context['applicant_profile'] = applicant_profile
 
+      
         matching_list = []
+
         if applicant_profile:
+            # Initialize matching_jobs before checking the applicant's status
+            matching_jobs = Jobs.objects.filter(
+                status='Active',
+                employer__verification_status='verified',
+            )
+
             if applicant_profile.status == 'approved':
-                applicant_profile_text = build_applicant_profile_text(applicant_profile)
+                applicant_profile_text = build_applicant_profile_text(
+                    applicant_profile
+                )
+
                 collection = get_job_collection()
-                results = collection.query(query_texts=[applicant_profile_text], n_results=10)
+                results = collection.query(
+                    query_texts=[applicant_profile_text],
+                    n_results=10,
+                )
 
                 job_uuids = [
-                    metadata['job_uuid'] for metadata in results['metadatas'][0]
+                    metadata['job_uuid']
+                    for metadata in results['metadatas'][0]
                     if metadata and 'job_uuid' in metadata
                 ]
 
-                matching_jobs = Jobs.objects.filter(
+                recommended_jobs = Jobs.objects.filter(
                     uuid__in=job_uuids,
                     status='Active',
                     employer__verification_status='verified',
                 )
 
-            if not matching_jobs.exists():
-                matching_jobs = Jobs.objects.filter(status='Active')
+                if recommended_jobs.exists():
+                    matching_jobs = recommended_jobs
 
             for job in matching_jobs:
                 if job.pk:
@@ -700,10 +715,11 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                         'edu_score': 100,
                         'exp_score': 85,
                         'skills_score': 80,
-                        'certs_score': 50
+                        'certs_score': 50,
                     })
 
             context['matching_jobs'] = matching_list
+
 
             applications = AppliedJobs.objects.filter(applicant=applicant_profile)
             context['application_count'] = applications.count()
