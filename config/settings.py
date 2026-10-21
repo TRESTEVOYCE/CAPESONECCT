@@ -9,6 +9,7 @@ import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
 from datetime import timedelta
+import dj_database_url
 
 load_dotenv()
 
@@ -83,12 +84,12 @@ ROOT_URLCONF = 'config.urls'
 # Database Configuration (Single source of truth)
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
+        ssl_require=True,
     )
 }
-
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
