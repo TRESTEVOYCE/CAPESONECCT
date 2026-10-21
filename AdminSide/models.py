@@ -978,15 +978,40 @@ class AuditLog(models.Model):
 class ProfileChangeLog(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='profile_change_logs')
-    field_name = models.CharField(max_length=100)
+    field_name = models.CharField(max_length=100, blank=True, default='')
     old_value = models.TextField(blank=True, null=True)
     new_value = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='profile_change_logs',
+    )
+    employer = models.ForeignKey(
+        EmployerProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='profile_change_logs',
+    )
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='changed_profile_logs',
+    )
+    changes = models.JSONField(default=dict, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['-created_at']
         verbose_name = "Profile Change Log"
         verbose_name_plural = "Profile Change Logs"
 
     def __str__(self):
-        return f"{self.user} changed {self.field_name} at {self.timestamp}"
+        actor = self.changed_by or self.user
+        return f"{actor} changed {self.field_name} at {self.created_at}"
