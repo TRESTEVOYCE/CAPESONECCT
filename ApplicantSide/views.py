@@ -443,7 +443,7 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
 class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
     form_class = ApplicantPreferredJobForm
-    template_name = 'step_5_job_pref.html' # Or 'step_5_job_pref_2.html' matching your file name
+    template_name = 'step_5_job_pref.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
@@ -457,18 +457,11 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
     def form_valid(self, form):
         profile = form.save(commit=False)
         
-        # Capture dynamic occupations and industries from POST arrays
         occupations = [occ.strip() for occ in self.request.POST.getlist('pref_occupation[]') if occ and occ.strip()]
-        industries = [ind.strip() for ind in self.request.POST.getlist('pref_industry[]') if ind and ind.strip()]
         
         profile.pref_occupation_1 = occupations[0] if len(occupations) > 0 else ''
         profile.pref_occupation_2 = occupations[1] if len(occupations) > 1 else ''
         profile.pref_occupation_3 = occupations[2] if len(occupations) > 2 else ''
-        
-        # If your model supports storing industries, map them here as well:
-        # profile.pref_industry_1 = industries[0] if len(industries) > 0 else ''
-        # profile.pref_industry_2 = industries[1] if len(industries) > 1 else ''
-        # profile.pref_industry_3 = industries[2] if len(industries) > 2 else ''
 
         changes = capture_profile_changes(
             profile,
@@ -485,8 +478,11 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
         )
         
         if profile.status == 'approved':
-            matches = query_matching_jobs(applicant=profile, total_results=10)
-            self.request.session['job_matches'] = matches['ids']
+            try:
+                matches = query_matching_jobs(applicant=profile, total_results=10)
+                self.request.session['job_matches'] = matches.get('ids', [])
+            except Exception:
+                self.request.session.pop('job_matches', None)
         else:
             self.request.session.pop('job_matches', None)
             
@@ -646,8 +642,11 @@ class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Use
                 ) else ApplicantProfile,
             )
             if profile.status == 'approved':
-                matches = query_matching_jobs(applicant=profile, total_results=10)
-                request.session['job_matches'] = matches['ids']
+                try:
+                    matches = query_matching_jobs(applicant=profile, total_results=10)
+                    request.session['job_matches'] = matches.get('ids', [])
+                except Exception:
+                    request.session.pop('job_matches', None)
             else:
                 request.session.pop('job_matches', None)
             messages.success(request, 'Skills information saved successfully.')
@@ -671,7 +670,6 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
         form = self.form_class(request.POST, request.FILES, instance=self.object)
         
         if form.is_valid():
@@ -688,7 +686,7 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
             profile,
             form.changed_data,
         )
-        messages.success(self.request, 'Documents submitted successfully.')
+        messages.success(request, 'Documents submitted successfully.')
         return redirect(self.get_success_url())
 
 
@@ -773,30 +771,31 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             )
 
             if applicant_profile.status == 'approved':
-                applicant_profile_text = build_applicant_profile_text(
-                    applicant_profile
-                )
+                try:
+                    applicant_profile_text = build_applicant_profile_text(applicant_profile)
+                    collection = get_job_collection()
+                    results = collection.query(
+                        query_texts=[applicant_profile_text],
+                        n_results=10,
+                    )
 
-                collection = get_job_collection()
-                results = collection.query(
-                    query_texts=[applicant_profile_text],
-                    n_results=10,
-                )
+                    job_uuids = [
+                        metadata['job_uuid']
+                        for metadata in results.get('metadatas', [[]])[0]
+                        if metadata and 'job_uuid' in metadata
+                    ]
 
-                job_uuids = [
-                    metadata['job_uuid']
-                    for metadata in results['metadatas'][0]
-                    if metadata and 'job_uuid' in metadata
-                ]
+                    recommended_jobs = Jobs.objects.filter(
+                        uuid__in=job_uuids,
+                        status='Active',
+                        employer__verification_status='verified',
+                    )
 
-                recommended_jobs = Jobs.objects.filter(
-                    uuid__in=job_uuids,
-                    status='Active',
-                    employer__verification_status='verified',
-                )
-
-                if recommended_jobs.exists():
-                    matching_jobs = recommended_jobs
+                    if recommended_jobs.exists():
+                        matching_jobs = recommended_jobs
+                except Exception:
+                    # Fallback gracefully if vector DB fails/times out
+                    pass
 
             for job in matching_jobs:
                 if job.pk:
@@ -906,22 +905,25 @@ class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             if applicant_profile.status != 'approved':
                 context['matching_jobs'] = Jobs.objects.none()
             else:
-                applicant_text = build_applicant_profile_text(applicant_profile)
-                collection = get_job_collection()
-                results = collection.query(query_texts=[applicant_text], n_results=10)
-                job_uuids = []
+                try:
+                    applicant_text = build_applicant_profile_text(applicant_profile)
+                    collection = get_job_collection()
+                    results = collection.query(query_texts=[applicant_text], n_results=10)
+                    job_uuids = []
 
-                if results.get('metadatas'):
-                    job_uuids = [
-                        metadata['job_uuid'] for metadata in results['metadatas'][0]
-                        if metadata and 'job_uuid' in metadata
-                    ]
+                    if results.get('metadatas'):
+                        job_uuids = [
+                            metadata['job_uuid'] for metadata in results['metadatas'][0]
+                            if metadata and 'job_uuid' in metadata
+                        ]
 
-                matching_jobs = available_jobs.filter(uuid__in=job_uuids)
+                    matching_jobs = available_jobs.filter(uuid__in=job_uuids)
 
-                if matching_jobs.exists():
-                    context['matching_jobs'] = matching_jobs
-                else:
+                    if matching_jobs.exists():
+                        context['matching_jobs'] = matching_jobs
+                    else:
+                        context['matching_jobs'] = available_jobs
+                except Exception:
                     context['matching_jobs'] = available_jobs
         else:
             context['matching_jobs'] = available_jobs
@@ -1170,10 +1172,6 @@ class MyProfileView(ApplicantRequiredMixin, TemplateView):
         return context
 
 
-# ==========================================
-# SETTINGS & SECURE ACCOUNT MANAGEMENT VIEWS
-# ==========================================
-
 class SettingsView(ApplicantRequiredMixin, TemplateView):
     template_name = 'settings.html'
 
@@ -1296,13 +1294,16 @@ def send_password_otp_view(request):
     request.session['password_otp'] = otp
     request.session['otp_verified'] = False
 
-    send_mail(
-        subject='Password Change Verification Code — CAPESONNECT',
-        message=f'Your security verification code to change your password is: {otp}. This code expires shortly.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[request.user.email],
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject='Password Change Verification Code — CAPESONNECT',
+            message=f'Your security verification code to change your password is: {otp}. This code expires shortly.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[request.user.email],
+            fail_silently=False,
+        )
+    except Exception:
+        pass
     
     return redirect('verify-password-otp')
 
@@ -1381,10 +1382,6 @@ class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, Delete
     def get_object(self, queryset=None):
         return ApplicantProfile.objects.get(user=self.request.user)
 
-
-# ==========================================
-# HELP & SUPPORT API / VIEW
-# ==========================================
 
 @login_required
 def send_applicant_support_message_api(request):
