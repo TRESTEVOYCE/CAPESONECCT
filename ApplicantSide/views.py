@@ -187,7 +187,7 @@ class ApplicantNotificationHeaderApiView(ApplicantNotificationAccessMixin, View)
                     'target_url': notification.target_url or '#',
                     'created_at': notification.created_at.strftime('%b %d, %Y %I:%M %p'),
                     'is_read': notification.is_read,
-                    'read_url': reverse('applicant-notification-read', args=[notification.id]),
+                    'read_url': reverse('applicant-notification-read', kwargs={'notification_id': notification.id}),
                 }
                 for notification in latest_notifications
             ],
@@ -335,7 +335,7 @@ class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-training')
@@ -384,7 +384,7 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, U
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-preferred-job')
@@ -449,7 +449,7 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-work-experience')
@@ -497,7 +497,7 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -565,7 +565,7 @@ class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, Use
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
@@ -663,7 +663,7 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
     def get_success_url(self):
         return reverse_lazy('applicant-dashboard')
@@ -686,7 +686,7 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
             profile,
             form.changed_data,
         )
-        messages.success(request, 'Documents submitted successfully.')
+        messages.success(self.request, 'Documents submitted successfully.')
         return redirect(self.get_success_url())
 
 
@@ -730,7 +730,7 @@ class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, Delete
         return self.request.user.is_authenticated and self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
+        return get_object_or_404(ApplicantProfile, user=self.request.user)
 
 
 class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
@@ -976,18 +976,17 @@ class AppliedJobsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_authenticated and getattr(self.request.user, 'role', None) == 'applicant'
 
     def get_queryset(self):
-        try:
-            applicant_profile = self.request.user.applicant_profile
-        except ApplicantProfile.DoesNotExist:
+        applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+        if not applicant_profile:
             return AppliedJobs.objects.none()
         return AppliedJobs.objects.filter(applicant=applicant_profile)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         applications = self.get_queryset()
-        applicant_profile = self.request.user.applicant_profile
+        applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
         context['applied_count'] = applications.count()
-        context['endorsed_count'] = OfferedJobs.objects.filter(applicant=applicant_profile).count()
+        context['endorsed_count'] = OfferedJobs.objects.filter(applicant=applicant_profile).count() if applicant_profile else 0
         context['interviewed_count'] = applications.filter(status='for interview').count()
         context['hired_count'] = applications.filter(status='hired').count()
         return context
@@ -1081,7 +1080,7 @@ class ApplyJobView(LoginRequiredMixin, UserPassesTestMixin, View):
         AuditLog.objects.create(
             user=request.user,
             action='Job Application Submitted',
-            description=f"{request.user.email} applied for the job '{job.job_title}'."
+            details=f"{request.user.email} applied for the job '{job.job_title}'."
         )
 
         messages.success(request, 'Your application has been submitted successfully.')
@@ -1370,17 +1369,6 @@ class UpdateUsernameView(ApplicantRequiredMixin, UpdateView):
             )
         messages.success(self.request, 'Username updated successfully.')
         return response
-
-
-class ApplicantProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = ApplicantProfile
-    success_url = reverse_lazy('login')
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.role == 'applicant'
-
-    def get_object(self, queryset=None):
-        return ApplicantProfile.objects.get(user=self.request.user)
 
 
 @login_required
