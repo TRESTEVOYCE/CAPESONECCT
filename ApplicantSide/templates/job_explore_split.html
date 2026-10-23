@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <!-- Tailwind CSS CDN (skip if already loaded in base.html) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 text-slate-800 antialiased" x-data="jobExploreSplit({{ jobs|safe }})">
+
+    <!-- Sub-header minimal -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-sm font-medium text-slate-600">Split Explorer</span>
+            </div>
+            <div>
+                <a href="{% url 'applied_jobs' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">My Applications →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Messages Toast / Alert Area -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl text-sm mb-2 {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200{% else %}bg-rose-50 text-rose-800 border border-rose-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Split View Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-10rem)]">
+            
+            <!-- LEFT PANE: Job List Feed (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <!-- Search / Filter bar inside pane -->
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                    <form method="GET" action="{% url 'job_explore_split' %}" class="relative">
+                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
+                               placeholder="Search title, company..." 
+                               class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 bg-white">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </form>
+                </div>
+
+                <!-- Scrollable list -->
+                <div class="flex-1 overflow-y-auto divide-y divide-slate-100">
+                    {% for job in jobs %}
+                    <div @click="selectedJob = {{ job.pk }}" 
+                         :class="selectedJob === {{ job.pk }} ? 'bg-indigo-50/60 border-l-4 border-indigo-600' : 'hover:bg-slate-50 border-l-4 border-transparent'"
+                         class="p-4 cursor-pointer transition-colors">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-semibold text-slate-900 text-sm">{{ job.job_title }}</h3>
+                            <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">₱{{ job.salary }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-2">{{ job.employer.business_name }} • {{ job.place_of_work }}</p>
+                        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+                            <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600">{{ job.get_nature_of_work_display }}</span>
+                            <span>• Exp: {{ job.work_experience_months }} mos</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center text-slate-400 text-sm">
+                        No active jobs available right now.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- RIGHT PANE: Sticky Job Details Preview (7 cols) -->
+            <div class="lg:col-span-7 flex flex-col h-full overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <template x-if="activeJobData">
+                    <div class="flex flex-col h-full overflow-y-auto p-6">
+                        <!-- Header details -->
+                        <div class="pb-4 border-b border-slate-100 flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider" x-text="activeJobData.company"></span>
+                                <h2 class="text-xl font-bold text-slate-900 mt-1" x-text="activeJobData.title"></h2>
+                                <p class="text-sm text-slate-500 mt-0.5" x-text="activeJobData.location"></p>
+                            </div>
+                            <button @click="openApplyModal(activeJobData)" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-sm transition-all">
+                                Quick Apply
+                            </button>
+                        </div>
+
+                        <!-- Metadata Badges -->
+                        <div class="grid grid-cols-3 gap-3 my-4 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+                            <div>
+                                <span class="text-slate-400 block">Salary Offers</span>
+                                <span class="font-semibold text-slate-700" x-text="'₱' + activeJobData.salary"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Nature of Work</span>
+                                <span class="font-semibold text-slate-700 capitalize" x-text="activeJobData.nature"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Req. Experience</span>
+                                <span class="font-semibold text-slate-700" x-text="activeJobData.exp + ' months'"></span>
+                            </div>
+                        </div>
+
+                        <!-- Description & Qualifications -->
+                        <div class="space-y-4 text-sm text-slate-600 flex-1">
+                            <div>
+                                <h4 class="font-semibold text-slate-900 mb-1">Job Description</h4>
+                                <p class="whitespace-pre-line leading-relaxed" x-text="activeJobData.description"></p>
+                            </div>
+                            <template x-if="activeJobData.qualifications">
+                                <div>
+                                    <h4 class="font-semibold text-slate-900 mb-1">Other Qualifications</h4>
+                                    <p class="whitespace-pre-line leading-relaxed" x-text="activeJobData.qualifications"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Footer Action Bar inside preview -->
+                        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-xs text-slate-400" x-text="'Job ID: ' + activeJobData.formatted_id"></span>
+                            <button @click="openApplyModal(activeJobData)" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-6 py-2.5 rounded-xl shadow-sm">
+                                Apply for this Position
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Empty State if no job selected / no jobs list -->
+                <template x-if="!activeJobData">
+                    <div class="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+                        <svg class="w-12 h-12 mb-3 stroke-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <p class="text-sm font-medium">Select a job from the left list to view complete details.</p>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Quick Apply Modal -->
+    <div x-show="applyModalOpen" style="display: none;" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div @click.away="applyModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Application</h3>
+            <p class="text-xs text-slate-500 mb-4" x-text="'Applying for ' + (applyJobData ? applyJobData.title : '')"></p>
+            
+            <form :action="applyUrlTemplate.replace('__UUID__', applyJobData ? applyJobData.uuid : '')" method="POST">
+                {% csrf_token %}
+                <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5 mb-5 text-xs text-indigo-900">
+                    Your profile credentials (<span class="font-semibold">{{ request.user.applicant_profile.first_name|default:'Applicant' }}</span>) and uploaded resume will be submitted to the employer.
+                </div>
+                
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" @click="applyModalOpen = false" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function jobExploreSplit(jobsList) {
+        const parsedJobs = [
+            {% for job in jobs %}
+            {
+                pk: {{ job.pk }},
+                uuid: "{{ job.uuid }}",
+                title: "{{ job.job_title|escapejs }}",
+                company: "{{ job.employer.business_name|escapejs }}",
+                location: "{{ job.place_of_work|escapejs }}",
+                salary: "{{ job.salary }}",
+                nature: "{{ job.get_nature_of_work_display|escapejs }}",
+                exp: {{ job.work_experience_months }},
+                description: "{{ job.job_description|escapejs }}",
+                qualifications: "{{ job.other_qualifications|default:''|escapejs }}",
+                formatted_id: "{{ job.formatted_id }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        return {
+            jobs: parsedJobs,
+            selectedJob: parsedJobs.length > 0 ? parsedJobs[0].pk : null,
+            applyModalOpen: false,
+            applyJobData: null,
+            applyUrlTemplate: "{% url 'apply_job' uuid='__UUID__' %}",
+
+            get activeJobData() {
+                return this.jobs.find(j => j.pk === this.selectedJob) || null;
+            },
+
+            openApplyModal(job) {
+                this.applyJobData = job;
+                this.applyModalOpen = true;
+            }
+        }
+    }
+</script>
+{% endblock %}

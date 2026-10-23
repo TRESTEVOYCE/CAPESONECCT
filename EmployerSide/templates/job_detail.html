@@ -1,273 +1,130 @@
-{% extends 'employer-base.html' %}
-{% block title %}{{ job.job_title }} — CAPESONNECT{% endblock %}
+{% extends "applicant-base.html" %}
+
+{% block title %}Job Details - PESO Connect{% endblock %}
 {% block content %}
-
-<div class="max-w-[1400px] w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans space-y-6">
-
-    <!-- Header Card -->
-    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="space-y-1.5">
-                <div class="flex flex-wrap items-center gap-3">
-                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
-                        {{ job.job_title }}
-                    </h1>
-
-                    {% if job.status == 'Active' %}
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
-                    {% elif job.status == 'Filled' %}
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">Filled</span>
-                    {% elif job.status == 'Closed' %}
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 border border-rose-200">Closed</span>
-                    {% endif %}
-                </div>
-
-                <p class="text-xs font-medium text-stone-500">
-                    Job ID: {{ job.formatted_job_id }}
-                </p>
-            </div>
-
-            <!-- Header Edit Button -->
-            <div class="flex items-center gap-2">
-                <a href="{% url 'job-update' pk=job.pk %}"
-                   class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold shadow-md transition-all active:scale-[0.98]">
-                    Edit Posting
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overview Card -->
-    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-5">
-        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">
-            Job Overview
-        </h2>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-xs">
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
             <div>
-                <p class="text-stone-400 font-medium">Nature of Work</p>
-                <p class="text-stone-900 font-semibold mt-0.5">{{ job.get_nature_of_work_display }}</p>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ job.nature_of_work|title }}</span>
+                <h1 class="text-2xl font-bold text-slate-900 mt-3">{{ job.job_title }}</h1>
+                <p class="text-sm text-slate-500 mt-1">{{ job.employer.business_name }} • {{ job.place_of_work }}</p>
             </div>
-
-            <div>
-                <p class="text-stone-400 font-medium">Place of Work</p>
-                <p class="text-stone-900 font-semibold mt-0.5">{{ job.place_of_work }}</p>
-            </div>
-
-            <div>
-                <p class="text-stone-400 font-medium">Salary</p>
-                <p class="text-stone-900 font-semibold mt-0.5">₱{{ job.salary|floatformat:2 }}</p>
-            </div>
-
-            <div>
-                <p class="text-stone-400 font-medium">Vacancies</p>
-                <p class="text-stone-900 font-semibold mt-0.5">{{ job.vacancy }}</p>
-            </div>
-
-            <div>
-                <p class="text-stone-400 font-medium">Experience Required</p>
-                <p class="text-stone-900 font-semibold mt-0.5">{{ job.work_experience_months }} months</p>
-            </div>
-
-            <div>
-                <p class="text-stone-400 font-medium">Application Quota</p>
-                <p class="text-stone-900 font-semibold mt-0.5">
-                    {% if job.application_quota %}
-                        {{ job.application_quota }} applicants
-                    {% else %}
-                        No limit
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Job Description -->
-    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-3">
-        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-3">
-            Job Description
-        </h2>
-
-        <p class="text-xs text-stone-700 leading-relaxed whitespace-pre-line bg-stone-50 p-4 rounded-xl border border-stone-200/60">{{ job.job_description }}</p>
-    </div>
-
-    <!-- Ranked Applicants -->
-    <div class="bg-white border border-stone-200/90 rounded-2xl p-6 sm:p-8 shadow-3xs space-y-5">
-
-        <!-- Section Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-stone-100 pb-4">
-            <div>
-                <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
-                    Ranked Applicants
-                </h2>
-                <p class="mt-1.5 text-xs text-stone-500">
-                    Applicants ranked by similarity between their profiles and this job posting.
-                </p>
-            </div>
-
-            <span class="w-fit px-3 py-1.5 rounded-full bg-stone-100 text-stone-700 text-xs font-bold">
-                {{ applicant_count }} applicant{{ applicant_count|pluralize }}
-            </span>
+            <span class="text-xs font-mono text-slate-400">{{ job.formatted_job_id }}</span>
         </div>
 
-        {% if not matching_available and applicant_count %}
-            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
-                Matching scores are currently unavailable. Applicants are displayed
-                by application date instead.
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
+            <div>
+                <p class="text-xs text-slate-400">Monthly Salary</p>
+                <p class="text-sm font-bold text-slate-900">₱{{ job.salary }}</p>
             </div>
-        {% endif %}
+            <div>
+                <p class="text-xs text-slate-400">Vacancy</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.vacancy }} slot(s)</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Experience Required</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.work_experience_months }} mos.</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Posting Expiry</p>
+                <p class="text-sm font-bold text-slate-900">{{ job.job_posting_expiry }}</p>
+            </div>
+        </div>
 
-        {% if ranked_applicants %}
-            <div class="space-y-4">
+        <div class="mt-8 space-y-6">
+            <div>
+                <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Job Description</h3>
+                <p class="text-sm text-slate-700 mt-2 whitespace-pre-line">{{ job.job_description }}</p>
+            </div>
 
-                {% for application in ranked_applicants %}
-                    <div class="border border-stone-200 rounded-xl p-4 sm:p-5 hover:border-amber-300 transition-colors">
+            {% if job.other_qualifications %}
+            <div>
+                <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Qualifications</h3>
+                <p class="text-sm text-slate-700 mt-2 whitespace-pre-line">{{ job.other_qualifications }}</p>
+            </div>
+            {% endif %}
 
-                        <!-- Applicant Information -->
-                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-
-                            <div class="flex items-start gap-3 min-w-0">
-                                <!-- Rank Number -->
-                                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm
-                                    {% if forloop.counter == 1 and matching_available %}
-                                        bg-amber-100 text-amber-800
-                                    {% else %}
-                                        bg-stone-100 text-stone-600
-                                    {% endif %}">
-                                    #{{ forloop.counter }}
-                                </div>
-
-                                <div class="min-w-0">
-                                    <h3 class="text-sm font-bold text-stone-900">
-                                        {{ application.applicant.first_name }}
-                                        {% if application.applicant.middle_name %}
-                                            {{ application.applicant.middle_name }}
-                                        {% endif %}
-                                        {{ application.applicant.last_name }}
-                                        {% if application.applicant.suffix %}
-                                            {{ application.applicant.suffix }}
-                                        {% endif %}
-                                    </h3>
-
-                                    <p class="mt-1 text-xs text-stone-600">
-                                        {{ application.applicant.get_education_level_display|default:"Education not specified" }}
-                                        {% if application.applicant.course_program %}
-                                            · {{ application.applicant.course_program }}
-                                        {% endif %}
-                                    </p>
-
-                                    <p class="mt-1 text-xs text-stone-500">
-                                        {{ application.applicant.municipality|default:"Location not specified" }}{% if application.applicant.province %}, {{ application.applicant.province }}{% endif %}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Similarity Score and Status -->
-                            <div class="sm:text-right flex-shrink-0">
-                                {% if application.match_score_display != None %}
-                                    <p class="text-2xl font-bold text-stone-900">
-                                        {{ application.match_score_display }}%
-                                    </p>
-                                    <p class="text-[10px] uppercase tracking-wider font-semibold text-stone-400">
-                                        Profile similarity
-                                    </p>
-                                {% else %}
-                                    <p class="text-xs text-stone-400">
-                                        Score unavailable
-                                    </p>
-                                {% endif %}
-
-                                <span class="inline-flex mt-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide
-                                    {% if application.status == 'pending' %}
-                                        bg-amber-50 text-amber-700 border border-amber-200
-                                    {% elif application.status == 'reviewed' %}
-                                        bg-blue-50 text-blue-700 border border-blue-200
-                                    {% elif application.status == 'for interview' %}
-                                        bg-purple-50 text-purple-700 border border-purple-200
-                                    {% elif application.status == 'hired' %}
-                                        bg-emerald-50 text-emerald-700 border border-emerald-200
-                                    {% elif application.status == 'rejected' %}
-                                        bg-rose-50 text-rose-700 border border-rose-200
-                                    {% else %}
-                                        bg-stone-100 text-stone-600 border border-stone-200
-                                    {% endif %}">
-                                    {{ application.get_status_display|default:application.status|title }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Applicant Skills -->
-                        {% with skills=application.applicant.skills.all %}
-                            {% if skills %}
-                                <div class="mt-4">
-                                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">
-                                        Skills
-                                    </p>
-
-                                    <div class="flex flex-wrap gap-2">
-                                        {% for skill in skills %}
-                                            <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-600 text-[10px] font-medium">
-                                                {{ skill.skill_name }}
-                                            </span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endwith %}
-
-                        <!-- Application Footer -->
-                        <div class="mt-4 pt-4 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <p class="text-[10px] text-stone-400">
-                                Applied:
-                                {% if application.application_date %}
-                                    {{ application.application_date|date:"M d, Y" }}
-                                {% else %}
-                                    Date unavailable
-                                {% endif %}
-                            </p>
-
-                            <a href="{% url 'applicant-detail' pk=application.pk %}"
-                               class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-700 text-white text-xs font-bold transition-colors">
-                                View Application
-                                <span aria-hidden="true">→</span>
-                            </a>
-                        </div>
-
+            <!-- Skills & Competencies Required -->
+            <div class="pt-4 border-t border-slate-100 space-y-4">
+                <h3 class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Skills & Competencies Required</h3>
+                
+                <!-- 21st Century Skills -->
+                <div>
+                    <p class="text-xs font-bold text-slate-500 mb-2">21st Century Skills</p>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        {% if job.skill_innovation %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Innovation</span>{% endif %}
+                        {% if job.skill_team_work %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Team Work</span>{% endif %}
+                        {% if job.skill_multitasking %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Multitasking</span>{% endif %}
+                        {% if job.skill_work_ethics %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Work Ethics</span>{% endif %}
+                        {% if job.skill_self_motivation %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Self-Motivation</span>{% endif %}
+                        {% if job.skill_creative_problem_solving %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Creative Problem Solving</span>{% endif %}
+                        {% if job.skill_problem_solving %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Problem Solving</span>{% endif %}
+                        {% if job.skill_critical_thinking %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Critical Thinking</span>{% endif %}
+                        {% if job.skill_decision_making %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Decision Making</span>{% endif %}
+                        {% if job.skill_stress_tolerance %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Stress Tolerance</span>{% endif %}
+                        {% if job.skill_planning_organizing %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Planning and Organizing</span>{% endif %}
+                        {% if job.skill_social_perceptiveness %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Social Perceptiveness</span>{% endif %}
+                        {% if job.skill_english_functional %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">English Functional Skills</span>{% endif %}
+                        {% if job.skill_english_comprehension %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">English Comprehension</span>{% endif %}
+                        {% if job.skill_math_functional %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Math Functional Skill</span>{% endif %}
                     </div>
-                {% endfor %}
-
-            </div>
-        {% else %}
-            <!-- Empty State -->
-            <div class="text-center py-10 px-4 border border-dashed border-stone-300 rounded-xl">
-                <div class="w-12 h-12 mx-auto rounded-2xl bg-stone-100 flex items-center justify-center text-stone-400 text-xl">
-                    &#128100;
                 </div>
 
-                <h3 class="mt-4 text-sm font-bold text-stone-800">
-                    No applicants yet
-                </h3>
+                <!-- Technical Skills -->
+                <div class="pt-2">
+                    <p class="text-xs font-bold text-slate-500 mb-2">Technical Skills</p>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        {% if job.skill_carpentry %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Carpentry</span>{% endif %}
+                        {% if job.skill_masonry %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Masonry</span>{% endif %}
+                        {% if job.skill_welding %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Welding</span>{% endif %}
+                        {% if job.skill_auto_mechanic %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Auto Mechanic</span>{% endif %}
+                        {% if job.skill_plumbing %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Plumbing</span>{% endif %}
+                        {% if job.skill_driving %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Driving</span>{% endif %}
+                        {% if job.skill_gardening %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Gardening</span>{% endif %}
+                        {% if job.skill_tailoring %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Tailoring</span>{% endif %}
+                        {% if job.skill_photography %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Photography</span>{% endif %}
+                        {% if job.skill_hairdressing %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Hairdressing</span>{% endif %}
+                        {% if job.skill_cooking %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Cooking</span>{% endif %}
+                        {% if job.skill_baking %}<span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-medium">Baking</span>{% endif %}
+                    </div>
+                </div>
 
-                <p class="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
-                    Applicants will appear here after they submit an application for this job.
-                </p>
+                <!-- Custom / Other Specific Competencies -->
+                {% if job.custom_skills.all %}
+                <div class="pt-2">
+                    <p class="text-xs font-bold text-slate-500 mb-2">Other / Specific Competencies</p>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        {% for custom_skill in job.custom_skills.all %}
+                            <span class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-800 font-medium border border-indigo-100">{{ custom_skill.skill_name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
+
+        <!-- Apply / Save buttons -->
+        <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+
+            <!-- Apply Job -->
+            <form action="{% url 'apply-for-job' pk=job.pk %}" method="post" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-5 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">
+                    Apply Now
+                </button>
+            </form>
+
+            <!-- Save Job -->
+            <form action="{% url 'save_job' pk=job.pk %}" method="post" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-5 py-3 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition">
+                    Save Job
+                </button>
+            </form>
+
+        </div>
     </div>
-
-    <!-- Bottom Actions -->
-    <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pb-8">
-        <a href="{% url 'employer-job_list' %}"
-           class="text-center px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors">
-            Back to Job List
-        </a>
-
-        <a href="{% url 'job-update' pk=job.pk %}"
-           class="text-center px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold shadow-md transition-all active:scale-[0.98]">
-            Edit Job
-        </a>
-    </div>
-
 </div>
 
 {% endblock %}

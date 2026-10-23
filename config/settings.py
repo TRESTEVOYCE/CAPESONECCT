@@ -9,6 +9,7 @@ import dj_database_url
 from dotenv import load_dotenv
 import cloudinary
 from datetime import timedelta
+import dj_database_url
 
 load_dotenv()
 
@@ -19,9 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key')
 DEBUG = True
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Host & Origin Settings
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.254.110").split(",")
+    if host.strip()
+]
 
 CSRF_TRUSTED_ORIGINS = []
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
@@ -78,12 +84,12 @@ ROOT_URLCONF = 'config.urls'
 # Database Configuration (Single source of truth)
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
+        ssl_require=True,
     )
 }
-
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -195,7 +201,8 @@ LOGOUT_REDIRECT_URL = '/'
 HONEYPOT_FIELD_NAME = "bisan_ano"
 HONEYPOT_VALUE = ""
 
-if DEBUG == False:
+
+if DEBUG == True:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
@@ -213,3 +220,4 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 5

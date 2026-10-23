@@ -1,13 +1,13 @@
 {% extends 'applicant-base.html' %}
 {% block content %}
-<form method="POST" action="{% url 'applicant-education' %}" enctype="multipart/form-data" class="space-y-5">
+<form method="POST" action="{% url 'applicant-education' %}" class="space-y-6" id="education-form" novalidate>
     {% csrf_token %}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
-        <h2 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
             III. Educational Background
         </h2>
-        <div class="flex items-center gap-5 text-xs">
-            <span class="font-medium text-stone-700">
+        <div class="flex items-center gap-5 text-sm">
+            <span class="font-semibold text-stone-800">
                 Currently in School?*
             </span>
             <label class="inline-flex items-center gap-1.5 cursor-pointer">
@@ -19,15 +19,15 @@
         </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
-            <label class="block text-xs font-bold text-stone-800 uppercase tracking-wide">
+        <div class="space-y-4 bg-stone-50 p-6 rounded-2xl border border-stone-200">
+            <label class="block text-sm font-bold text-stone-800 uppercase tracking-wide">
                 Highest Educational Attainment*
             </label>
             <div class="field-wrap">
                 {% if form.highest_educational_attainment %}
                     {{ form.highest_educational_attainment }}
                 {% else %}
-                    <select name="highest_educational_attainment">
+                    <select name="highest_educational_attainment" class="w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none">
                         <option value="" disabled selected>
                             Select highest educational attainment...
                         </option>
@@ -62,31 +62,35 @@
                 {% endif %}
             </div>
         </div>
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+        <div class="space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="school-field-wrapper relative">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         School / University*
                     </label>
                     <div class="field-wrap">
                         {{ form.school_university }}
                     </div>
+                    <div class="suggestions-box-school absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
+                    <p id="error-school_university" class="mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                <div class="course-field-wrapper relative">
+                    <label class="block text-sm font-semibold text-stone-800 mb-2">
                         Course / Program*
                     </label>
                     <div class="field-wrap">
                         {{ form.course_program }}
                     </div>
+                    <div class="suggestions-box-course absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
+                    <p id="error-course_program" class="mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                 </div>
             </div>
             <div>
-                <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-xs font-medium text-stone-700">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-semibold text-stone-800">
                         Year Graduated / Last Attended
                     </label>
-                    <span class="text-[10px] text-stone-400 font-mono">
+                    <span class="text-xs text-stone-400 font-mono">
                         MM/YYYY or YYYY
                     </span>
                 </div>
@@ -95,18 +99,27 @@
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-medium text-stone-700 mb-1.5">
+                <label class="block text-sm font-semibold text-stone-800 mb-2">
                     Awards / Honors Received (Optional)
                 </label>
-                <div class="space-y-2">
-                    <div class="field-wrap">
-                        {{ form.award_1 }}
+                <div class="space-y-4">
+                    <div>
+                        <div class="field-wrap">
+                            {{ form.award_1 }}
+                        </div>
+                        <p id="error-award_1" class="mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                     </div>
-                    <div class="field-wrap">
-                        {{ form.award_2 }}
+                    <div>
+                        <div class="field-wrap">
+                            {{ form.award_2 }}
+                        </div>
+                        <p id="error-award_2" class="mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                     </div>
-                    <div class="field-wrap">
-                        {{ form.award_3 }}
+                    <div>
+                        <div class="field-wrap">
+                            {{ form.award_3 }}
+                        </div>
+                        <p id="error-award_3" class="mt-1.5 text-xs text-red-600 hidden font-medium">Must contain at least 5 letters and no numbers.</p>
                     </div>
                 </div>
             </div>
@@ -137,7 +150,7 @@
     <div class="flex items-center justify-between pt-6 border-t border-stone-200"> 
         <a
             href="{% url 'my_profile' %}"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-200 text-stone-900 hover:bg-stone-300 transition-all text-sm"
         >
             Back
         </a>
@@ -145,10 +158,245 @@
     <div class="flex justify-end pt-6 border-t border-stone-200">
         <button
             type="submit"
-            class="px-5 py-2.5 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all"
+            class="px-6 py-3 rounded-xl font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-all text-sm"
         >
             Save Changes
         </button>
     </div>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("education-form");
+
+        const schoolInput = document.getElementById("{{ form.school_university.id_for_label }}");
+        const schoolError = document.getElementById("error-school_university");
+        const schoolWrapper = schoolInput.closest(".school-field-wrapper");
+        const schoolSuggestions = schoolWrapper.querySelector(".suggestions-box-school");
+
+        const courseInput = document.getElementById("{{ form.course_program.id_for_label }}");
+        const courseError = document.getElementById("error-course_program");
+        const courseWrapper = courseInput.closest(".course-field-wrapper");
+        const courseSuggestions = courseWrapper.querySelector(".suggestions-box-course");
+        
+        const awardInputs = [
+            { input: document.getElementById("{{ form.award_1.id_for_label }}"), error: document.getElementById("error-award_1") },
+            { input: document.getElementById("{{ form.award_2.id_for_label }}"), error: document.getElementById("error-award_2") },
+            { input: document.getElementById("{{ form.award_3.id_for_label }}"), error: document.getElementById("error-award_3") }
+        ];
+
+        document.querySelectorAll('input[type="text"]').forEach(el => {
+            if (!el.classList.contains('w-full')) {
+                el.className = "w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none";
+            }
+        });
+
+        function hasNumbers(val) {
+            return /\d/.test(val);
+        }
+
+        function validateLettersOnly(val) {
+            const lettersRegex = /^[A-Za-zÑñ\s\-\.]+$/;
+            return lettersRegex.test(val);
+        }
+
+        function countLetters(val) {
+            const lettersOnlyStr = val.replace(/[^A-Za-zÑñ]/g, "");
+            return lettersOnlyStr.length;
+        }
+
+        // School/University Validation and Autocomplete
+        let schoolDebounce;
+        schoolInput.addEventListener("input", function() {
+            const val = this.value;
+            if (hasNumbers(val)) {
+                this.value = val.replace(/\d/g, "");
+            }
+
+            const cleanedVal = this.value.trim();
+            const letterCount = countLetters(cleanedVal);
+
+            if (cleanedVal === "" || (letterCount >= 5 && validateLettersOnly(cleanedVal))) {
+                this.classList.remove("border-red-500", "bg-red-50/50");
+                schoolError.classList.add("hidden");
+            } else {
+                this.classList.add("border-red-500", "bg-red-50/50");
+                schoolError.classList.remove("hidden");
+            }
+
+            if (cleanedVal.length < 2) {
+                schoolSuggestions.classList.add("hidden");
+                return;
+            }
+
+            clearTimeout(schoolDebounce);
+            schoolDebounce = setTimeout(async () => {
+                try {
+                    const response = await fetch(`http://universities.hipolabs.com/search?name=${encodeURIComponent(cleanedVal)}`);
+                    const data = await response.json();
+
+                    schoolSuggestions.innerHTML = "";
+                    if (data.length > 0) {
+                        data.slice(0, 15).forEach(uni => {
+                            const fullName = uni.name + (uni.country ? ` (${uni.country})` : '');
+                            const div = document.createElement("div");
+                            div.className = "px-4 py-2.5 hover:bg-stone-100 cursor-pointer text-sm text-stone-800 border-b border-stone-100 last:border-b-0";
+                            div.textContent = fullName;
+                            div.addEventListener("click", () => {
+                                schoolInput.value = fullName;
+                                schoolSuggestions.classList.add("hidden");
+                                if (countLetters(fullName) >= 5) {
+                                    schoolInput.classList.remove("border-red-500", "bg-red-50/50");
+                                    schoolError.classList.add("hidden");
+                                }
+                            });
+                            schoolSuggestions.appendChild(div);
+                        });
+                        schoolSuggestions.classList.remove("hidden");
+                    } else {
+                        schoolSuggestions.classList.add("hidden");
+                    }
+                } catch (err) {
+                    schoolSuggestions.classList.add("hidden");
+                }
+            }, 300);
+        });
+
+        schoolInput.addEventListener("blur", function() {
+            setTimeout(() => { schoolSuggestions.classList.add("hidden"); }, 200);
+        });
+
+        // Course/Program Validation and Autocomplete
+        const commonPrograms = [
+            "Bachelor of Science in Information Technology",
+            "Bachelor of Science in Computer Science",
+            "Bachelor of Science in Information Systems",
+            "Bachelor of Science in Accountancy",
+            "Bachelor of Science in Business Administration",
+            "Bachelor of Science in Nursing",
+            "Bachelor of Science in Civil Engineering",
+            "Bachelor of Science in Mechanical Engineering",
+            "Bachelor of Science in Electrical Engineering",
+            "Bachelor of Science in Architecture",
+            "Bachelor of Science in Criminology",
+            "Bachelor of Elementary Education",
+            "Bachelor of Secondary Education",
+            "Master of Science in Information Technology",
+            "Master of Business Administration",
+            "Doctor of Philosophy"
+        ];
+
+        let courseDebounce;
+        courseInput.addEventListener("input", function() {
+            const val = this.value;
+            if (hasNumbers(val)) {
+                this.value = val.replace(/\d/g, "");
+            }
+
+            const cleanedVal = this.value.trim();
+            const letterCount = countLetters(cleanedVal);
+
+            if (cleanedVal === "" || (letterCount >= 5 && validateLettersOnly(cleanedVal))) {
+                this.classList.remove("border-red-500", "bg-red-50/50");
+                courseError.classList.add("hidden");
+            } else {
+                this.classList.add("border-red-500", "bg-red-50/50");
+                courseError.classList.remove("hidden");
+            }
+
+            if (cleanedVal.length < 2) {
+                courseSuggestions.classList.add("hidden");
+                return;
+            }
+
+            clearTimeout(courseDebounce);
+            courseDebounce = setTimeout(() => {
+                const filtered = commonPrograms.filter(prog => prog.toLowerCase().includes(cleanedVal.toLowerCase()));
+                courseSuggestions.innerHTML = "";
+                if (filtered.length > 0) {
+                    filtered.forEach(prog => {
+                        const div = document.createElement("div");
+                        div.className = "px-4 py-2.5 hover:bg-stone-100 cursor-pointer text-sm text-stone-800 border-b border-stone-100 last:border-b-0";
+                        div.textContent = prog;
+                        div.addEventListener("click", () => {
+                            courseInput.value = prog;
+                            courseSuggestions.classList.add("hidden");
+                            if (countLetters(prog) >= 5) {
+                                courseInput.classList.remove("border-red-500", "bg-red-50/50");
+                                courseError.classList.add("hidden");
+                            }
+                        });
+                        courseSuggestions.appendChild(div);
+                    });
+                    courseSuggestions.classList.remove("hidden");
+                } else {
+                    courseSuggestions.classList.add("hidden");
+                }
+            }, 200);
+        });
+
+        courseInput.addEventListener("blur", function() {
+            setTimeout(() => { courseSuggestions.classList.add("hidden"); }, 200);
+        });
+
+        // Award Validation (Optional fields: if filled, must have at least 5 letters and no numbers)
+        awardInputs.forEach(item => {
+            if (!item.input) return;
+            item.input.addEventListener("input", function() {
+                const val = this.value;
+                if (hasNumbers(val)) {
+                    this.value = val.replace(/\d/g, "");
+                }
+                const cleanedVal = this.value.trim();
+                const letterCount = countLetters(cleanedVal);
+
+                if (cleanedVal === "" || (letterCount >= 5 && validateLettersOnly(cleanedVal))) {
+                    this.classList.remove("border-red-500", "bg-red-50/50");
+                    if (item.error) item.error.classList.add("hidden");
+                } else {
+                    this.classList.add("border-red-500", "bg-red-50/50");
+                    if (item.error) item.error.classList.remove("hidden");
+                }
+            });
+        });
+
+        form.addEventListener("submit", function (e) {
+            let isValid = true;
+
+            if (schoolInput) {
+                const val = schoolInput.value.trim();
+                if (val === "" || hasNumbers(val) || countLetters(val) < 5 || !validateLettersOnly(val)) {
+                    schoolInput.classList.add("border-red-500", "bg-red-50/50");
+                    if (schoolError) schoolError.classList.remove("hidden");
+                    isValid = false;
+                }
+            }
+
+            if (courseInput) {
+                const val = courseInput.value.trim();
+                if (val === "" || hasNumbers(val) || countLetters(val) < 5 || !validateLettersOnly(val)) {
+                    courseInput.classList.add("border-red-500", "bg-red-50/50");
+                    if (courseError) courseError.classList.remove("hidden");
+                    isValid = false;
+                }
+            }
+
+            awardInputs.forEach(item => {
+                if (item.input) {
+                    const val = item.input.value.trim();
+                    if (val !== "" && (hasNumbers(val) || countLetters(val) < 5 || !validateLettersOnly(val))) {
+                        item.input.classList.add("border-red-500", "bg-red-50/50");
+                        if (item.error) item.error.classList.remove("hidden");
+                        isValid = false;
+                    }
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    });
+</script>
 {% endblock %}

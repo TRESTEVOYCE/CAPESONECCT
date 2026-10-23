@@ -1,19 +1,31 @@
-
 {% extends 'applicant-base.html' %}
 
 {% block content %}
-<div class="max-w-[1300px] w-full min-w-0 mx-auto py-6 px-4 space-y-6">
 
+{% with applicant=profile|default:None %}
+<div class="max-w-[1300px] w-full min-w-0 mx-auto py-6 px-4 space-y-6" x-data="{ editMode: false }">
+    
     <!-- Top Navigation -->
     <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-stone-200/60">
-        <a href="{% url 'my_profile' %}"
-           class="inline-flex items-center px-4 py-2 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 rounded-lg hover:bg-amber-100 transition-colors">
-            &larr; Back to Profile Form
-        </a>
-
-        <span class="text-[11px] font-medium text-stone-400">
-            Account Overview / Read-Only View
-        </span>
+        <div class="flex items-center gap-2">
+            <div>
+                <h1 class="text-lg font-bold text-stone-900 uppercase tracking-wider">NSRP Applicant Profile</h1>
+                <p class="text-xs text-stone-500">National Skills Registration Program — Profile Summary</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'my_profile' %}"
+               class="inline-flex items-center px-4 py-2 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 rounded-lg hover:bg-amber-100 transition-colors">
+                &larr; Back to Profile Form
+            </a>
+            <a href="{% url 'personal_info' %}" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-2xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                Edit Profile
+            </a>
+            <button onclick="window.print()" class="px-3 py-2 text-xs font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors">
+                Print / PDF
+            </button>
+        </div>
     </div>
 
     <!-- Feedback Messages -->
@@ -32,642 +44,583 @@
         </div>
     {% endif %}
 
-    <!-- Profile Banner and Picture Upload -->
-    <form method="POST"
-          enctype="multipart/form-data"
-          action="{% url 'view_profile' %}"
-          class="space-y-3">
+    {% if applicant or profile %}
+        <!-- Profile Banner and Picture Upload -->
+        <form method="POST"
+              enctype="multipart/form-data"
+              action="{% url 'view_profile' %}"
+              class="space-y-3">
 
-        {% csrf_token %}
+            {% csrf_token %}
 
-        <div class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
 
-            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 min-w-0 w-full">
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 min-w-0 w-full">
 
-                <!-- Profile Picture -->
-                <div class="relative group shrink-0">
+                    <!-- Profile Picture -->
+                    <div class="relative group shrink-0">
 
-                    <label for="{{ form.profile_picture.id_for_label }}"
-                           title="Click to change profile picture"
-                           class="relative block w-24 h-24 rounded-xl overflow-hidden border border-stone-200 cursor-pointer shadow-sm bg-stone-100">
+                        <label for="{{ form.profile_picture.id_for_label }}"
+                               title="Click to change profile picture"
+                               class="relative block w-24 h-24 rounded-xl overflow-hidden border border-stone-200 cursor-pointer shadow-sm bg-stone-100">
 
-                        {% if user.profile_picture %}
-                            <img id="profile-picture-preview"
-                                 src="{{ user.profile_picture.url }}"
-                                 alt="Profile Picture"
-                                 class="w-full h-full object-cover">
-                        {% else %}
-                            <img id="profile-picture-preview"
-                                 src=""
-                                 alt="Profile Picture Preview"
-                                 class="hidden w-full h-full object-cover">
-                        {% endif %}
-
-                        {% if not user.profile_picture %}
-                            <div id="profile-picture-placeholder"
-                                 class="w-full h-full flex items-center justify-center text-stone-700 font-bold text-2xl">
-                                {% with fname=profile.first_name|default:user.first_name lname=profile.last_name|default:user.last_name %}
-                                    {{ fname|slice:":1"|default:user.username|slice:":1" }}{{ lname|slice:":1" }}
-                                {% endwith %}
-                            </div>
-                        {% else %}
-                            <div id="profile-picture-placeholder"
-                                 class="hidden w-full h-full items-center justify-center text-stone-700 font-bold text-2xl">
-                            </div>
-                        {% endif %}
-
-                        <!-- Hover Overlay -->
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                            <div class="flex flex-col items-center text-white">
-                                <svg class="w-5 h-5 mb-1"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24"
-                                     aria-hidden="true">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                    <circle cx="12" cy="13" r="3"
-                                            stroke="currentColor"
-                                            stroke-width="2"/>
-                                </svg>
-                                <span class="text-[10px] font-semibold">Change</span>
-                            </div>
-                        </div>
-                    </label>
-
-                    <!-- Hidden Django File Input -->
-                    <div class="sr-only">
-                        {{ form.profile_picture }}
-                    </div>
-
-                    <!-- Camera Indicator -->
-                    <label for="{{ form.profile_picture.id_for_label }}"
-                           title="Choose a profile picture"
-                           class="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 bg-stone-900 hover:bg-stone-700 text-white rounded-full cursor-pointer shadow-sm z-20">
-                        <svg class="w-4 h-4 pointer-events-none"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                            <circle cx="12" cy="13" r="3"
-                                    stroke="currentColor"
-                                    stroke-width="2"/>
-                        </svg>
-                    </label>
-                </div>
-
-                <!-- Profile Name -->
-                <div class="min-w-0 text-center sm:text-left">
-                    <div class="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap">
-                        <h1 class="text-xl font-bold text-stone-900 break-words">
-                            {% if profile %}
-                                {{ profile.first_name|default:user.first_name }}
-                                {{ profile.last_name|default:user.last_name }}
+                            {% if user.profile_picture %}
+                                <img id="profile-picture-preview"
+                                     src="{{ user.profile_picture.url }}"
+                                     alt="Profile Picture"
+                                     class="w-full h-full object-cover">
                             {% else %}
-                                {{ user.get_full_name|default:user.username }}
+                                <img id="profile-picture-preview"
+                                     src=""
+                                     alt="Profile Picture Preview"
+                                     class="hidden w-full h-full object-cover">
                             {% endif %}
-                        </h1>
 
-                        <span class="text-[11px] px-2.5 py-1 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium whitespace-nowrap">
-                            Applicant Account
-                        </span>
+                            {% if not user.profile_picture %}
+                                <div id="profile-picture-placeholder"
+                                     class="w-full h-full flex items-center justify-center text-stone-700 font-bold text-2xl">
+                                    {% with fname=profile.first_name|default:user.first_name lname=profile.last_name|default:user.last_name %}
+                                        {{ fname|slice:":1"|default:user.username|slice:":1" }}{{ lname|slice:":1" }}
+                                    {% endwith %}
+                                </div>
+                            {% else %}
+                                <div id="profile-picture-placeholder"
+                                     class="hidden w-full h-full items-center justify-center text-stone-700 font-bold text-2xl">
+                                </div>
+                            {% endif %}
+
+                            <!-- Hover Overlay -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                <div class="flex flex-col items-center text-white">
+                                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                        <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span class="text-[10px] font-semibold">Change</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Hidden Django File Input -->
+                        <div class="sr-only">
+                            {{ form.profile_picture }}
+                        </div>
+
+                        <!-- Camera Indicator -->
+                        <label for="{{ form.profile_picture.id_for_label }}"
+                               title="Choose a profile picture"
+                               class="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 bg-stone-900 hover:bg-stone-700 text-white rounded-full cursor-pointer shadow-sm z-20">
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </label>
                     </div>
 
-                    <p class="text-xs text-stone-400 mt-2">
-                        Select your picture to choose a new image.
-                    </p>
+                    <!-- Profile Name -->
+                    <div class="min-w-0 text-center sm:text-left">
+                        <div class="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap">
+                            <h1 class="text-xl font-bold text-stone-900 break-words">
+                                {% if profile %}
+                                    {{ profile.first_name|default:user.first_name }}
+                                    {{ profile.middle_name|default:"" }}
+                                    {{ profile.last_name|default:user.last_name }}
+                                    {{ profile.suffix|default:"" }}
+                                {% else %}
+                                    {{ user.get_full_name|default:user.username }}
+                                {% endif %}
+                            </h1>
 
-                    <p id="selected-picture-name"
-                       class="text-[11px] text-stone-500 mt-1 break-all"
-                       aria-live="polite">
-                    </p>
+                            <span class="text-[11px] px-2.5 py-1 rounded-full bg-stone-100 text-stone-800 border border-stone-200 font-medium whitespace-nowrap">
+                                Applicant Account
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-stone-400 mt-2">
+                            Select your picture to choose a new image.
+                        </p>
+
+                        <p id="selected-picture-name" class="text-[11px] text-stone-500 mt-1 break-all" aria-live="polite"></p>
+                    </div>
                 </div>
+
+                <!-- Save Button -->
+                <button type="submit"
+                        class="w-full md:w-auto shrink-0 px-5 py-2.5 text-xs font-semibold bg-stone-900 text-white rounded-lg hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2 transition-colors">
+                    Save Picture
+                </button>
             </div>
 
-            <!-- Save Button -->
-            <button type="submit"
-                    class="w-full md:w-auto shrink-0 px-5 py-2.5 text-xs font-semibold bg-stone-900 text-white rounded-lg hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2 transition-colors">
-                Save Picture
-            </button>
-        </div>
+            <!-- Picture Validation Errors -->
+            {% if form.profile_picture.errors %}
+                <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 break-words" role="alert">
+                    {{ form.profile_picture.errors }}
+                </div>
+            {% endif %}
 
-        <!-- Picture Validation Errors -->
-        {% if form.profile_picture.errors %}
-            <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 break-words"
-                 role="alert">
-                {{ form.profile_picture.errors }}
-            </div>
-        {% endif %}
+            {% if form.non_field_errors %}
+                <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 break-words" role="alert">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+        </form>
 
-        {% if form.non_field_errors %}
-            <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 break-words"
-                 role="alert">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
-    </form>
-
-    <!-- I. Personal Information -->
-    <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
-
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
-            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                I. Personal Information Summary
-            </h2>
-
-            <a href="{% url 'personal_info' %}"
-               class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
-                Edit
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Full Name</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {% if profile %}
-                        {{ profile.first_name|default:user.first_name }}
-                        {{ profile.middle_name|default:"" }}
-                        {{ profile.last_name|default:user.last_name }}
-                        {{ profile.suffix|default:"" }}
-                    {% else %}
-                        {{ user.get_full_name|default:user.username }}
-                    {% endif %}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Date of Birth</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.date_of_birth|date:"F d, Y"|default:"Not specified" }}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Sex</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.get_sex_display|default:profile.sex|default:"Not specified" }}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Civil Status</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.get_civil_status_display|default:"Not specified" }}
-                </span>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- II. Address and Contact -->
-    <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
-
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
-            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                II. Address &amp; Contact Information
-            </h2>
-
-            <a href="{% url 'applicant-address' %}"
-               class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
-                Edit
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
-                <span class="block text-stone-400 font-medium">Present Address</span>
-
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words leading-relaxed">
-                    {% firstof profile.house_street profile.barangay profile.municipality profile.province profile.zip_code as first_address_part %}
-
-                    {% if first_address_part %}
-                        {% if profile.house_street %}{{ profile.house_street }}{% endif %}
-                        {% if profile.barangay %}{% if profile.house_street %}, {% endif %}{{ profile.barangay }}{% endif %}
-                        {% if profile.municipality %}{% if profile.house_street or profile.barangay %}, {% endif %}{{ profile.municipality }}{% endif %}
-                        {% if profile.province %}{% if profile.house_street or profile.barangay or profile.municipality %}, {% endif %}{{ profile.province }}{% endif %}
-                        {% if profile.zip_code %} {{ profile.zip_code }}{% endif %}
-                    {% else %}
-                        Not specified
-                    {% endif %}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Primary Mobile</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.phone_number|default:"Not specified" }}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Email Address</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-all">
-                    {{ profile.email_address|default:user.email|default:"Not specified" }}
-                </span>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- III. Educational Background -->
-    <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
-
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
-            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                III. Educational Background
-            </h2>
-
-            <a href="{% url 'applicant-education' %}"
-               class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
-                Edit
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Highest Educational Attainment</span>
-
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {% if profile.edu_no_formal %}
-                        No Formal Education
-                    {% elif profile.edu_elem_level %}
-                        Elementary Level
-                    {% elif profile.edu_elem_grad %}
-                        Elementary Graduate
-                    {% elif profile.edu_hs_level %}
-                        High School Level
-                    {% elif profile.edu_hs_grad %}
-                        High School Graduate
-                    {% elif profile.edu_college_level %}
-                        College Level
-                    {% elif profile.edu_college_grad %}
-                        College Graduate
-                    {% elif profile.edu_tech_voc %}
-                        Technical Vocational Graduate
-                    {% elif profile.edu_post_grad %}
-                        Post Graduate
-                    {% else %}
-                        Not specified
-                    {% endif %}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">School / Institution</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.school_university|default:"Not specified" }}
-                </span>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Course / Degree</span>
-                <span class="text-stone-900 font-semibold mt-1.5 block break-words">
-                    {{ profile.course_program|default:"Not specified" }}
-                </span>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- IV. Training and Eligibility -->
-    <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
-
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
-            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                IV. Training &amp; Eligibility
-            </h2>
-
-            <a href="{% url 'applicant-training' %}"
-               class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
-                Edit
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Training Title</span>
-                <strong class="block mt-1.5 text-stone-900 break-words">
-                    {{ profile.training_title_1|default:"No training provided" }}
-                </strong>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Training Hours</span>
-                <strong class="block mt-1.5 text-stone-900 break-words">
-                    {% if profile.training_hours_1 %}{{ profile.training_hours_1 }} hours{% else %}Not specified{% endif %}
-                </strong>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Institution</span>
-                <strong class="block mt-1.5 text-stone-900 break-words">
-                    {{ profile.training_institution_1|default:"Not specified" }}
-                </strong>
-            </div>
-
-            <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
-                <span class="block text-stone-400 font-medium">Training Date</span>
-                <strong class="block mt-1.5 text-stone-900 break-words">
-                    {{ profile.training_date_1|date:"F d, Y"|default:"Not specified" }}
-                </strong>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- V and VI. Job Preferences and Work Experience -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
-        <!-- Job Preferences and Work Experience -->
-        <section class="min-w-0 bg-white p-5 sm:p-6 rounded-xl border border-stone-200/90 shadow-sm space-y-5 text-xs">
+        <!-- I. Personal Information -->
+        <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
                 <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                    V &amp; VI. Job Preferences &amp; Work Experience
+                    I. Personal Information Summary
                 </h2>
 
-                <a href="{% url 'applicant-preferred-job' %}"
+                <a href="{% url 'personal_info' %}"
                    class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
                     Edit
                 </a>
             </div>
 
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
 
-                <div>
-                    <span class="text-stone-400">Preferred Occupation:</span>
-                    <p class="font-semibold text-stone-900 mt-1 break-words">
-                        {{ profile.pref_occupation_1|default:"Not specified" }}
-                    </p>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Full Name</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {% if profile %}
+                            {{ profile.first_name|default:user.first_name }}
+                            {{ profile.middle_name|default:"" }}
+                            {{ profile.last_name|default:user.last_name }}
+                            {{ profile.suffix|default:"" }}
+                        {% else %}
+                            {{ user.get_full_name|default:user.username }}
+                        {% endif %}
+                    </span>
                 </div>
 
-                {% if profile.pref_occupation_2 %}
-                    <div>
-                        <span class="text-stone-400">Second Preferred Occupation:</span>
-                        <p class="font-semibold text-stone-900 mt-1 break-words">
-                            {{ profile.pref_occupation_2 }}
-                        </p>
-                    </div>
-                {% endif %}
-
-                {% if profile.pref_occupation_3 %}
-                    <div>
-                        <span class="text-stone-400">Third Preferred Occupation:</span>
-                        <p class="font-semibold text-stone-900 mt-1 break-words">
-                            {{ profile.pref_occupation_3 }}
-                        </p>
-                    </div>
-                {% endif %}
-
-                <div>
-                    <span class="text-stone-400">Employment Status:</span>
-                    <p class="font-semibold text-stone-900 mt-1 break-words">
-                        {{ profile.get_employment_status_display|default:"Not specified" }}
-                    </p>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Date of Birth</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.date_of_birth|date:"F d, Y"|default:"Not specified" }}
+                    </span>
                 </div>
 
-            </div>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Place of Birth</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.place_of_birth|default:"Not specified" }}
+                    </span>
+                </div>
 
-            <!-- Work Experience -->
-            <div class="pt-4 border-t border-stone-100">
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Sex</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.get_sex_display|default:profile.sex|default:"Not specified" }}
+                    </span>
+                </div>
 
-                <h3 class="text-xs font-bold text-stone-700 mb-3">
-                    Work Experience
-                </h3>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Civil Status</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.get_civil_status_display|default:"Not specified" }}
+                    </span>
+                </div>
 
-                {% for work in profile.work_experiences.all %}
-                    <div class="min-w-0 p-4 rounded-lg bg-stone-50 border border-stone-100 mb-3 last:mb-0">
-
-                        <p class="font-semibold text-stone-900 text-sm break-words">
-                            {{ work.position|default:"Position not specified" }}
-                        </p>
-
-                        <p class="text-stone-600 mt-1 break-words">
-                            {{ work.company|default:"Company not specified" }}
-                        </p>
-
-                        {% if work.address %}
-                            <p class="text-stone-500 mt-2 break-words">
-                                {{ work.address }}
-                            </p>
-                        {% endif %}
-
-                        {% if work.dates %}
-                            <p class="text-stone-500 mt-1 break-words">
-                                {{ work.dates }}
-                            </p>
-                        {% endif %}
-
-                        {% if work.status %}
-                            <p class="text-stone-500 mt-1 break-words">
-                                Status:
-                                <strong class="text-stone-700">{{ work.status }}</strong>
-                            </p>
-                        {% endif %}
-
-                    </div>
-                {% empty %}
-                    <div class="p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
-                        <p class="text-stone-500 font-medium">
-                            No work experience provided.
-                        </p>
-                        <p class="text-stone-400 mt-1">
-                            Your work history will appear here once added.
-                        </p>
-                    </div>
-                {% endfor %}
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Height / Weight</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {% if profile.height %}{{ profile.height }}{% else %}N/A{% endif %} / {% if profile.weight %}{{ profile.weight }}{% else %}N/A{% endif %}
+                    </span>
+                </div>
 
             </div>
         </section>
 
-        <!-- VII and VIII. Skills and Uploads -->
-        <section class="min-w-0 bg-white p-5 sm:p-6 rounded-xl border border-stone-200/90 shadow-sm space-y-5 text-xs">
+        <!-- II. Address and Contact -->
+        <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
                 <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
-                    VII &amp; VIII. Skills &amp; Uploads
+                    II. Address &amp; Contact Information
                 </h2>
 
-                <a href="{% url 'my_profile' %}"
+                <a href="{% url 'applicant-address' %}"
                    class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
                     Edit
                 </a>
             </div>
 
-            <!-- Skills -->
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
 
-                <h3 class="font-semibold text-stone-700">
-                    Skills
-                </h3>
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
+                    <span class="block text-stone-400 font-medium">Present Address</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words leading-relaxed">
+                        {% firstof profile.house_street profile.barangay profile.municipality profile.province profile.zip_code as first_address_part %}
+                        {% if first_address_part %}
+                            {{ profile.house_street|default:"" }}{% if profile.house_street and profile.barangay %}, {% endif %}
+                            {{ profile.barangay|default:"" }}{% if profile.barangay and profile.municipality %}, {% endif %}
+                            {{ profile.municipality|default:"" }}{% if profile.municipality and profile.province %}, {% endif %}
+                            {{ profile.province|default:"" }} {{ profile.zip_code|default:"" }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </span>
+                </div>
 
-                <div class="flex flex-wrap gap-2">
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
+                    <span class="block text-stone-400 font-medium">Permanent Address</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words leading-relaxed">
+                        {% if profile.house_street or profile.barangay %}
+                            {{ profile.house_street|default:"" }}{% if profile.house_street and profile.barangay %}, {% endif %}
+                            {{ profile.barangay|default:"" }}{% if profile.barangay and profile.municipality %}, {% endif %}
+                            {{ profile.municipality|default:"" }}{% if profile.municipality and profile.province %}, {% endif %}
+                            {{ profile.province|default:"" }} {{ profile.zip_code|default:"" }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </span>
+                </div>
 
-                    {% if profile.skill_computer %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Computer
-                        </span>
-                    {% endif %}
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Primary Mobile</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.phone_number|default:"Not specified" }}
+                    </span>
+                </div>
 
-                    {% if profile.skill_driving %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Driving
-                        </span>
-                    {% endif %}
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Alternative Phone / Landline</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.alt_phone_number|default:"Not specified" }}
+                    </span>
+                </div>
 
-                    {% if profile.skill_customer_service %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Customer Service
-                        </span>
-                    {% endif %}
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100 sm:col-span-2">
+                    <span class="block text-stone-400 font-medium">Email Address</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-all">
+                        {{ profile.email_address|default:user.email|default:"Not specified" }}
+                    </span>
+                </div>
 
-                    {% if profile.skill_bookkeeping %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Bookkeeping
-                        </span>
-                    {% endif %}
+            </div>
+        </section>
 
-                    {% if profile.skill_carpentry %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Carpentry
-                        </span>
-                    {% endif %}
+        <!-- III. Educational Background -->
+        <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
 
-                    {% if profile.skill_welding %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                            Welding
-                        </span>
-                    {% endif %}
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                    III. Educational Background
+                </h2>
 
-                    {% for skill in profile.skills.all %}
-                        <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 break-words">
-                            {{ skill.skill_name }}
-                        </span>
+                <a href="{% url 'applicant-education' %}"
+                   class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
+                    Edit
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Highest Educational Attainment</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {% if profile.edu_no_formal %}No Formal Education{% endif %}
+                        {% if profile.edu_elem_level %}Elementary Level{% endif %}
+                        {% if profile.edu_elem_grad %}Elementary Graduate{% endif %}
+                        {% if profile.edu_hs_level %}High School Level{% endif %}
+                        {% if profile.edu_hs_grad %}High School Graduate{% endif %}
+                        {% if profile.edu_college_level %}College Level{% endif %}
+                        {% if profile.edu_college_grad %}College Graduate{% endif %}
+                        {% if profile.edu_tech_voc %}Technical Vocational Graduate{% endif %}
+                        {% if profile.edu_post_grad %}Post Graduate{% endif %}
+                        {% if not profile.edu_no_formal and not profile.edu_elem_level and not profile.edu_elem_grad and not profile.edu_hs_level and not profile.edu_hs_grad and not profile.edu_college_level and not profile.edu_college_grad and not profile.edu_tech_voc and not profile.edu_post_grad %}
+                            {{ profile.highest_educational_attainment|default:"Not specified" }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">School / Institution</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.school_university|default:"Not specified" }}
+                    </span>
+                </div>
+
+                <div class="min-w-0 p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                    <span class="block text-stone-400 font-medium">Course / Degree</span>
+                    <span class="text-stone-900 font-semibold mt-1.5 block break-words">
+                        {{ profile.course_program|default:"Not specified" }}
+                    </span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- IV. Training and Eligibility -->
+        <section class="bg-white p-5 sm:p-8 rounded-xl border border-stone-200/90 shadow-sm space-y-6">
+
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+                <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                    IV. Training, Exams &amp; Eligibility
+                </h2>
+
+                <a href="{% url 'applicant-training' %}"
+                   class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
+                    Edit
+                </a>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Training Entry 1 -->
+                {% if profile.training_title_1 %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Title (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_title_1 }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Hours (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{% if profile.training_hours_1 %}{{ profile.training_hours_1 }} hours{% else %}Not specified{% endif %}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Institution (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_institution_1|default:"Not specified" }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Date (1)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_date_1|default:"Not specified" }}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Training Entry 2 -->
+                {% if profile.training_title_2 %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs p-4 rounded-lg bg-stone-50/60 border border-stone-100">
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Title (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_title_2 }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Hours (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{% if profile.training_hours_2 %}{{ profile.training_hours_2 }} hours{% else %}Not specified{% endif %}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Institution (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_institution_2|default:"Not specified" }}</strong>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-stone-400 font-medium">Training Date (2)</span>
+                            <strong class="block mt-1.5 text-stone-900 break-words">{{ profile.training_date_2|default:"Not specified" }}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if not profile.training_title_1 and not profile.training_title_2 %}
+                    <div class="p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50 text-xs text-stone-500 font-medium">
+                        No training or eligibility records provided.
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- V and VI. Job Preferences and Work Experience -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+            <!-- Job Preferences -->
+            <section class="min-w-0 bg-white p-5 sm:p-6 rounded-xl border border-stone-200/90 shadow-sm space-y-5 text-xs">
+
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+                    <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                        V. Job Preferences &amp; Status
+                    </h2>
+
+                    <a href="{% url 'applicant-preferred-job' %}"
+                       class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
+                        Edit
+                    </a>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-stone-400">Preferred Occupations:</span>
+                        <div class="flex flex-wrap gap-1.5 mt-1">
+                            {% if profile.pref_occupation_1 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_1 }}</span>{% endif %}
+                            {% if profile.pref_occupation_2 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_2 }}</span>{% endif %}
+                            {% if profile.pref_occupation_3 %}<span class="px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 font-semibold">{{ profile.pref_occupation_3 }}</span>{% endif %}
+                            {% if not profile.pref_occupation_1 and not profile.pref_occupation_2 and not profile.pref_occupation_3 %}
+                                <p class="font-semibold text-stone-900">Not specified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-stone-400">Employment Status:</span>
+                        <p class="font-semibold text-stone-900 mt-1 break-words">{{ profile.get_employment_status_display|default:"Not specified" }}</p>
+                    </div>
+                </div>
+
+                <!-- Work Experience -->
+                <div class="pt-4 border-t border-stone-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-stone-700">VI. Work Experience History</h3>
+                        <a href="{% url 'applicant-work-experience' %}" class="text-[11px] font-semibold text-amber-800 hover:underline">
+                            Edit Work Experience
+                        </a>
+                    </div>
+
+                    {% for work in profile.work_experiences.all %}
+                        <div class="min-w-0 p-4 rounded-lg bg-stone-50 border border-stone-100 mb-3 last:mb-0">
+                            <p class="font-semibold text-stone-900 text-sm break-words">{{ work.position|default:"Position not specified" }}</p>
+                            <p class="text-stone-600 mt-1 break-words">{{ work.company|default:"Company not specified" }}</p>
+                        </div>
+                    {% empty %}
+                        <div class="p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
+                            <p class="text-stone-500 font-medium">No work experience provided.</p>
+                        </div>
                     {% endfor %}
+                </div>
+            </section>
 
-                    {% if not profile.skill_computer and not profile.skill_driving and not profile.skill_customer_service and not profile.skill_bookkeeping and not profile.skill_carpentry and not profile.skill_welding %}
+            <!-- VII and VIII. Skills and Uploads -->
+            <section class="min-w-0 bg-white p-5 sm:p-6 rounded-xl border border-stone-200/90 shadow-sm space-y-5 text-xs">
+
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+                    <h2 class="text-sm font-bold text-stone-900 uppercase tracking-wider">
+                        VII &amp; VIII. Skills &amp; Uploads
+                    </h2>
+
+                    <a href="{% url 'applicant-skills' %}"
+                       class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
+                        Edit
+                    </a>
+                </div>
+
+                <!-- Skills -->
+                <div class="space-y-3">
+                    <h3 class="font-semibold text-stone-700">Competencies &amp; Skills</h3>
+
+                    <div class="flex flex-wrap gap-2">
+                        <!-- Custom Skill Formset Entries -->
                         {% for skill in profile.skills.all %}
-                            {% if forloop.first %}
-                                {# A related skill exists; the badges above already display it. #}
-                            {% endif %}
-                        {% empty %}
-                            <p class="text-stone-400">
-                                No skills provided.
-                            </p>
+                            <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 break-words font-medium">{{ skill.skill_name }}</span>
                         {% endfor %}
-                    {% endif %}
 
+                        <!-- 21st Century Skills Booleans -->
+                        {% if profile.skill_innovation %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Innovation</span>{% endif %}
+                        {% if profile.skill_team_work %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Team Work</span>{% endif %}
+                        {% if profile.skill_multitasking %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Multitasking</span>{% endif %}
+                        {% if profile.skill_work_ethics %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Work Ethics</span>{% endif %}
+                        {% if profile.skill_self_motivation %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Self-Motivation</span>{% endif %}
+                        {% if profile.skill_creative_problem_solving %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Creative Problem Solving</span>{% endif %}
+                        {% if profile.skill_problem_solving %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Problem Solving</span>{% endif %}
+                        {% if profile.skill_critical_thinking %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Critical Thinking</span>{% endif %}
+                        {% if profile.skill_decision_making %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Decision Making</span>{% endif %}
+                        {% if profile.skill_stress_tolerance %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Stress Tolerance</span>{% endif %}
+                        {% if profile.skill_planning_organizing %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Planning & Organizing</span>{% endif %}
+                        {% if profile.skill_social_perceptiveness %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Social Perceptiveness</span>{% endif %}
+                        {% if profile.skill_english_functional %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">English Functional</span>{% endif %}
+                        {% if profile.skill_english_comprehension %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">English Comprehension</span>{% endif %}
+                        {% if profile.skill_math_functional %}<span class="px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-medium">Math Functional</span>{% endif %}
+
+                        <!-- Technical Skills Booleans -->
+                        {% if profile.skill_carpentry %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Carpentry</span>{% endif %}
+                        {% if profile.skill_masonry %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Masonry</span>{% endif %}
+                        {% if profile.skill_welding %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Welding</span>{% endif %}
+                        {% if profile.skill_auto_mechanic %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Auto Mechanic</span>{% endif %}
+                        {% if profile.skill_plumbing %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Plumbing</span>{% endif %}
+                        {% if profile.skill_driving %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Driving</span>{% endif %}
+                        {% if profile.skill_gardening %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Gardening</span>{% endif %}
+                        {% if profile.skill_tailoring %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Tailoring</span>{% endif %}
+                        {% if profile.skill_photography %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Photography</span>{% endif %}
+                        {% if profile.skill_hairdressing %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Hairdressing</span>{% endif %}
+                        {% if profile.skill_cooking %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Cooking</span>{% endif %}
+                        {% if profile.skill_baking %}<span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">Baking</span>{% endif %}
+
+                        <!-- Other Skills Field -->
+                        {% if profile.other_skills %}
+                            <span class="px-2.5 py-1.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200 font-medium">{{ profile.other_skills }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
 
-            <!-- Uploaded Documents -->
-            <div class="pt-4 border-t border-stone-100 space-y-3">
-
-                <h3 class="font-semibold text-stone-700">
-                    Uploaded Documents and ID
-                </h3>
-
-                <div class="flex flex-wrap gap-2">
-
-                    {% if profile.applicant_id_picture_front or profile.applicant_id_picture_back %}
-                        <div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                            {% if profile.applicant_id_picture_front %}
-                                <div class="space-y-2">
-                                    <p class="text-sm font-semibold text-stone-700">Front of ID</p>
-                                    <a href="{{ profile.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer">
-                                        <img src="{{ profile.applicant_id_picture_front.url }}" alt="Front of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
-                                    </a>
-                                </div>
-                            {% endif %}
-                            {% if profile.applicant_id_picture_back %}
-                                <div class="space-y-2">
-                                    <p class="text-sm font-semibold text-stone-700">Back of ID</p>
-                                    <a href="{{ profile.applicant_id_picture_back.url }}" target="_blank" rel="noopener noreferrer">
-                                        <img src="{{ profile.applicant_id_picture_back.url }}" alt="Back of applicant ID" class="max-h-72 w-full rounded-lg border border-stone-200 bg-stone-50 object-contain">
-                                    </a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-
-                    {% if profile.resume_file %}
-                        <a href="{{ profile.resume_file.url }}"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="inline-flex items-center gap-2 px-3 py-2 bg-stone-900 text-white rounded-lg font-semibold hover:bg-stone-700 transition-colors break-words max-w-full">
-                            <svg class="w-4 h-4 shrink-0"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 viewBox="0 0 24 24"
-                                 aria-hidden="true">
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M14 3v5h5M9 13h6M9 17h6"/>
-                            </svg>
-                            View Resume
+                <!-- Uploaded Documents & IDs -->
+                <div class="pt-4 border-t border-stone-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-stone-700">Uploaded Documents &amp; Valid IDs</h3>
+                        <a href="{% url 'applicant-documents' %}" class="text-[11px] font-semibold text-amber-800 hover:underline">
+                            Edit Documents
                         </a>
+                    </div>
+
+                    {% if profile.valid_id_type %}
+                        <p class="text-stone-500 font-medium text-[11px]">
+                            ID Type Selected: <span class="text-stone-800 font-semibold">{{ profile.valid_id_type }}</span>
+                        </p>
                     {% endif %}
 
-                    {% if profile.supporting_doc %}
-                        <a href="{{ profile.supporting_doc.url }}"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="inline-flex items-center gap-2 px-3 py-2 bg-stone-100 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-200 transition-colors break-words max-w-full">
-                            <svg class="w-4 h-4 shrink-0"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 viewBox="0 0 24 24"
-                                 aria-hidden="true">
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M14 3v5h5M9 13h6M9 17h6"/>
-                            </svg>
-                            Supporting Document{% if profile.supporting_doc_type %}: {{ profile.get_supporting_doc_type_display }}{% endif %}
-                        </a>
-                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <!-- Resume File -->
+                        {% if profile.resume_file %}
+                            <a href="{{ profile.resume_file.url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
+                                <svg class="w-4 h-4 shrink-0 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5h5M9 13h6M9 17h6"/>
+                                </svg>
+                                View Resume / CV
+                            </a>
+                        {% endif %}
 
-                    {% if not profile.applicant_id_picture_front and not profile.applicant_id_picture_back and not profile.resume_file and not profile.supporting_doc %}
+                        <!-- Applicant ID Picture (Front) -->
+                        {% if profile.applicant_id_picture_front %}
+                            <a href="{{ profile.applicant_id_picture_front.url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
+                                <svg class="w-4 h-4 shrink-0 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                </svg>
+                                View Valid ID (Front)
+                            </a>
+                        {% endif %}
+
+                        <!-- Applicant ID Picture (Back) -->
+                        {% if profile.applicant_id_picture_back %}
+                            <a href="{{ profile.applicant_id_picture_back.url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
+                                <svg class="w-4 h-4 shrink-0 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                </svg>
+                                View Valid ID (Back)
+                            </a>
+                        {% endif %}
+
+                        <!-- Supporting Document -->
+                        {% if profile.supporting_doc %}
+                            <a href="{{ profile.supporting_doc.url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 p-3 bg-stone-50 text-stone-800 border border-stone-200 rounded-lg font-semibold hover:bg-stone-100 transition-colors break-words">
+                                <svg class="w-4 h-4 shrink-0 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5h5M9 13h6M9 17h6"/>
+                                </svg>
+                                Supporting Document{% if profile.supporting_doc_type %}: {{ profile.get_supporting_doc_type_display }}{% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if not profile.resume_file and not profile.applicant_id_picture_front and not profile.applicant_id_picture_back and not profile.supporting_doc %}
                         <div class="w-full p-5 text-center rounded-lg border border-dashed border-stone-200 bg-stone-50/50">
-                            <p class="text-stone-500 font-medium">
-                                No documents uploaded.
-                            </p>
-                            <p class="text-stone-400 mt-1">
-                                Your ID images, resume, and supporting documents will appear here.
-                            </p>
+                            <p class="text-stone-500 font-medium">No documents or IDs uploaded yet.</p>
                         </div>
                     {% endif %}
-
                 </div>
-            </div>
-        </section>
-    </div>
+            </section>
+        </div>
+
+    {% else %}
+        <div class="bg-white rounded-xl border border-stone-200 p-8 text-center text-xs text-stone-500">
+            No profile record found. <a href="{% url 'personal_info' %}" class="underline font-semibold text-stone-900">Start registration</a>.
+        </div>
+    {% endif %}
 
     <!-- Footer -->
     <div class="flex flex-wrap items-center justify-between gap-3 pt-4 pb-2 border-t border-stone-200/60">
-        <p class="text-[11px] text-stone-400">
-            Applicant Profile Overview
-        </p>
+        <p class="text-[11px] text-stone-400">Comprehensive Applicant Profile Overview</p>
 
         <a href="{% url 'my_profile' %}"
            class="inline-flex items-center px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors">
@@ -676,47 +629,31 @@
     </div>
 
 </div>
+{% endwith %}
 
-<!-- Profile Picture Preview -->
+<!-- Profile Picture Preview Script -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const input = document.getElementById(
-        "{{ form.profile_picture.id_for_label }}"
-    );
-
+    const input = document.getElementById("{{ form.profile_picture.id_for_label }}");
     const preview = document.getElementById("profile-picture-preview");
-    const placeholder = document.getElementById(
-        "profile-picture-placeholder"
-    );
-    const fileNameDisplay = document.getElementById(
-        "selected-picture-name"
-    );
+    const placeholder = document.getElementById("profile-picture-placeholder");
+    const fileNameDisplay = document.getElementById("selected-picture-name");
 
-    if (!input || !preview) {
-        return;
-    }
+    if (!input || !preview) return;
 
     let previewUrl = null;
 
     input.addEventListener("change", function () {
         const file = input.files && input.files[0];
-
-        if (!file) {
-            return;
-        }
+        if (!file) return;
 
         if (!file.type.startsWith("image/")) {
             input.value = "";
-
-            if (fileNameDisplay) {
-                fileNameDisplay.textContent = "";
-            }
-
+            if (fileNameDisplay) fileNameDisplay.textContent = "";
             alert("Please select an image file.");
             return;
         }
 
-        // Release the previous temporary preview.
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl);
             previewUrl = null;
@@ -725,27 +662,21 @@ document.addEventListener("DOMContentLoaded", function () {
         previewUrl = URL.createObjectURL(file);
 
         preview.onload = function () {
-            if (placeholder) {
-                placeholder.classList.add("hidden");
-            }
+            if (placeholder) placeholder.classList.add("hidden");
         };
 
         preview.onerror = function () {
             preview.classList.add("hidden");
-
             if (placeholder) {
                 placeholder.classList.remove("hidden");
                 placeholder.classList.add("flex");
             }
-
             if (previewUrl) {
                 URL.revokeObjectURL(previewUrl);
                 previewUrl = null;
             }
-
             if (fileNameDisplay) {
-                fileNameDisplay.textContent =
-                    "Unable to preview this image. Please choose another file.";
+                fileNameDisplay.textContent = "Unable to preview this image. Please choose another file.";
             }
         };
 

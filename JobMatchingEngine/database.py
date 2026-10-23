@@ -1,4 +1,4 @@
-from .config import chroma_client, embedding_function
+from .config import chroma_client, get_embedding_function
 
 
 def get_job_collection():
@@ -7,7 +7,7 @@ def get_job_collection():
     """
     return chroma_client.get_or_create_collection(
         name="job_postings",
-        embedding_function=embedding_function
+        embedding_function=get_embedding_function()
     )
 
 

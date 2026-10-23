@@ -3,6 +3,7 @@ from .views import ApplicantPersonalInfoView, ApplicantAddressView, ApplicantEdu
 
 
 
+
 urlpatterns = [
     path('notifications/', ApplicantNotificationListView.as_view(), name='applicant-notifications'),
     path('notifications/api/header/', ApplicantNotificationHeaderApiView.as_view(), name='applicant-notifications-header'),
