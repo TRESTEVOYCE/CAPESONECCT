@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView, ActivateAccountView, VerifyEmailView, ForgotPasswordView, PasswordResetSentView, PasswordResetChangeView, PasswordResetSuccessView,TermsAndConditionsView,PrivacyPolicyView, EmployerTermsAndConditionsView, EmployerPrivacyPolicyView
+from .views import LandingPageView, SignInView, UserApplicantRegisterView, UserApplicantAccountRegisterView, UserEmployerRegisterView, UserEmployerAccountRegisterView, Register_SelectionView, ActivateAccountView, VerifyEmailView, ForgotPasswordView, PasswordResetSentView, PasswordResetChangeView, PasswordResetSuccessView,TermsAndConditionsView,PrivacyPolicyView, EmployerTermsAndConditionsView, EmployerPrivacyPolicyView,ResendVerificationEmailView
 
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing_page'),
@@ -20,4 +20,5 @@ urlpatterns = [
     
     path('employer-privacy-policy/',EmployerPrivacyPolicyView.as_view(),name = 'employer-privacy-policy'),
     path('employer-terms-and-condition/',EmployerTermsAndConditionsView.as_view(),name='employer-terms-and-condition'),
+    path('resend-verification/',ResendVerificationEmailView.as_view(),name='resend-verification'),
 ]

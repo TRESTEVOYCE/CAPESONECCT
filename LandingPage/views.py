@@ -15,7 +15,8 @@ from AdminSide.utils import notify_admins
 from AdminSide.tokens import account_activation_token
 from .forms import UserRegisterForm,SignInForm,BasicApplicantInformationForms,BasicEmployerInformationForms,ForgotPasswordForm,PasswordResetConfirmForm
 from django.contrib.auth.views import PasswordResetView,PasswordResetDoneView,PasswordResetConfirmView,PasswordResetCompleteView
-
+from django.views import View
+from datetime import timedelta
 
 
 class Register_SelectionView(TemplateView):
@@ -48,60 +49,99 @@ class UserApplicantAccountRegisterView(FormView):
 
         email = form.cleaned_data.get('email')
 
-        # Securely handle existing email without revealing database presence
+        # Avoid revealing whether an email already has an account.
         if User.objects.filter(email=email).exists():
-            if 'applicant_info' in self.request.session:
-                del self.request.session['applicant_info']
-            return redirect('verify-email')
+            self.request.session.pop('applicant_info', None)
+            messages.info(
+                self.request,
+                'If you already registered, please sign in or use the appropriate account recovery option.'
+            )
+            return redirect('signin')
 
         user = form.save(commit=False)
         user.role = 'applicant'
         user.email_verified = False
-        user.email_verification_sent_at = timezone.now()
+        user.email_verification_sent_at = None
         user.save()
 
-        info['civil_status'] = (info.get('civil_status') or '').strip() or 'single'
-        applicant = ApplicantProfile.objects.create(user=user, **info)
+        # Remember which account needs email verification.
+        self.request.session['pending_verification_user_id'] = user.pk
+
+        info['civil_status'] = (
+            (info.get('civil_status') or '').strip() or 'single'
+        )
+
+        applicant = ApplicantProfile.objects.create(
+            user=user,
+            **info
+        )
+
         notify_admins(
             title='New Applicant',
-            message=f'{applicant.first_name} {applicant.last_name} completed applicant registration.',
+            message=(
+                f'{applicant.first_name} {applicant.last_name} '
+                'completed applicant registration.'
+            ),
             notification_type='NEW_APPLICANT',
             sender=user,
-            target_url=reverse('AdminSide:applicant_verification', kwargs={'uuid': applicant.uuid}),
+            target_url=reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': applicant.uuid}
+            ),
         )
-        del self.request.session['applicant_info']
+
+        self.request.session.pop('applicant_info', None)
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
 
         activation_url = self.request.build_absolute_uri(
-            reverse('activate', kwargs={'uidb64': uid, 'token': token})
+            reverse(
+                'activate',
+                kwargs={
+                    'uidb64': uid,
+                    'token': token,
+                }
+            )
         )
 
-        send_mail(
-            subject='Verify Your CAPESCONNECT Account',
-            message=f"""
-Hello {user.username},
+        try:
+            sent = send_mail(
+                subject='Verify Your CAPESCONNECT Account',
+                message=f"""
+                    Hello {user.username},
 
-Thank you for registering with CAPESCONNECT.
+                    Thank you for registering with CAPESCONNECT.
 
-Please verify your email address by clicking the link below:
+                    Please verify your email address by clicking the link below:
 
-{activation_url}
+                    {activation_url}
 
-This verification link will expire after 24 hours.
+                    This verification link will expire after 24 hours.
 
-After verifying your email, you will automatically be logged in and redirected to your applicant dashboard.
+                    After verifying your email, you will automatically be logged in and redirected to your applicant dashboard.
 
-If you did not create this account, please ignore this email.
+                    If you did not create this account, please ignore this email.
 
-Regards,
-CAPESCONNECT
-""",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+                    Regards,
+                    CAPESCONNECT
+                    """,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
+            if sent:
+                user.email_verification_sent_at = timezone.now()
+                user.save(update_fields=['email_verification_sent_at'])
+
+        except Exception:
+            # Log the exception in production.
+            messages.warning(
+                self.request,
+                'Your account was created, but the verification email '
+                'could not be sent. Please use the resend option below.'
+            )
 
         return redirect('verify-email')
 
@@ -129,65 +169,97 @@ class UserEmployerAccountRegisterView(FormView):
 
         email = form.cleaned_data.get('email')
 
-        # Securely handle existing email without revealing database presence
+        # Avoid revealing whether an email already has an account.
         if User.objects.filter(email=email).exists():
-            if 'employer_info' in self.request.session:
-                del self.request.session['employer_info']
-            return redirect('verify-email')
+            self.request.session.pop('employer_info', None)
+            messages.info(
+                self.request,
+                'If you already registered, please sign in or use the appropriate account recovery option.'
+            )
+            return redirect('signin')
 
         user = form.save(commit=False)
         user.role = 'employer'
         user.email_verified = False
-        user.email_verification_sent_at = timezone.now()
+        user.email_verification_sent_at = None
         user.save()
+
+        # Remember which account needs email verification.
+        self.request.session['pending_verification_user_id'] = user.pk
 
         employer, _ = EmployerProfile.objects.update_or_create(
             user=user,
             defaults=info
         )
+
         notify_admins(
             title='New Employer',
-            message=f'{employer.business_name or user.username} submitted an employer profile for verification.',
+            message=(
+                f'{employer.business_name or user.username} '
+                'submitted an employer profile for verification.'
+            ),
             notification_type='NEW_EMPLOYER',
             sender=user,
-            target_url=reverse('AdminSide:employer_verification', kwargs={'uuid': employer.uuid}),
+            target_url=reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': employer.uuid}
+            ),
         )
-        del self.request.session['employer_info']
+
+        self.request.session.pop('employer_info', None)
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
 
         activation_url = self.request.build_absolute_uri(
-            reverse('activate', kwargs={'uidb64': uid, 'token': token})
+            reverse(
+                'activate',
+                kwargs={
+                    'uidb64': uid,
+                    'token': token,
+                }
+            )
         )
 
-        send_mail(
-            subject='Verify Your CAPESCONNECT Account',
-            message=f"""
-Hello {user.username},
+        try:
+            sent = send_mail(
+                subject='Verify Your CAPESCONNECT Account',
+                message=f"""
+                    Hello {user.username},
 
-Thank you for registering with CAPESCONNECT.
+                    Thank you for registering with CAPESCONNECT.
 
-Please verify your email address by clicking the link below:
+                    Please verify your email address by clicking the link below:
 
-{activation_url}
+                    {activation_url}
 
-This verification link will expire after 24 hours.
+                    This verification link will expire after 24 hours.
 
-After verifying your email, you will automatically be logged in and redirected to your employer home page.
+                    After verifying your email, you will automatically be logged in and redirected to your applicant dashboard.
 
-If you did not create this account, please ignore this email.
+                    If you did not create this account, please ignore this email.
 
-Regards,
-CAPESCONNECT
-""",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+                    Regards,
+                    CAPESCONNECT
+                    """,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
+            if sent:
+                user.email_verification_sent_at = timezone.now()
+                user.save(update_fields=['email_verification_sent_at'])
+
+        except Exception:
+            # Log the exception in production.
+            messages.warning(
+                self.request,
+                'Your account was created, but the verification email '
+                'could not be sent. Please use the resend option below.'
+            )
 
         return redirect('verify-email')
-    
 
 class VerifyEmailView(TemplateView):
     template_name = 'LandingPage/verify_email.html'
@@ -208,23 +280,35 @@ class SignInView(FormView):
     template_name = 'LandingPage/signin.html'
 
     def form_invalid(self, form):
-        print(form.errors)
         return super().form_invalid(form)
-    
+
     def form_valid(self, form):
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
 
-        user = authenticate(self.request, email=email, password=password)
+        user = authenticate(
+            self.request,
+            email=email,
+            password=password
+        )
 
         if not user:
             form.add_error(None, 'Invalid email or password.')
             return self.form_invalid(form)
 
+        # Redirect unverified users to the verification page.
         if not user.email_verified:
-            form.add_error(None, 'Please verify your email before signing in.')
-            return self.form_invalid(form)
+            self.request.session['pending_verification_user_id'] = user.pk
 
+            messages.info(
+                self.request,
+                'Your email has not been verified yet. '
+                'Please verify your email or request a new verification email.'
+            )
+
+            return redirect('verify-email')
+
+        # Log in verified users.
         login(self.request, user)
 
         if user.role == 'applicant':
@@ -234,6 +318,7 @@ class SignInView(FormView):
             return redirect('employer-home')
 
         return redirect('landing_page')
+
 
 
 class LandingPageView(TemplateView):
@@ -319,3 +404,107 @@ class EmployerTermsAndConditionsView(TemplateView):
     
 class EmployerPrivacyPolicyView(TemplateView):
     template_name = 'LandingPage/privacy_policy_employer.html'
+
+
+class ResendVerificationEmailView(View):
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.session.get(
+            'pending_verification_user_id'
+        )
+
+        if not user_id:
+            messages.error(
+                request,
+                'Your verification session has expired. '
+                'Please register or sign in again.'
+            )
+            return redirect('signin')
+
+        user = User.objects.filter(
+            pk=user_id,
+            email_verified=False
+        ).first()
+
+        if not user:
+            request.session.pop(
+                'pending_verification_user_id',
+                None
+            )
+            messages.error(
+                request,
+                'No pending email verification was found.'
+            )
+            return redirect('signin')
+
+        # Prevent repeated requests within two minutes.
+        now = timezone.now()
+        last_sent = user.email_verification_sent_at
+
+        if last_sent and now - last_sent < timedelta(minutes=2):
+            messages.info(
+                request,
+                'Please wait two minutes between verification '
+                'email requests.'
+            )
+            return redirect('verify-email')
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+
+        activation_url = request.build_absolute_uri(
+            reverse(
+                'activate',
+                kwargs={
+                    'uidb64': uid,
+                    'token': token,
+                }
+            )
+        )
+
+        try:
+            sent = send_mail(
+                subject='Verify Your CAPESCONNECT Account',
+                message=(
+                    f'Hello {user.username},\n\n'
+                    'Please verify your CAPESCONNECT account '
+                    'using the link below:\n\n'
+                    f'{activation_url}\n\n'
+                    'This verification link will expire after '
+                    '24 hours.\n\n'
+                    'If you did not create this account, '
+                    'please ignore this email.\n\n'
+                    'Regards,\nCAPESCONNECT'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
+            if sent:
+                user.email_verification_sent_at = now
+                user.save(
+                    update_fields=['email_verification_sent_at']
+                )
+
+                messages.success(
+                    request,
+                    'A new verification email has been sent. '
+                    'Please check your inbox and spam folder.'
+                )
+            else:
+                messages.error(
+                    request,
+                    'We could not send the verification email. '
+                    'Please try again later.'
+                )
+
+        except Exception:
+            # Log the exception in production.
+            messages.error(
+                request,
+                'Unable to send the verification email right now. '
+                'Please try again later.'
+            )
+
+        return redirect('verify-email')
