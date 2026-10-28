@@ -29,6 +29,7 @@ from AdminSide.services.profile_sensitivity import (
     classify_profile_changes,
     mark_profile_for_reverification,
 )
+from AdminSide.profile_completion import calculate_profile_strength
 
 
 def record_profile_changes(profile, user, changes, change_model=None):
@@ -818,23 +819,9 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             context['rejected_count'] = applications.filter(status='rejected').count()
             context['withdrawn_count'] = applications.filter(status='withdrawn').count()
 
-            completed = 0
-            total = 6
-
-            if applicant_profile.first_name and applicant_profile.last_name:
-                completed += 1
-            if applicant_profile.education_level and applicant_profile.school_name:
-                completed += 1
-            if applicant_profile.skills.exists():
-                completed += 1
-            if applicant_profile.preferred_job.exists():
-                completed += 1
-            if applicant_profile.resume or applicant_profile.curriculum_vitae:
-                completed += 1
-            if applicant_profile.applicant_id_picture_front or applicant_profile.applicant_id_picture_back:
-                completed += 1
-
-            context['profile_strength'] = int((completed / total) * 100)
+            context['profile_strength'] = calculate_profile_strength(
+                applicant_profile
+            )
         else:
             for job in Jobs.objects.filter(status='Active'):
                 if job.pk:
