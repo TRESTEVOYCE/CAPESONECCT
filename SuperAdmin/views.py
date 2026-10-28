@@ -1,14 +1,15 @@
 
 from AdminSide.models import User,AuditLog
-from django.views.generic import FormView, TemplateView, ListView
+from django.views.generic import FormView, TemplateView, ListView,DeleteView,DetailView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from axes.models import AccessAttempt
-from .forms import LoginForm,MSWDOAccountCreationForm
-
+from .forms import LoginForm,MSWDOAccountCreationForm,PESOAccountCreationForm
+from django.contrib import messages
+from django.db import transaction
 
 # ==========================================
 # SUPER ADMIN ACCESS CONTROL
@@ -103,6 +104,10 @@ class SuperAdminSystemLogs(SuperUserAdmin, ListView):
 
 
 
+# ==========================================
+# SUPER ADMIN USERS
+# ==========================================
+
 class SuperAdminUsers(SuperUserAdmin, ListView):
     model = User
     template_name = 'SuperAdmin/SuperAdminUsers.html'
@@ -111,7 +116,13 @@ class SuperAdminUsers(SuperUserAdmin, ListView):
 
     def get_queryset(self):
         return User.objects.filter(
-            role__in=['applicant', 'employer']
+            role__in=[
+                'applicant',
+                'employer',
+                'peso',
+                'mswdo',
+                'admin',
+            ]
         ).order_by('role', 'email')
 
 # ==========================================
@@ -140,5 +151,86 @@ class MSWDOAccountCreateView(SuperUserAdmin, FormView):
         return super().form_valid(form)
 
 
+class PESOAccountCreateView(SuperUserAdmin, FormView):
+    form_class = PESOAccountCreationForm
+    template_name = 'SuperAdmin/create-peso-account.html'
+    success_url = reverse_lazy('create_peso_account')
 
+    def form_valid(self, form):
+        peso_user = form.save()
 
+        AuditLog.objects.create(
+            user=self.request.user,
+            action=f"Created PESO account: {peso_user.email}",
+        )
+
+        from django.contrib import messages
+
+        messages.success(
+            self.request,
+            f'PESO account for {peso_user.email} created successfully.'
+        )
+
+        return super().form_valid(form)
+# ==========================================
+# DELETE APPLICANT, EMPLOYER, PESO, AND MSWDO ACCOUNTS
+# ==========================================
+
+class DeleteAccountView(SuperUserAdmin, DeleteView):
+    model = User
+    template_name = 'SuperAdmin/confirm_delete_account.html'
+    context_object_name = 'account'
+    success_url = reverse_lazy('superadmin-users')
+
+    def get_queryset(self):
+        """
+        Allow deletion only for applicant, employer,
+        PESO, and MSWDO accounts.
+        """
+        return User.objects.filter(
+            role__in=['applicant', 'employer', 'peso', 'mswdo']
+        )
+
+    def form_valid(self, form):
+        account = self.object
+        account_email = account.email
+        account_role = account.role
+
+        with transaction.atomic():
+            response = super().form_valid(form)
+
+            AuditLog.objects.create(
+                user=self.request.user,
+                action=(
+                    f"Deleted {account_role} account: "
+                    f"{account_email}"
+                ),
+            )
+
+        messages.success(
+            self.request,
+            f'The {account_role.upper()} account '
+            f'({account_email}) was deleted successfully.'
+        )
+
+        return response
+
+# ==========================================
+# VIEW ACCOUNT DETAILS
+# ==========================================
+
+class ViewAccountView(SuperUserAdmin, DetailView):
+    model = User
+    template_name = 'SuperAdmin/view_account.html'
+    context_object_name = 'account'
+
+    def get_queryset(self):
+        return User.objects.filter(
+            role__in=[
+                'applicant',
+                'employer',
+                'peso',
+                'mswdo',
+                'admin',
+            ]
+        )

@@ -7,13 +7,14 @@
 
 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
+    <!-- Header -->
     <div class="flex flex-col justify-between gap-4 border-b border-slate-200 p-6 sm:flex-row sm:items-center">
         <div>
             <h2 class="text-lg font-bold text-slate-800">
                 Registered Users
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-                View all applicants and employers.
+                View and manage applicant, employer, PESO, MSWDO, and Super Admin accounts.
             </p>
         </div>
 
@@ -22,8 +23,10 @@
         </span>
     </div>
 
+    <!-- Users Table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-200">
+
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -35,22 +38,30 @@
                     <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                         Role
                     </th>
+                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Actions
+                    </th>
                 </tr>
             </thead>
 
             <tbody class="divide-y divide-slate-100 bg-white">
+
                 {% for user in users %}
                     <tr class="transition hover:bg-slate-50">
+
+                        <!-- Number -->
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                             {{ page_obj.start_index|add:forloop.counter0 }}
                         </td>
 
+                        <!-- Email -->
                         <td class="whitespace-nowrap px-6 py-4">
                             <div class="text-sm font-medium text-slate-800">
-                                {{ user.email }}
+                                {{ user.email|default:"No email provided" }}
                             </div>
                         </td>
 
+                        <!-- Role -->
                         <td class="whitespace-nowrap px-6 py-4">
                             {% if user.role == 'applicant' %}
                                 <span class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
@@ -60,30 +71,76 @@
                                 <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                                     Employer
                                 </span>
+                            {% elif user.role == 'peso' %}
+                                <span class="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+                                    PESO
+                                </span>
+                            {% elif user.role == 'mswdo' %}
+                                <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                    MSWDO
+                                </span>
+                            {% elif user.role == 'admin' %}
+                                <span class="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                    Super Admin
+                                </span>
                             {% else %}
                                 <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                                     {{ user.role|title }}
                                 </span>
                             {% endif %}
                         </td>
+
+                        <!-- Actions -->
+                        <td class="whitespace-nowrap px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+
+                                <!-- View: PESO, MSWDO, and Super Admin -->
+                                {% if user.role == 'peso' or user.role == 'mswdo' or user.role == 'admin' %}
+                                    <a href="{% url 'view_account' user.pk %}"
+                                       class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">
+                                        View
+                                    </a>
+                                {% endif %}
+
+                                <!-- Delete: Applicant, Employer, PESO, and MSWDO -->
+                                {% if user.role == 'applicant' or user.role == 'employer' or user.role == 'peso' or user.role == 'mswdo' %}
+                                    <a href="{% url 'delete_account' user.pk %}"
+                                       class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                                        Delete
+                                    </a>
+                                {% endif %}
+
+                                <!-- Protect Super Admin -->
+                                {% if user.role == 'admin' %}
+                                    <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500">
+                                        Protected
+                                    </span>
+                                {% endif %}
+
+                            </div>
+                        </td>
+
                     </tr>
+
                 {% empty %}
                     <tr>
-                        <td colspan="3" class="px-6 py-14 text-center">
+                        <td colspan="4" class="px-6 py-14 text-center">
                             <div class="text-3xl">♙</div>
                             <p class="mt-3 font-semibold text-slate-700">
                                 No users found
                             </p>
                             <p class="mt-1 text-sm text-slate-500">
-                                Registered applicants and employers will appear here.
+                                Registered accounts will appear here.
                             </p>
                         </td>
                     </tr>
                 {% endfor %}
+
             </tbody>
         </table>
     </div>
 
+    <!-- Pagination -->
     {% if is_paginated %}
         <div class="flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row">
 
@@ -92,6 +149,7 @@
             </p>
 
             <div class="flex items-center gap-2">
+
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}"
                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
@@ -113,6 +171,7 @@
                         Next
                     </span>
                 {% endif %}
+
             </div>
         </div>
     {% endif %}
