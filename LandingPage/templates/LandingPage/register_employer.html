@@ -238,33 +238,25 @@
     <script>
         const STORAGE_PREFIX = "peso_emp_step1_";
 
-        // Real-time restriction: allow only letters and spaces for name input fields
-        function sanitizeNameInput(input) {
-            input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+        function isGibberish(str) {
+            const clean = str.trim().toLowerCase();
+            if (clean.length < 2) return false;
+            const vowels = clean.match(/[aeiou]/g);
+            if (!vowels || vowels.length === 0) return true;
+            const consecutiveConsonants = /[bcdfghjklmnpqrstvwxyz]{4,}/;
+            if (consecutiveConsonants.test(clean)) return true;
+            return false;
         }
 
-        // Restore values on load & attach real-time input sanitization
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".save-state").forEach(input => {
                 const savedValue = sessionStorage.getItem(STORAGE_PREFIX + input.name);
                 if (savedValue !== null && input.value === '') {
                     input.value = savedValue;
                 }
-                // Save on change/input
                 input.addEventListener("input", function() {
                     sessionStorage.setItem(STORAGE_PREFIX + this.name, this.value);
                 });
-            });
-
-            // Enforce letter/space restriction on name fields on input/paste
-            ["id_business_name", "id_trade_name", "id_owner_name"].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener("input", function() { sanitizeNameInput(this); });
-                    el.addEventListener("paste", function() {
-                        setTimeout(() => sanitizeNameInput(this), 0);
-                    });
-                }
             });
         });
 
@@ -275,10 +267,11 @@
             // 1. Business Name
             const busInput = document.getElementById("id_business_name");
             const busError = document.getElementById("emp-business-error");
-            if (!validNameRegex.test(busInput.value.trim())) {
+            const busVal = busInput.value.trim();
+            if (!validNameRegex.test(busVal) || isGibberish(busVal)) {
                 e.preventDefault();
                 busInput.classList.add("border-red-500", "bg-red-50/50");
-                busError.textContent = "Business name must contain only letters and spaces.";
+                busError.textContent = "Please enter a valid business name (avoid random characters or gibberish).";
                 busError.classList.remove("hidden");
                 if (isValid) { busInput.focus(); isValid = false; }
             } else {
@@ -289,10 +282,11 @@
             // 2. Trade Name
             const tradeInput = document.getElementById("id_trade_name");
             const tradeError = document.getElementById("emp-trade-error");
-            if (tradeInput.value.trim() !== "" && !validNameRegex.test(tradeInput.value.trim())) {
+            const tradeVal = tradeInput.value.trim();
+            if (tradeVal !== "" && (!validNameRegex.test(tradeVal) || isGibberish(tradeVal))) {
                 e.preventDefault();
                 tradeInput.classList.add("border-red-500", "bg-red-50/50");
-                tradeError.textContent = "Trade name must contain only letters and spaces.";
+                tradeError.textContent = "Please enter a valid trade name (avoid random characters or gibberish).";
                 tradeError.classList.remove("hidden");
                 if (isValid) { tradeInput.focus(); isValid = false; }
             } else {
@@ -303,10 +297,11 @@
             // 3. Owner Name
             const ownerInput = document.getElementById("id_owner_name");
             const ownerError = document.getElementById("emp-owner-error");
-            if (!validNameRegex.test(ownerInput.value.trim())) {
+            const ownerVal = ownerInput.value.trim();
+            if (!validNameRegex.test(ownerVal) || isGibberish(ownerVal)) {
                 e.preventDefault();
                 ownerInput.classList.add("border-red-500", "bg-red-50/50");
-                ownerError.textContent = "Owner name must contain only letters and spaces.";
+                ownerError.textContent = "Please enter a valid owner name (avoid random characters or gibberish).";
                 ownerError.classList.remove("hidden");
                 if (isValid) { ownerInput.focus(); isValid = false; }
             } else {

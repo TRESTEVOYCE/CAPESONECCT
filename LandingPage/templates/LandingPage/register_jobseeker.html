@@ -244,9 +244,14 @@
     <script>
         const STORAGE_PREFIX = "peso_js_step1_";
 
-        // Real-time restriction: allow only letters and spaces for name input fields
-        function sanitizeNameInput(input) {
-            input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+        function isGibberish(str) {
+            const clean = str.trim().toLowerCase();
+            if (clean.length < 2) return false;
+            const vowels = clean.match(/[aeiou]/g);
+            if (!vowels || vowels.length === 0) return true;
+            const consecutiveConsonants = /[bcdfghjklmnpqrstvwxyz]{4,}/;
+            if (consecutiveConsonants.test(clean)) return true;
+            return false;
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -262,17 +267,6 @@
                     sessionStorage.setItem(STORAGE_PREFIX + this.name, this.value);
                 });
             });
-
-            // Enforce letter/space restriction on name fields on input/paste
-            ["id_first_name", "id_middle_name", "id_last_name"].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener("input", function() { sanitizeNameInput(this); });
-                    el.addEventListener("paste", function() {
-                        setTimeout(() => sanitizeNameInput(this), 0);
-                    });
-                }
-            });
         });
 
         document.getElementById("jobseeker-form").addEventListener("submit", function(e) {
@@ -282,10 +276,11 @@
             // 1. First Name Validation
             const fNameInput = document.getElementById("id_first_name");
             const fNameError = document.getElementById("fname-error");
-            if (!validNameRegex.test(fNameInput.value.trim())) {
+            const fNameVal = fNameInput.value.trim();
+            if (!validNameRegex.test(fNameVal) || isGibberish(fNameVal)) {
                 e.preventDefault();
                 fNameInput.classList.add("border-red-500", "bg-red-50/50");
-                fNameError.textContent = "First name must contain only letters and spaces.";
+                fNameError.textContent = "Please enter a valid first name (avoid random characters or gibberish).";
                 fNameError.classList.remove("hidden");
                 if (isValid) { fNameInput.focus(); isValid = false; }
             } else {
@@ -296,10 +291,11 @@
             // 2. Middle Name Validation
             const mNameInput = document.getElementById("id_middle_name");
             const mNameError = document.getElementById("mname-error");
-            if (mNameInput.value.trim() !== "" && !validNameRegex.test(mNameInput.value.trim())) {
+            const mNameVal = mNameInput.value.trim();
+            if (mNameVal !== "" && (!validNameRegex.test(mNameVal) || isGibberish(mNameVal))) {
                 e.preventDefault();
                 mNameInput.classList.add("border-red-500", "bg-red-50/50");
-                mNameError.textContent = "Middle name must contain only letters and spaces.";
+                mNameError.textContent = "Please enter a valid middle name (avoid random characters or gibberish).";
                 mNameError.classList.remove("hidden");
                 if (isValid) { mNameInput.focus(); isValid = false; }
             } else {
@@ -310,10 +306,11 @@
             // 3. Last Name Validation
             const lNameInput = document.getElementById("id_last_name");
             const lNameError = document.getElementById("lname-error");
-            if (!validNameRegex.test(lNameInput.value.trim())) {
+            const lNameVal = lNameInput.value.trim();
+            if (!validNameRegex.test(lNameVal) || isGibberish(lNameVal)) {
                 e.preventDefault();
                 lNameInput.classList.add("border-red-500", "bg-red-50/50");
-                lNameError.textContent = "Last name must contain only letters and spaces.";
+                lNameError.textContent = "Please enter a valid last name (avoid random characters or gibberish).";
                 lNameError.classList.remove("hidden");
                 if (isValid) { lNameInput.focus(); isValid = false; }
             } else {
