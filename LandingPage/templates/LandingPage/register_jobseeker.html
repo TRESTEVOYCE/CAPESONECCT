@@ -244,6 +244,11 @@
     <script>
         const STORAGE_PREFIX = "peso_js_step1_";
 
+        // Real-time restriction: allow only letters and spaces for name input fields
+        function sanitizeNameInput(input) {
+            input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".save-state").forEach(input => {
                 const savedValue = sessionStorage.getItem(STORAGE_PREFIX + input.name);
@@ -257,19 +262,30 @@
                     sessionStorage.setItem(STORAGE_PREFIX + this.name, this.value);
                 });
             });
+
+            // Enforce letter/space restriction on name fields on input/paste
+            ["id_first_name", "id_middle_name", "id_last_name"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("input", function() { sanitizeNameInput(this); });
+                    el.addEventListener("paste", function() {
+                        setTimeout(() => sanitizeNameInput(this), 0);
+                    });
+                }
+            });
         });
 
         document.getElementById("jobseeker-form").addEventListener("submit", function(e) {
             let isValid = true;
-            const hasNumberRegex = /\d/;
+            const validNameRegex = /^[a-zA-Z\s]+$/;
 
             // 1. First Name Validation
             const fNameInput = document.getElementById("id_first_name");
             const fNameError = document.getElementById("fname-error");
-            if (hasNumberRegex.test(fNameInput.value)) {
+            if (!validNameRegex.test(fNameInput.value.trim())) {
                 e.preventDefault();
                 fNameInput.classList.add("border-red-500", "bg-red-50/50");
-                fNameError.textContent = "First name must not contain numbers.";
+                fNameError.textContent = "First name must contain only letters and spaces.";
                 fNameError.classList.remove("hidden");
                 if (isValid) { fNameInput.focus(); isValid = false; }
             } else {
@@ -280,10 +296,10 @@
             // 2. Middle Name Validation
             const mNameInput = document.getElementById("id_middle_name");
             const mNameError = document.getElementById("mname-error");
-            if (mNameInput.value.trim() !== "" && hasNumberRegex.test(mNameInput.value)) {
+            if (mNameInput.value.trim() !== "" && !validNameRegex.test(mNameInput.value.trim())) {
                 e.preventDefault();
                 mNameInput.classList.add("border-red-500", "bg-red-50/50");
-                mNameError.textContent = "Middle name must not contain numbers.";
+                mNameError.textContent = "Middle name must contain only letters and spaces.";
                 mNameError.classList.remove("hidden");
                 if (isValid) { mNameInput.focus(); isValid = false; }
             } else {
@@ -294,10 +310,10 @@
             // 3. Last Name Validation
             const lNameInput = document.getElementById("id_last_name");
             const lNameError = document.getElementById("lname-error");
-            if (hasNumberRegex.test(lNameInput.value)) {
+            if (!validNameRegex.test(lNameInput.value.trim())) {
                 e.preventDefault();
                 lNameInput.classList.add("border-red-500", "bg-red-50/50");
-                lNameError.textContent = "Last name must not contain numbers.";
+                lNameError.textContent = "Last name must contain only letters and spaces.";
                 lNameError.classList.remove("hidden");
                 if (isValid) { lNameInput.focus(); isValid = false; }
             } else {

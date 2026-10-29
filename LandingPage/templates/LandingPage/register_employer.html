@@ -238,7 +238,12 @@
     <script>
         const STORAGE_PREFIX = "peso_emp_step1_";
 
-        // Restore values on load
+        // Real-time restriction: allow only letters and spaces for name input fields
+        function sanitizeNameInput(input) {
+            input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+        }
+
+        // Restore values on load & attach real-time input sanitization
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".save-state").forEach(input => {
                 const savedValue = sessionStorage.getItem(STORAGE_PREFIX + input.name);
@@ -250,21 +255,32 @@
                     sessionStorage.setItem(STORAGE_PREFIX + this.name, this.value);
                 });
             });
+
+            // Enforce letter/space restriction on name fields on input/paste
+            ["id_business_name", "id_trade_name", "id_owner_name"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("input", function() { sanitizeNameInput(this); });
+                    el.addEventListener("paste", function() {
+                        setTimeout(() => sanitizeNameInput(this), 0);
+                    });
+                }
+            });
         });
 
         document.getElementById("employer-form").addEventListener("submit", function(e) {
             let isValid = true;
-            const hasNumberRegex = /\d/;
+            const validNameRegex = /^[a-zA-Z\s]+$/;
 
             // 1. Business Name
             const busInput = document.getElementById("id_business_name");
             const busError = document.getElementById("emp-business-error");
-            if (hasNumberRegex.test(busInput.value)) {
+            if (!validNameRegex.test(busInput.value.trim())) {
                 e.preventDefault();
                 busInput.classList.add("border-red-500", "bg-red-50/50");
-                busError.textContent = "Business name must not contain numbers.";
+                busError.textContent = "Business name must contain only letters and spaces.";
                 busError.classList.remove("hidden");
-                if(isValid) { busInput.focus(); isValid = false; }
+                if (isValid) { busInput.focus(); isValid = false; }
             } else {
                 busInput.classList.remove("border-red-500", "bg-red-50/50");
                 busError.classList.add("hidden");
@@ -273,12 +289,12 @@
             // 2. Trade Name
             const tradeInput = document.getElementById("id_trade_name");
             const tradeError = document.getElementById("emp-trade-error");
-            if (tradeInput.value.trim() !== "" && hasNumberRegex.test(tradeInput.value)) {
+            if (tradeInput.value.trim() !== "" && !validNameRegex.test(tradeInput.value.trim())) {
                 e.preventDefault();
                 tradeInput.classList.add("border-red-500", "bg-red-50/50");
-                tradeError.textContent = "Trade name must not contain numbers.";
+                tradeError.textContent = "Trade name must contain only letters and spaces.";
                 tradeError.classList.remove("hidden");
-                if(isValid) { tradeInput.focus(); isValid = false; }
+                if (isValid) { tradeInput.focus(); isValid = false; }
             } else {
                 tradeInput.classList.remove("border-red-500", "bg-red-50/50");
                 tradeError.classList.add("hidden");
@@ -287,12 +303,12 @@
             // 3. Owner Name
             const ownerInput = document.getElementById("id_owner_name");
             const ownerError = document.getElementById("emp-owner-error");
-            if (hasNumberRegex.test(ownerInput.value)) {
+            if (!validNameRegex.test(ownerInput.value.trim())) {
                 e.preventDefault();
                 ownerInput.classList.add("border-red-500", "bg-red-50/50");
-                ownerError.textContent = "Owner name must not contain numbers.";
+                ownerError.textContent = "Owner name must contain only letters and spaces.";
                 ownerError.classList.remove("hidden");
-                if(isValid) { ownerInput.focus(); isValid = false; }
+                if (isValid) { ownerInput.focus(); isValid = false; }
             } else {
                 ownerInput.classList.remove("border-red-500", "bg-red-50/50");
                 ownerError.classList.add("hidden");
@@ -309,7 +325,7 @@
                 phoneInput.classList.add("border-red-500", "bg-red-50/50");
                 phoneError.textContent = "Mobile number must start with '09' and contain exactly 11 digits.";
                 phoneError.classList.remove("hidden");
-                if(isValid) { phoneInput.focus(); isValid = false; }
+                if (isValid) { phoneInput.focus(); isValid = false; }
             } else {
                 phoneInput.classList.remove("border-red-500", "bg-red-50/50");
                 phoneError.classList.add("hidden");
