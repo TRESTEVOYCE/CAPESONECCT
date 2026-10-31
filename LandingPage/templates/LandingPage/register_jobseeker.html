@@ -271,7 +271,7 @@
 
         document.getElementById("jobseeker-form").addEventListener("submit", function(e) {
             let isValid = true;
-            const validNameRegex = /^[a-zA-Z\s]+$/;
+            const validNameRegex = /^[A-Za-zÑñ\s\-\.]+$/;
 
             // 1. First Name Validation
             const fNameInput = document.getElementById("id_first_name");
@@ -280,7 +280,7 @@
             if (!validNameRegex.test(fNameVal) || isGibberish(fNameVal)) {
                 e.preventDefault();
                 fNameInput.classList.add("border-red-500", "bg-red-50/50");
-                fNameError.textContent = "Please enter a valid first name (avoid random characters or gibberish).";
+                fNameError.textContent = "Please enter a valid first name (avoid random characters).";
                 fNameError.classList.remove("hidden");
                 if (isValid) { fNameInput.focus(); isValid = false; }
             } else {
@@ -295,7 +295,7 @@
             if (mNameVal !== "" && (!validNameRegex.test(mNameVal) || isGibberish(mNameVal))) {
                 e.preventDefault();
                 mNameInput.classList.add("border-red-500", "bg-red-50/50");
-                mNameError.textContent = "Please enter a valid middle name (avoid random characters or gibberish).";
+                mNameError.textContent = "Please enter a valid middle name (avoid random characters).";
                 mNameError.classList.remove("hidden");
                 if (isValid) { mNameInput.focus(); isValid = false; }
             } else {
@@ -310,7 +310,7 @@
             if (!validNameRegex.test(lNameVal) || isGibberish(lNameVal)) {
                 e.preventDefault();
                 lNameInput.classList.add("border-red-500", "bg-red-50/50");
-                lNameError.textContent = "Please enter a valid last name (avoid random characters or gibberish).";
+                lNameError.textContent = "Please enter a valid last name (avoid random characters).";
                 lNameError.classList.remove("hidden");
                 if (isValid) { lNameInput.focus(); isValid = false; }
             } else {
