@@ -264,52 +264,29 @@
             let isValid = true;
             const validNameRegex = /^[a-zA-Z\s]+$/;
 
-            // 1. Business Name
-            const busInput = document.getElementById("id_business_name");
-            const busError = document.getElementById("emp-business-error");
-            const busVal = busInput.value.trim();
-            if (!validNameRegex.test(busVal) || isGibberish(busVal)) {
-                e.preventDefault();
-                busInput.classList.add("border-red-500", "bg-red-50/50");
-                busError.textContent = "Please enter a valid business name (avoid random characters or gibberish).";
-                busError.classList.remove("hidden");
-                if (isValid) { busInput.focus(); isValid = false; }
-            } else {
-                busInput.classList.remove("border-red-500", "bg-red-50/50");
-                busError.classList.add("hidden");
-            }
 
-            // 2. Trade Name
-            const tradeInput = document.getElementById("id_trade_name");
-            const tradeError = document.getElementById("emp-trade-error");
-            const tradeVal = tradeInput.value.trim();
-            if (tradeVal !== "" && (!validNameRegex.test(tradeVal) || isGibberish(tradeVal))) {
-                e.preventDefault();
-                tradeInput.classList.add("border-red-500", "bg-red-50/50");
-                tradeError.textContent = "Please enter a valid trade name (avoid random characters or gibberish).";
-                tradeError.classList.remove("hidden");
-                if (isValid) { tradeInput.focus(); isValid = false; }
-            } else {
-                tradeInput.classList.remove("border-red-500", "bg-red-50/50");
-                tradeError.classList.add("hidden");
-            }
 
-            // 3. Owner Name
+        // 1. Owner Name Validation
             const ownerInput = document.getElementById("id_owner_name");
             const ownerError = document.getElementById("emp-owner-error");
             const ownerVal = ownerInput.value.trim();
-            if (!validNameRegex.test(ownerVal) || isGibberish(ownerVal)) {
+
+            if (!ownerVal || !validNameRegex.test(ownerVal) || isGibberish(ownerVal)) {
                 e.preventDefault();
                 ownerInput.classList.add("border-red-500", "bg-red-50/50");
-                ownerError.textContent = "Please enter a valid owner name (avoid random characters or gibberish).";
+                ownerError.textContent = "Please enter a valid owner name (only letters, spaces, '.', and '-' allowed).";
                 ownerError.classList.remove("hidden");
-                if (isValid) { ownerInput.focus(); isValid = false; }
+                if (isValid) { 
+                    ownerInput.focus(); 
+                    isValid = false; 
+                }
             } else {
                 ownerInput.classList.remove("border-red-500", "bg-red-50/50");
                 ownerError.classList.add("hidden");
             }
 
-            // 4. Mobile Number
+
+            // 2. Mobile Number
             const phoneInput = document.getElementById("id_mobile_number");
             const phoneError = document.getElementById("emp-phone-error");
             const phoneVal = phoneInput.value.trim();

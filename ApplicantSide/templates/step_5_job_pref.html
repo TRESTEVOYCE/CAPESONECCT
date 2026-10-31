@@ -33,23 +33,23 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="field-wrap">
                         <label class="block text-xs font-semibold text-stone-600 mb-1">Occupation*</label>
-                        <input type="text" name="pref_occupation[]" class="occupation-input w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required placeholder="e.g., Developer">
-                        <p class="error-occupation text-xs text-red-600 hidden font-medium mt-1">Must be at least 5 letters, no numbers, and a valid dictionary word.</p>
+                        <input type="text" name="pref_occupation[]" class="occupation-input w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required placeholder="e.g., Software Developer">
+                        <p class="error-occupation text-xs text-red-600 hidden font-medium mt-1">Must be at least 5 characters, no numbers allowed.</p>
                     </div>
                     <div class="field-wrap">
                         <label class="block text-xs font-semibold text-stone-600 mb-1">Industry*</label>
-                        <input type="text" name="pref_industry[]" class="industry-input w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required placeholder="e.g., Technology">
-                        <p class="error-industry text-xs text-red-600 hidden font-medium mt-1">Must be at least 5 letters, no numbers, and a valid dictionary word.</p>
+                        <input type="text" name="pref_industry[]" class="industry-input w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl px-4.5 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none" required placeholder="e.g., Information & Technology">
+                        <p class="error-industry text-xs text-red-600 hidden font-medium mt-1">Must be at least 5 characters, no numbers allowed.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Preferred Work Location Section with Preference Type Moved Here -->
+        <!-- Preferred Work Location Section with Open-Ended Text Inputs -->
         <div class="space-y-4 pt-2">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
                 <div class="text-sm font-bold text-stone-800 uppercase tracking-wide">
-                    Preferred Work Location (Verified Map Data)
+                    Preferred Work Location 
                 </div>
                 <div class="flex items-center gap-5 text-sm bg-white px-4 py-2 rounded-xl border border-stone-200 shadow-sm">
                     <span class="font-semibold text-stone-800">
@@ -76,61 +76,49 @@
 
                 <!-- Location Row 1 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">1.</span>
                             {{ form.pref_location_local_1 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing city/municipality from the map suggestions.</p>
                     </div>
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">1.</span>
                             {{ form.pref_location_overseas_1 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing country from the map suggestions.</p>
                     </div>
                 </div>
 
                 <!-- Location Row 2 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">2.</span>
                             {{ form.pref_location_local_2 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing city/municipality from the map suggestions.</p>
                     </div>
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">2.</span>
                             {{ form.pref_location_overseas_2 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing country from the map suggestions.</p>
                     </div>
                 </div>
 
                 <!-- Location Row 3 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">3.</span>
                             {{ form.pref_location_local_3 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing city/municipality from the map suggestions.</p>
                     </div>
-                    <div class="relative location-field-wrapper">
+                    <div class="relative">
                         <div class="relative flex items-center">
                             <span class="absolute left-3 text-xs font-bold text-stone-400 z-10">3.</span>
                             {{ form.pref_location_overseas_3 }}
                         </div>
-                        <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-loc text-xs text-red-600 hidden font-medium mt-1">Please select a valid existing country from the map suggestions.</p>
                     </div>
                 </div>
             </div>
@@ -190,23 +178,13 @@
             return /\d/.test(val);
         }
 
-        function validateLettersOnly(val) {
-            const lettersRegex = /^[A-Za-zÑñ\s\-\.]+$/;
+        // Regex updated to allow letters, spaces, dots, hyphens, and ampersands
+        function validateTextSymbols(val) {
+            const lettersRegex = /^[A-Za-zÑñ\s\-\.&]+$/;
             return lettersRegex.test(val);
         }
 
-        async function checkDictionaryWord(word) {
-            const cleanWord = word.trim().toLowerCase();
-            if (cleanWord.length < 5) return false;
-            try {
-                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
-                return response.ok;
-            } catch (e) {
-                return true;
-            }
-        }
-
-        async function validateFieldInput(inputEl, errorEl) {
+        function validateFieldInput(inputEl, errorEl) {
             const val = inputEl.value;
             if (hasNumbers(val)) {
                 inputEl.value = val.replace(/\d/g, "");
@@ -217,18 +195,9 @@
                 if (errorEl) errorEl.classList.add("hidden");
                 return true;
             }
-            if (cleanVal.length < 5 || !validateLettersOnly(cleanVal)) {
+            if (cleanVal.length < 5 || !validateTextSymbols(cleanVal)) {
                 inputEl.classList.add("border-red-500", "bg-red-50/50");
                 if (errorEl) errorEl.classList.remove("hidden");
-                return false;
-            }
-            const isWord = await checkDictionaryWord(cleanVal);
-            if (!isWord) {
-                inputEl.classList.add("border-red-500", "bg-red-50/50");
-                if (errorEl) {
-                    errorEl.textContent = "Word not found in dictionary. Please enter a valid word.";
-                    errorEl.classList.remove("hidden");
-                }
                 return false;
             } else {
                 inputEl.classList.remove("border-red-500", "bg-red-50/50");
@@ -247,15 +216,15 @@
             occupationInput.addEventListener("input", function() {
                 if (hasNumbers(this.value)) this.value = this.value.replace(/\d/g, "");
             });
-            occupationInput.addEventListener("blur", async function() {
-                await validateFieldInput(this, occupationError);
+            occupationInput.addEventListener("blur", function() {
+                validateFieldInput(this, occupationError);
             });
 
             industryInput.addEventListener("input", function() {
                 if (hasNumbers(this.value)) this.value = this.value.replace(/\d/g, "");
             });
-            industryInput.addEventListener("blur", async function() {
-                await validateFieldInput(this, industryError);
+            industryInput.addEventListener("blur", function() {
+                validateFieldInput(this, industryError);
             });
 
             removeBtn.addEventListener("click", function() {
@@ -293,72 +262,12 @@
             updateEntryLabels();
         });
 
-        // Setup real-time Map Geocoding Autocomplete for Work Locations
+        // Apply basic styling to open-ended location inputs without map suggestions
         document.querySelectorAll("[id*='pref_location_']").forEach(el => {
             el.className = "w-full h-14 border border-stone-200 bg-white text-stone-900 rounded-xl pl-8 pr-4 py-3.5 text-base focus:ring-2 focus:ring-stone-900 focus:outline-none";
-            
-            let debounceTimer;
-            const wrapper = el.closest(".location-field-wrapper");
-            const suggestionsBox = wrapper.querySelector(".suggestions-box");
-            const errorMsg = wrapper.querySelector(".error-loc");
-            
-            let isLocationSelectedFromMap = false;
-
-            el.addEventListener("input", function() {
-                isLocationSelectedFromMap = false;
-                const query = this.value.trim();
-                
-                if (query.length < 3) {
-                    suggestionsBox.classList.add("hidden");
-                    return;
-                }
-
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(async () => {
-                    try {
-                        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
-                        const data = await response.json();
-                        
-                        suggestionsBox.innerHTML = "";
-                        if (data.length > 0) {
-                            data.forEach(item => {
-                                const div = document.createElement("div");
-                                div.className = "px-4 py-2.5 hover:bg-stone-100 cursor-pointer text-sm text-stone-800 border-b border-stone-100 last:border-b-0";
-                                div.textContent = item.display_name;
-                                div.addEventListener("click", () => {
-                                    el.value = item.display_name;
-                                    isLocationSelectedFromMap = true;
-                                    suggestionsBox.classList.add("hidden");
-                                    el.classList.remove("border-red-500", "bg-red-50/50");
-                                    errorMsg.classList.add("hidden");
-                                });
-                                suggestionsBox.appendChild(div);
-                            });
-                            suggestionsBox.classList.remove("hidden");
-                        } else {
-                            suggestionsBox.classList.add("hidden");
-                        }
-                    } catch (err) {
-                        suggestionsBox.classList.add("hidden");
-                    }
-                }, 300);
-            });
-
-            el.addEventListener("blur", function() {
-                setTimeout(() => {
-                    suggestionsBox.classList.add("hidden");
-                    if (el.value.trim() !== "" && !isLocationSelectedFromMap) {
-                        el.classList.add("border-red-500", "bg-red-50/50");
-                        errorMsg.classList.remove("hidden");
-                    } else {
-                        el.classList.remove("border-red-500", "bg-red-50/50");
-                        errorMsg.classList.add("hidden");
-                    }
-                }, 200);
-            });
         });
 
-        form.addEventListener("submit", async function(e) {
+        form.addEventListener("submit", function(e) {
             e.preventDefault();
             let isValid = true;
             const entries = container.querySelectorAll(".occupation-entry");
@@ -369,16 +278,10 @@
                 const indInput = entry.querySelector(".industry-input");
                 const indError = entry.querySelector(".error-industry");
 
-                const occValid = await validateFieldInput(occInput, occError);
-                const indValid = await validateFieldInput(indInput, indError);
+                const occValid = validateFieldInput(occInput, occError);
+                const indValid = validateFieldInput(indInput, indError);
                 if (!occValid || !indValid) isValid = false;
             }
-
-            document.querySelectorAll("[id*='pref_location_']").forEach(el => {
-                if (el.value.trim() !== "" && el.classList.contains("border-red-500")) {
-                    isValid = false;
-                }
-            });
 
             if (salarySelect && salarySelect.value === "") {
                 salarySelect.classList.add("border-red-500", "bg-red-50/50");

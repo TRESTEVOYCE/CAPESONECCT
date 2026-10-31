@@ -55,14 +55,13 @@
                                 </p>
                             {% endif %}
                         </div>
-                        <!-- Address with Map Autocomplete -->
+                        <!-- Address with Map Autocomplete (Suggestions only, no validation/restriction) -->
                         <div class="relative address-field-wrapper">
                             <label for="{{ work_form.address.id_for_label }}" class="block mb-2 text-sm font-semibold text-stone-800">
                                 Address *
                             </label>
                             {{ work_form.address }}
                             <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                            <p class="error-address mt-1.5 text-xs text-red-600 hidden font-medium">Please select a valid location from map suggestions.</p>
                             {% if work_form.address.errors %}
                                 <p class="mt-1.5 text-xs text-red-600 font-medium">
                                     {{ work_form.address.errors.0 }}
@@ -158,7 +157,6 @@
                         </label>
                         {{ work_formset.empty_form.address }}
                         <div class="suggestions-box absolute left-0 right-0 bg-white border border-stone-200 rounded-xl shadow-lg mt-1 z-50 hidden max-h-48 overflow-y-auto"></div>
-                        <p class="error-address mt-1.5 text-xs text-red-600 hidden font-medium">Please select a valid location from map suggestions.</p>
                     </div>
                 </div>
 
@@ -313,7 +311,6 @@ function workExperienceFormset() {
             const positionInput = el.querySelector('input[name$="-position"]');
 
             const errCompany = el.querySelector('.error-company');
-            const errAddress = el.querySelector('.error-address');
             const errPosition = el.querySelector('.error-position');
 
             function hasNumbers(val) {
@@ -352,15 +349,13 @@ function workExperienceFormset() {
             setupField(companyInput, errCompany);
             setupField(positionInput, errPosition);
 
-            // Map Geocoding Autocomplete for Address Field
+            // Address: Provides open suggestions via Nominatim without restricting user entry or blocking submission
             if (addressInput) {
                 const wrapper = addressInput.closest('.address-field-wrapper');
                 const suggestionsBox = wrapper ? wrapper.querySelector('.suggestions-box') : null;
                 let debounceTimer;
-                let isAddressSelectedFromMap = false;
 
                 addressInput.addEventListener('input', function() {
-                    isAddressSelectedFromMap = false;
                     const query = this.value.trim();
                     
                     if (query.length < 3) {
@@ -383,10 +378,7 @@ function workExperienceFormset() {
                                         div.textContent = item.display_name;
                                         div.addEventListener("click", () => {
                                             addressInput.value = item.display_name;
-                                            isAddressSelectedFromMap = true;
                                             suggestionsBox.classList.add("hidden");
-                                            addressInput.classList.remove("border-red-500", "bg-red-50/50");
-                                            if (errAddress) errAddress.classList.add("hidden");
                                         });
                                         suggestionsBox.appendChild(div);
                                     });
@@ -404,10 +396,6 @@ function workExperienceFormset() {
                 addressInput.addEventListener("blur", function() {
                     setTimeout(() => {
                         if (suggestionsBox) suggestionsBox.classList.add("hidden");
-                        if (addressInput.value.trim() !== "" && !isAddressSelectedFromMap) {
-                            addressInput.classList.add("border-red-500", "bg-red-50/50");
-                            if (errAddress) errAddress.classList.remove("hidden");
-                        }
                     }, 200);
                 });
             }
@@ -443,15 +431,6 @@ document.addEventListener("DOMContentLoaded", function() {
                         isValid = false;
                     }
                 });
-
-                // Check address selection
-                const addressInput = item.querySelector('input[name$="-address"]');
-                const errAddress = item.querySelector('.error-address');
-                if (addressInput && addressInput.value.trim() !== "") {
-                    if (addressInput.classList.contains('border-red-500')) {
-                        isValid = false;
-                    }
-                }
             });
 
             if (!isValid) {
