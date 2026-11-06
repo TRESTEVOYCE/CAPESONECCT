@@ -10,6 +10,8 @@ from axes.models import AccessAttempt
 from .forms import LoginForm,MSWDOAccountCreationForm,PESOAccountCreationForm
 from django.contrib import messages
 from django.db import transaction
+from django.utils.decorators import method_decorator
+from honeypot.decorators import check_honeypot
 
 # ==========================================
 # SUPER ADMIN ACCESS CONTROL
@@ -33,6 +35,7 @@ class SuperUserAdmin(LoginRequiredMixin, UserPassesTestMixin):
 # SUPER ADMIN LOGIN
 # ==========================================
 
+@method_decorator(check_honeypot, name='dispatch')
 class SuperAdminLoginView(FormView):
     form_class = LoginForm
     template_name = 'SuperAdmin/super_admin_login.html'

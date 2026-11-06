@@ -42,7 +42,7 @@
 
             <form method="post" class="mt-6 space-y-5 action = {% url 'superadmin-dashboard' %}">
                 {% csrf_token %}
-
+                {% render_honeypot_field "bisan_ano" %}
                 <div>
                     <label for="{{ form.email.id_for_label }}"
                            class="mb-2 block text-sm font-semibold text-slate-700">

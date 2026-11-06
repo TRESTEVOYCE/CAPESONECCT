@@ -63,6 +63,8 @@ from .services.profile_sensitivity import (
     has_current_supporting_document,
     profile_change_audit_rows,
 )
+from django.utils.decorators import method_decorator
+from honeypot.decorators import check_honeypot
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +123,9 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
     def handle_no_permission(self):
         messages.error(self.request, "Unauthorized access. Superuser credentials required.")
         return redirect('AdminSide:admin_login')
+    
 
+@method_decorator(check_honeypot, name='dispatch')
 class AdminLoginView(View):
     """Class-Based View handling administrator authentication."""
     template_name = 'login.html'

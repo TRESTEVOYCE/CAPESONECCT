@@ -108,6 +108,7 @@
                 <!-- Login Form -->
                 <form method="POST" action="{% url 'AdminSide:admin_login' %}" class="space-y-5">
                     {% csrf_token %}
+                    {% render_honeypot_field "bisan_ano" %}
 
                     <!-- Username Input -->
                     <div>
