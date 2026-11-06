@@ -450,13 +450,55 @@ class ApplicantProfile(models.Model):
     award_2 = models.CharField(max_length=255, blank=True, null=True)
     award_3 = models.CharField(max_length=255, blank=True, null=True)
     
-    skill_computer = models.BooleanField(default=False)
+   
+    # ==========================================
+    # VII. 21st Century Skills
+    # ==========================================
+
+    skill_innovation = models.BooleanField(default=False)
+    skill_team_work = models.BooleanField(default=False)
+    skill_multitasking = models.BooleanField(default=False)
+    skill_work_ethics = models.BooleanField(default=False)
+    skill_self_motivation = models.BooleanField(default=False)
+    skill_creative_problem_solving = models.BooleanField(default=False)
+    skill_problem_solving = models.BooleanField(default=False)
+    skill_critical_thinking = models.BooleanField(default=False)
+    skill_decision_making = models.BooleanField(default=False)
+    skill_stress_tolerance = models.BooleanField(default=False)
+    skill_planning_organizing = models.BooleanField(default=False)
+    skill_social_perceptiveness = models.BooleanField(default=False)
+    skill_english_functional = models.BooleanField(default=False)
+    skill_english_comprehension = models.BooleanField(default=False)
+    skill_math_functional = models.BooleanField(default=False)
+
+    # ==========================================
+    # Technical Skills
+    # ==========================================
+
+    skill_carpentry = models.BooleanField(default=False)
+    skill_masonry = models.BooleanField(default=False)
+    skill_welding = models.BooleanField(default=False)
+    skill_auto_mechanic = models.BooleanField(default=False)
+    skill_plumbing = models.BooleanField(default=False)
     skill_driving = models.BooleanField(default=False)
+    skill_gardening = models.BooleanField(default=False)
+    skill_tailoring = models.BooleanField(default=False)
+    skill_photography = models.BooleanField(default=False)
+    skill_hairdressing = models.BooleanField(default=False)
+    skill_cooking = models.BooleanField(default=False)
+    skill_baking = models.BooleanField(default=False)
+
+    # Additional existing skills
+    skill_computer = models.BooleanField(default=False)
     skill_customer_service = models.BooleanField(default=False)
     skill_bookkeeping = models.BooleanField(default=False)
-    skill_carpentry = models.BooleanField(default=False)
-    skill_welding = models.BooleanField(default=False)
-    other_skills = models.CharField(max_length=500, blank=True, null=True)
+
+    other_skills = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True
+    )
+
     
     certification_agree = models.BooleanField(default=False)
     resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
