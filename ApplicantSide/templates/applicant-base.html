@@ -31,21 +31,21 @@
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
     <style>
-        [x-cloak] {
-            display: none !important;
+        html,
+        body,
+        aside,
+        nav,
+        main {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-        html {
-            scroll-behavior: smooth;
-        }
-        body {
-            min-height: 100%;
-        }
-        button, a, input {
-            -webkit-tap-highlight-color: transparent;
-        }
-        :focus-visible {
-            outline: 2px solid #fbbf24;
-            outline-offset: 3px;
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        aside::-webkit-scrollbar,
+        nav::-webkit-scrollbar,
+        main::-webkit-scrollbar {
+            display: none;
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -135,16 +135,89 @@
                 </div>
             </div>
             {% else %}
-            <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start gap-2.5">
-                <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192-3 1.732-3z"/>
-                </svg>
-                <div class="text-[11px] leading-tight">
-                    <span class="font-bold text-amber-200 block mb-0.5">Account Pending</span>
-                    PESO Admin is reviewing your credentials. You can browse jobs while waiting.
+                {% with missing=applicant_profile.missing_required_information %}
+                <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex flex-col gap-3">
+
+                    <div class="flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"
+                            aria-hidden="true" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+
+                        <div class="text-[11px] leading-tight">
+                            <span class="font-bold text-amber-200 block mb-1">
+                                Account Pending
+                            </span>
+
+                            {% if missing %}
+                                Your profile still has incomplete information.
+                                Please complete the following requirements
+                                to help PESO Admin verify your account.
+                            {% else %}
+                                Your required profile information has been submitted.
+                                PESO Admin is currently reviewing your credentials.
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if missing %}
+                        <div class="rounded-xl bg-slate-950/40 border border-amber-400/20 p-3">
+
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                                    Incomplete Information
+                                </span>
+
+                                <span class="text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-1 rounded-full">
+                                    {{ missing|length }} Missing
+                                </span>
+                            </div>
+
+                            <ul class="space-y-2">
+                                {% for item in missing %}
+                                    <li class="flex items-start gap-2 text-[11px] text-slate-200">
+                                        <svg class="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5"
+                                            fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                        {{ item }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <a href="{% url 'my_profile' %}"
+                        class="w-full text-center rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] py-2.5 px-3 transition-colors">
+                            Complete My Profile →
+                        </a>
+
+                    {% else %}
+                        <div class="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3">
+                            <div class="flex items-center gap-2 text-emerald-300 text-[11px] font-semibold">
+                                <i class="fa-solid fa-circle-check"></i>
+                                All required information submitted!
+                            </div>
+                            <p class="text-[10px] text-slate-300 mt-1">
+                                Please wait while PESO Admin reviews your account.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <p class="text-[10px] text-slate-400 leading-relaxed">
+                        You can still browse available jobs while waiting for account verification.
+                    </p>
+
                 </div>
-            </div>
+                {% endwith %}
             {% endif %}
+
         </div>
 
         <!-- NAVIGATION -->
