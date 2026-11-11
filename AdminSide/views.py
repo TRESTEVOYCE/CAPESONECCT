@@ -50,7 +50,7 @@ from .forms import (
 )
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from openpyxl import Workbook
+from openpyxl import load_workbook
 from .models import Notification
 from .utils import (
     notify_admins,
@@ -1585,183 +1585,149 @@ class PesoMonthlyReportView(LoginRequiredMixin, View):
         except (TypeError, ValueError):
             return HttpResponse('Invalid month or year.', status=400)
 
-        workbook = Workbook()
-        worksheet = workbook.active
-        worksheet.title = 'PESO Report'
-
-        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-        from openpyxl.worksheet.page import PageMargins
-
-        thin_gray = Side(style='thin', color='CBD5E1')
-        border = Border(left=thin_gray, right=thin_gray, top=thin_gray, bottom=thin_gray)
-        title_fill = PatternFill('solid', fgColor='0F172A')
-        section_fill = PatternFill('solid', fgColor='E2E8F0')
-        subsection_fill = PatternFill('solid', fgColor='F1F5F9')
-        header_fill = PatternFill('solid', fgColor='CBD5E1')
-
-        worksheet.merge_cells('A1:C1')
-        worksheet['A1'] = 'PESO MONITORING REPORT'
-        worksheet['A1'].font = Font(bold=True, size=16, color='FFFFFF')
-        worksheet['A1'].fill = title_fill
-        worksheet['A1'].alignment = Alignment(horizontal='center')
-        worksheet.append(['Province of Leyte', 'Leyte', ''])
-        worksheet.append(['Municipality / City', municipality, ''])
-        worksheet.append(['For the month of', f'{self._get_month_name(month)} {year}', ''])
-        worksheet.append([])
-        worksheet.append(['INDICATORS', 'TOTAL', 'FEMALE'])
-
-        for cell in worksheet[5]:
-            cell.font = Font(bold=True)
-            cell.fill = header_fill
-            cell.border = border
-            cell.alignment = Alignment(horizontal='center')
-
-        def add_section(label, subsection=False):
-            worksheet.append([label, '', ''])
-            row = worksheet.max_row
-            worksheet.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
-            cell = worksheet.cell(row=row, column=1)
-            cell.font = Font(bold=True)
-            cell.fill = subsection_fill if subsection else section_fill
-            cell.border = border
-
-        def add_metric(label, total_key, female_key=None):
-            worksheet.append([
-                label,
-                metrics.get(total_key, 0),
-                metrics.get(female_key, 0) if female_key else 'N/A',
-            ])
-            row = worksheet.max_row
-            for cell in worksheet[row]:
-                cell.border = border
-                cell.alignment = Alignment(vertical='top', wrap_text=True)
-            worksheet.cell(row=row, column=2).alignment = Alignment(horizontal='center')
-            worksheet.cell(row=row, column=3).alignment = Alignment(horizontal='center')
-
-        add_section('1. EMPLOYMENT FACILITATION')
-        add_section('1.1 JOB SEARCH ASSISTANCE', True)
-        add_metric('Vacancies posted in PEIS', 'vacancies_posted')
-        add_metric('Employers / Businesses Registered in PEIS', 'employers_registered')
-        add_metric('Job Applicants Registered in PEIS', 'applicants_registered', 'applicants_registered_female')
-        add_metric('Referred for Job Placement', 'referred_placement', 'referred_placement_female')
-        add_metric('Job Applicants Placed', 'applicants_placed', 'applicants_placed_female')
-        add_metric('Private sector (hired employees)', 'placed_private', 'placed_private_female')
-        add_metric('Government sector', 'placed_gov', 'placed_gov_female')
-        add_metric('Overseas', 'placed_overseas', 'placed_overseas_female')
-        add_metric('Placement Rate of Referred Applicants', 'placement_rate')
-        add_section('1.2 LOCAL RECRUITMENT ASSISTANCE (LRA)', True)
-        add_metric('Qualified Applicants', 'lra_qualified')
-        add_metric('Near Hire Applicants', 'lra_near_hire')
-        add_section('1.3 SPECIAL RECRUITMENT ASSISTANCE (SRA)', True)
-        add_metric('Qualified Applicants', 'sra_qualified')
-        add_metric('Near Hire Applicants', 'sra_near_hire')
-        add_section('1.4 JOBS FAIR', True)
-        add_metric('Jobs Fairs Conducted', 'jobs_fairs_conducted')
-        add_metric('Applicants / HOTS', 'fair_applicants_total')
-        add_metric('Applicants Hired on the Spot', 'fair_hots')
-        add_metric('Job Applicants Referred', 'fair_referred')
-
-        add_section('2. YOUTH-BRIDGING EMPLOYMENT ASSISTANCE')
-        add_section('2.1 SPECIAL PROGRAM FOR THE EMPLOYMENT OF STUDENTS (SPES)', True)
-        for label, key in [
-            ('Elementary', 'spes_elementary'), ('Junior High School', 'spes_jhs'),
-            ('Senior High School', 'spes_shs'), ('College', 'spes_college'),
-            ('Tech-Voc', 'spes_tech_voc'), ('Out-of-School Youth', 'spes_osy'),
-            ('SPES Beneficiaries Graduated', 'spes_graduates'),
-            ('SPES Beneficiaries with NCs', 'spes_nc'),
-            ('Absorbed SPES Beneficiaries', 'spes_absorbed'),
-        ]:
-            add_metric(label, key)
-        add_section('2.2 GOVERNMENT INTERNSHIP PROGRAM (GIP)', True)
-        add_metric('Youth Placed', 'gip_total', 'gip_female')
-        for label, key in [
-            ('Alternative Learning System', 'gip_als'), ('Junior High School', 'gip_jhs'),
-            ('Senior High School', 'gip_shs'), ('Tech-Voc', 'gip_tech_voc'),
-            ('College', 'gip_college'), ('GIP Graduates with NCs', 'gip_graduates_nc'),
-            ('Absorbed GIP Interns', 'gip_absorbed'),
-        ]:
-            add_metric(label, key)
-
-        add_section('3. PESO-LED ADVOCACY AND TRAININGS')
-        add_section('3.1 LABOR MARKET INFORMATION ACTIVITIES', True)
-        add_metric('Youth (30 years old and below)', 'lmi_youth', 'lmi_youth_female')
-        add_metric('Non-youth (31 years old and above)', 'lmi_non_youth', 'lmi_non_youth_female')
-        add_metric('Job Applicants Coached', 'applicants_coached')
-
-        add_section('4. DOLE INTEGRATED LIVELIHOOD AND EMERGENCY EMPLOYMENT PROGRAM (DILEEP)')
-        add_metric('Total workers provided livelihood assistance', 'dilp_total_workers')
-        add_metric('Individual Projects', 'individual_assistance_total')
-        add_metric('Group Projects', 'group_assistance_total')
-        add_section('4.2 TUPAD PROJECTS', True)
-        add_metric('Workers provided emergency employment assistance', 'tupad_total')
-        add_metric('Short-term (10-30 days)', 'tupad_short')
-        add_metric('Long-term (31-90 days)', 'tupad_long')
-
-        add_section('5. CHILD LABOR PREVENTION AND ELIMINATION PROGRAM')
-        for label, key in [
-            ('Project Angel Tree', 'child_angel_tree'),
-            ('Livelihood assistance to parents / guardians', 'child_parent_livelihood'),
-            ('Rescue operations conducted through SBM', 'child_rescue'),
-            ('LGU / PESO-led Assistance 1', 'child_lgu_assist1'),
-            ('LGU / PESO-led Assistance 2', 'child_lgu_assist2'),
-        ]:
-            add_metric(label, key)
-
-        add_section('6. OTHER PESO ACCOMPLISHMENTS')
-        worksheet.append([other_accomplishments or 'None recorded', '', ''])
-        other_row = worksheet.max_row
-        worksheet.merge_cells(start_row=other_row, start_column=1, end_row=other_row, end_column=3)
-        worksheet.cell(row=other_row, column=1).border = border
-        worksheet.cell(row=other_row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
-        worksheet.row_dimensions[other_row].height = 42
-
-        add_section('7. MONTHLY LABOR MARKET ANALYSIS')
-        for label, key in [
-            ('Projected City / Municipal Population', 'pop_projected'),
-            ('Estimated City / Municipal Poor Population', 'pop_poor'),
-            ('Projected City / Municipal Working Population', 'pop_working'),
-            ('Labor Force Participation Rate', 'lfpr'),
-            ('Labor Force in the City / Municipality', 'labor_force_count'),
-            ('Employment Rate', 'employment_rate'),
-            ('Employed Persons', 'employed_count'),
-            ('Unemployment Rate', 'unemployment_rate'),
-            ('Unemployed Persons', 'unemployed_count'),
-            ('Underemployment Rate', 'underemployment_rate'),
-            ('Underemployed Persons', 'underemployed_count'),
-        ]:
-            add_metric(label, key)
-
-        add_section('8. ISSUES AND CONCERNS')
-        worksheet.append([issues_concerns or 'None recorded', '', ''])
-        issues_row = worksheet.max_row
-        worksheet.merge_cells(start_row=issues_row, start_column=1, end_row=issues_row, end_column=3)
-        worksheet.cell(row=issues_row, column=1).border = border
-        worksheet.cell(row=issues_row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
-        worksheet.row_dimensions[issues_row].height = 60
-
-        worksheet.column_dimensions['A'].width = 56
-        worksheet.column_dimensions['B'].width = 16
-        worksheet.column_dimensions['C'].width = 16
-        worksheet.page_setup.paperSize = worksheet.PAPERSIZE_LEGAL
-        worksheet.page_setup.orientation = worksheet.ORIENTATION_PORTRAIT
-        worksheet.page_setup.fitToWidth = 1
-        worksheet.page_setup.fitToHeight = 0
-        worksheet.sheet_properties.pageSetUpPr.fitToPage = True
-        worksheet.page_margins = PageMargins(
-            left=0.75,
-            right=0.75,
-            top=0.75,
-            bottom=0.75,
-            header=0.15,
-            footer=0.15,
+        workbook = load_workbook(
+            settings.BASE_DIR / 'excel' / 'SPRS_Blank.xlsx',
+            keep_links=False,
         )
-        worksheet.sheet_view.showGridLines = False
-        for row in worksheet.iter_rows(min_row=2, max_row=4, max_col=3):
-            for cell in row:
-                cell.border = border
-        for row in worksheet.iter_rows():
-            worksheet.row_dimensions[row[0].row].height = 22
+        worksheet = workbook.active
+        worksheet['G3'] = municipality
+        worksheet['G4'] = municipality
+        worksheet['G5'] = self._get_month_name(month)
 
+        indicator_labels = {
+            'D10': '1.1.1.1 Job Vacancies solicited',
+            'D11': '1.1.1.2 Employers/Businesses Registered',
+            'D12': '1.1.1.3 Job Applicants Registered',
+            'E13': '1.1.1.3.1 Referred for Training employability enhancement',
+            'E14': '1.1.1.3.2 Referred for Job Placement',
+            'D15': '1.1.4 Job Applicants Placed:',
+            'D19': '1.1.5 Placement Rate of Referred Applicants',
+            'D41': '1.4.3.2 For overseas placement',
+            'D44': '1.4.5.1 Job applicants registered',
+        }
+        for cell, label in indicator_labels.items():
+            worksheet[cell] = label
+        worksheet['B85'] = None
+
+        metric_rows = (
+            (10, 'vacancies_posted', None),
+            (11, 'employers_registered', None),
+            (12, 'applicants_registered', 'applicants_registered_female'),
+            (13, 'returned_training', None),
+            (14, 'referred_placement', 'referred_placement_female'),
+            (15, 'applicants_placed', 'applicants_placed_female'),
+            (16, 'placed_private', 'placed_private_female'),
+            (17, 'placed_gov', 'placed_gov_female'),
+            (18, 'placed_overseas', 'placed_overseas_female'),
+            (26, 'lra_qualified', None),
+            (27, 'lra_near_hire', None),
+            (30, 'sra_qualified', None),
+            (31, 'sra_near_hire', None),
+            (33, 'jobs_fairs_conducted', None),
+            (34, 'fair_conducted_local', None),
+            (35, 'fair_conducted_overseas', None),
+            (36, 'participating_establishments', None),
+            (37, 'establishments_local', None),
+            (38, 'establishments_overseas', None),
+            (39, 'vacancies_solicited', None),
+            (40, 'vacancies_solicited_local', None),
+            (41, 'vacancies_solicited_overseas', None),
+            (44, 'fair_applicants_total', None),
+            (45, 'fair_hots', None),
+            (46, 'fair_referred', None),
+            (47, 'fair_qualified', None),
+            (48, 'fair_near_hire', None),
+            (49, 'fair_interviews', None),
+            (50, 'fair_ref_skills', None),
+            (52, 'fair_ref_agency', None),
+            (57, 'spes_elementary', None),
+            (58, 'spes_jhs', None),
+            (59, 'spes_shs', None),
+            (60, 'spes_college', None),
+            (61, 'spes_tech_voc', None),
+            (62, 'spes_osy', None),
+            (63, 'spes_graduates', None),
+            (64, 'spes_nc', None),
+            (65, 'spes_absorbed', None),
+            (67, 'gip_total', 'gip_female'),
+            (68, 'gip_als', None),
+            (69, 'gip_jhs', None),
+            (70, 'gip_shs', None),
+            (71, 'gip_tech_voc', None),
+            (72, 'gip_college', None),
+            (73, 'gip_graduates_nc', None),
+            (74, 'gip_absorbed', None),
+            (76, 'jobstart_assisted', None),
+            (77, 'jobstart_trainings', None),
+            (78, 'jobstart_life_skills', None),
+            (79, 'jobstart_tech_training', None),
+            (80, 'jobstart_internship', None),
+            (81, 'jobstart_placed', None),
+            (82, 'jobstart_finishers', None),
+            (86, 'lmi_youth', 'lmi_youth_female'),
+            (87, 'lmi_non_youth', 'lmi_non_youth_female'),
+            (88, 'lmi_institutions', None),
+            (91, 'cdsp_school', None),
+            (92, 'cdsp_peso', None),
+            (93, 'cdsp_workplace', None),
+            (99, 'applicants_coached', None),
+            (102, 'dilp_total_workers', None),
+            (104, 'individual_assistance_total', None),
+            (106, 'ind_formation', None),
+            (108, 'ind_enhancement', None),
+            (110, 'ind_restoration', None),
+            (112, 'group_assistance_total', None),
+            (114, 'grp_formation', None),
+            (116, 'grp_enhancement', None),
+            (118, 'grp_restoration', None),
+            (120, 'tupad_total', None),
+            (121, 'tupad_short', None),
+            (122, 'tupad_long', None),
+            (125, 'child_angel_tree', None),
+            (126, 'child_parent_livelihood', None),
+            (127, 'child_rescue', None),
+            (129, 'child_lgu_assist1', None),
+            (130, 'child_lgu_assist2', None),
+        )
+
+        for row, total_key, female_key in metric_rows:
+            worksheet.cell(row=row, column=6).value = metrics.get(total_key, 0)
+            if female_key:
+                worksheet.cell(row=row, column=7).value = metrics.get(female_key, 0)
+
+        fair_placement_rate = metrics.get('fair_placement_rate', '0.0%')
+        if isinstance(fair_placement_rate, str) and fair_placement_rate.endswith('%'):
+            fair_placement_rate = float(fair_placement_rate[:-1]) / 100
+        worksheet['F42'] = fair_placement_rate
+        worksheet['F42'].number_format = '0.0%'
+        for row, key in (
+            (135, 'pop_projected'),
+            (136, 'pop_poor'),
+            (137, 'pop_working'),
+            (138, 'lfpr'),
+            (139, 'labor_force_count'),
+            (140, 'employment_rate'),
+            (141, 'employed_count'),
+            (142, 'unemployment_rate'),
+            (143, 'unemployed_count'),
+            (144, 'underemployment_rate'),
+            (145, 'underemployed_count'),
+        ):
+            value = metrics.get(key, 0)
+            if isinstance(value, str) and value.endswith('%'):
+                value = float(value[:-1]) / 100
+            worksheet.cell(row=row, column=7).value = value
+        remarks_findings = request.GET.get('remarks_findings', '').strip()
+        if remarks_findings:
+            worksheet['F146'] = f'Remarks/ Findings: {remarks_findings}'
+        if other_accomplishments:
+            worksheet['F134'] = other_accomplishments
+        if issues_concerns:
+            worksheet['F148'] = issues_concerns
+
+        workbook.calculation.fullCalcOnLoad = True
+        workbook.calculation.forceFullCalc = True
+        workbook.calculation.calcMode = 'auto'
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
