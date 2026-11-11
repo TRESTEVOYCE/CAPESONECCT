@@ -41,11 +41,16 @@ def _stamp_uploaded_profile_proofs(profile, uploaded_fields, files):
         profile.save(update_fields=[*timestamp_fields, 'updated_at'])
 
 
-def _notify_applicant_profile_updated(request, profile):
+def _notify_applicant_profile_updated(
+    request,
+    profile,
+    updated_section='profile information',
+):
     notifications = notify_admins(
         title='Applicant Profile Updated',
         message=(
-            f'{profile.first_name} {profile.last_name} updated their profile. '
+            f'{profile.first_name} {profile.last_name} updated their '
+            f'{updated_section}. '
             f'Current status: {profile.get_status_display()}.'
         ),
         notification_type='PROFILE_UPDATED',
@@ -394,9 +399,26 @@ class ApplicantTrainingView(ApplicantProfileRequiredMixin,LoginRequiredMixin,Use
                 # Save all training records, uploaded certificates,
                 # and requested deletions.
                 training_formset.save()
+                uploaded_at = timezone.now()
+                for form in training_formset.forms:
+                    if (
+                        form.cleaned_data.get('DELETE')
+                        or not form.files.get(
+                            form.add_prefix('technical_certification_document')
+                        )
+                    ):
+                        continue
+                    form.instance.technical_certification_uploaded_at = uploaded_at
+                    form.instance.save(
+                        update_fields=['technical_certification_uploaded_at'],
+                    )
 
             if changed_training:
-                _notify_applicant_profile_updated(request, self.object)
+                _notify_applicant_profile_updated(
+                    request,
+                    self.object,
+                    updated_section='training, vocational, or eligibility information',
+                )
 
             messages.success(
                 request,
@@ -610,6 +632,15 @@ class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
 
     def form_valid(self, form):
         profile = form.save()
+        _stamp_uploaded_profile_proofs(
+            profile,
+            {
+                'professional_license_document':
+                    'professional_license_uploaded_at',
+                'supporting_doc': 'supporting_doc_uploaded_at',
+            },
+            form.files,
+        )
         _mark_applicant_for_reverification(
             self.request,
             profile,

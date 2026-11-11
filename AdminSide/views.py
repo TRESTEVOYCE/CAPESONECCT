@@ -619,6 +619,11 @@ class ApplicantVerificationView(LoginRequiredMixin, DetailView):
     slug_field = 'uuid'
     slug_url_kwarg = 'uuid'
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('user').prefetch_related(
+            'trainings',
+        )
+
     def post(self, request, *args, **kwargs):
         applicant = self.get_object()
         action = request.POST.get('action')

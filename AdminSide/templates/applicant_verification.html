@@ -285,12 +285,25 @@
                     <ul class="space-y-2 text-xs">
                         {% for training in applicant.trainings.all %}
                             <li class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-1">
-                                <p class="font-bold text-slate-800">{{ training.course_title }}</p>
-                                <p class="text-[11px] text-slate-500">{{ training.institution }} • {{ training.duration }}</p>
-                                <p class="text-[10px] text-emerald-600 font-bold">Cert: {{ training.certificate_received|default:"Yes" }}</p>
+                                <p class="font-bold text-slate-800">{{ training.training_title|default:"Training / eligibility entry" }}</p>
+                                <p class="text-[11px] text-slate-500">
+                                    {{ training.training_institution|default:"Institution not specified" }}
+                                    {% if training.training_hours %} • {{ training.training_hours }} hours{% endif %}
+                                    {% if training.training_date %} • {{ training.training_date }}{% endif %}
+                                </p>
+                                {% if training.technical_certification_document %}
+                                    <a href="{{ training.technical_certification_document.url }}" target="_blank" rel="noopener noreferrer" class="inline-block text-[11px] font-semibold text-indigo-700 hover:underline">
+                                        View training / eligibility certificate
+                                    </a>
+                                    {% if training.technical_certification_uploaded_at %}
+                                        <p class="text-[10px] text-slate-400">Uploaded {{ training.technical_certification_uploaded_at|date:"M d, Y H:i" }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-[10px] text-amber-700 font-semibold">No supporting certificate uploaded</p>
+                                {% endif %}
                             </li>
                         {% empty %}
-                            <li class="text-slate-400 italic">No formal TVET training recorded.</li>
+                            <li class="text-slate-400 italic">No training or eligibility entries recorded.</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -300,15 +313,29 @@
                         V. Eligibility & Professional Licenses
                     </h2>
                     <ul class="space-y-2 text-xs">
-                        {% for eligibility in applicant.eligibilities.all %}
+                        {% if applicant.professional_license_document %}
                             <li class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-1">
-                                <p class="font-bold text-slate-800">{{ eligibility.title }}</p>
-                                <p class="text-[11px] text-slate-500">License No: {{ eligibility.license_no|default:"N/A" }}</p>
-                                <p class="text-[10px] text-slate-400">Expiry: {{ eligibility.expiry_date|date:"M Y"|default:"N/A" }}</p>
+                                <p class="font-bold text-slate-800">Professional license / eligibility certificate</p>
+                                <a href="{{ applicant.professional_license_document.url }}" target="_blank" rel="noopener noreferrer" class="inline-block text-[11px] font-semibold text-indigo-700 hover:underline">
+                                    View license / eligibility certificate
+                                </a>
+                                {% if applicant.professional_license_uploaded_at %}
+                                    <p class="text-[10px] text-slate-400">Uploaded {{ applicant.professional_license_uploaded_at|date:"M d, Y H:i" }}</p>
+                                {% endif %}
                             </li>
-                        {% empty %}
-                            <li class="text-slate-400 italic">No professional licenses or eligibilities.</li>
-                        {% endfor %}
+                        {% elif applicant.supporting_doc and applicant.supporting_doc_type == "professional_license" %}
+                            <li class="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-1">
+                                <p class="font-bold text-slate-800">{{ applicant.get_supporting_doc_type_display }}</p>
+                                <a href="{{ applicant.supporting_doc.url }}" target="_blank" rel="noopener noreferrer" class="inline-block text-[11px] font-semibold text-indigo-700 hover:underline">
+                                    View license / eligibility certificate
+                                </a>
+                                {% if applicant.supporting_doc_uploaded_at %}
+                                    <p class="text-[10px] text-slate-400">Uploaded {{ applicant.supporting_doc_uploaded_at|date:"M d, Y H:i" }}</p>
+                                {% endif %}
+                            </li>
+                        {% else %}
+                            <li class="text-slate-400 italic">No professional license document recorded. Training and other eligibility certificates appear in the training list.</li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -429,7 +456,7 @@
                     {% endif %}
                 </div>
             </div>
-            {% if applicant.education_proof_document or applicant.technical_certification_document or applicant.professional_license_document %}
+            {% if applicant.education_proof_document or applicant.supporting_doc or applicant.professional_license_document %}
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-3">
                 <h2 class="border-b border-slate-200 pb-3 text-sm font-semibold text-slate-800">
                     Profile Proof Documents
@@ -441,11 +468,13 @@
                         {% if applicant.education_proof_uploaded_at %}<p class="text-[10px] text-slate-400">Uploaded {{ applicant.education_proof_uploaded_at|date:"M d, Y H:i" }}</p>{% endif %}
                     </div>
                 {% endif %}
-                {% if applicant.technical_certification_document %}
+                {% if applicant.supporting_doc %}
                     <div class="text-xs">
-                        <p class="font-semibold text-slate-700">Technical skills and trade proficiency</p>
-                        <a href="{{ applicant.technical_certification_document.url }}" target="_blank" rel="noopener noreferrer" class="text-indigo-700 hover:underline">View TESDA / trade certificate</a>
-                        {% if applicant.technical_certification_uploaded_at %}<p class="text-[10px] text-slate-400">Uploaded {{ applicant.technical_certification_uploaded_at|date:"M d, Y H:i" }}</p>{% endif %}
+                        <p class="font-semibold text-slate-700">
+                            {{ applicant.get_supporting_doc_type_display|default:"Supporting document" }}
+                        </p>
+                        <a href="{{ applicant.supporting_doc.url }}" target="_blank" rel="noopener noreferrer" class="text-indigo-700 hover:underline">View supporting document</a>
+                        {% if applicant.supporting_doc_uploaded_at %}<p class="text-[10px] text-slate-400">Uploaded {{ applicant.supporting_doc_uploaded_at|date:"M d, Y H:i" }}</p>{% endif %}
                     </div>
                 {% endif %}
                 {% if applicant.professional_license_document %}

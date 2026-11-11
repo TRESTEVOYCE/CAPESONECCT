@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from AdminSide.models import (
     ApplicantProfile,
+    ApplicantTraining,
     AppliedJobs,
     EmployerProfile,
     Jobs,
@@ -223,7 +224,7 @@ class ApplicantProfileOnboardingTests(TestCase):
             password='test-password',
             role='peso',
         )
-        ApplicantProfile.objects.create(
+        profile = ApplicantProfile.objects.create(
             user=self.applicant,
             first_name='Test',
             last_name='Applicant',
@@ -231,22 +232,67 @@ class ApplicantProfileOnboardingTests(TestCase):
             sex='F',
         )
 
-        response = self.client.post(reverse('applicant-training'), {
-            'trainings-TOTAL_FORMS': '1',
-            'trainings-INITIAL_FORMS': '0',
-            'trainings-MIN_NUM_FORMS': '0',
-            'trainings-MAX_NUM_FORMS': '1000',
-            'trainings-0-training_title': '',
-            'trainings-0-training_hours': '',
-            'trainings-0-training_institution': 'Updated Training Provider',
-            'trainings-0-training_date': '',
-        })
+        training_certificate = SimpleUploadedFile(
+            'welding-nc-ii.pdf',
+            b'%PDF-1.7\ntraining certificate',
+            content_type='application/pdf',
+        )
+        training_storage = ApplicantTraining._meta.get_field(
+            'technical_certification_document'
+        ).storage
+        with patch.object(
+            training_storage,
+            'save',
+            return_value='applicant_docs/technical_certifications/welding-nc-ii.pdf',
+        ):
+            response = self.client.post(reverse('applicant-training'), {
+                'trainings-TOTAL_FORMS': '1',
+                'trainings-INITIAL_FORMS': '0',
+                'trainings-MIN_NUM_FORMS': '0',
+                'trainings-MAX_NUM_FORMS': '1000',
+                'trainings-0-training_title': 'Welding NC II',
+                'trainings-0-training_hours': '40',
+                'trainings-0-training_institution': 'Updated Training Provider',
+                'trainings-0-training_date': '2026-10-15',
+                'trainings-0-technical_certification_document': training_certificate,
+            })
 
         self.assertRedirects(response, reverse('applicant-preferred-job'))
-        self.assertTrue(Notification.objects.filter(
+        training = ApplicantTraining.objects.get(applicant=profile)
+        self.assertEqual(training.training_title, 'Welding NC II')
+        self.assertEqual(training.training_institution, 'Updated Training Provider')
+        self.assertEqual(
+            training.technical_certification_document.name,
+            'applicant_docs/technical_certifications/welding-nc-ii.pdf',
+        )
+        self.assertIsNotNone(training.technical_certification_uploaded_at)
+        notification = Notification.objects.get(
             recipient=peso_admin,
             notification_type='PROFILE_UPDATED',
-        ).exists())
+        )
+        self.assertEqual(
+            notification.target_url,
+            reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        )
+        self.assertIn('training, vocational, or eligibility information', notification.message)
+
+        self.client.force_login(peso_admin)
+        with patch.object(
+            training_storage,
+            'url',
+            return_value='/media/welding-nc-ii.pdf',
+        ):
+            verification_response = self.client.get(notification.target_url)
+
+        self.assertEqual(verification_response.status_code, 200)
+        self.assertContains(verification_response, 'Welding NC II')
+        self.assertContains(verification_response, 'Updated Training Provider')
+        self.assertContains(verification_response, '40 hours')
+        self.assertContains(verification_response, 'View training / eligibility certificate')
+        self.assertContains(verification_response, 'Uploaded')
 
     def test_sensitive_account_name_update_moves_approved_applicant_to_reverification_pending(self):
         profile = ApplicantProfile.objects.create(
@@ -532,6 +578,62 @@ class ApplicantProofDocumentFormTests(TestCase):
             'applicant_docs/education_proofs/diploma.pdf',
         )
         self.assertIsNotNone(self.profile.education_proof_uploaded_at)
+
+    def test_professional_license_upload_notifies_admin_and_appears_in_verification(self):
+        peso_admin = User.objects.create_user(
+            username='license-upload-peso',
+            email='license-upload-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        license_file = SimpleUploadedFile(
+            'eligibility.pdf',
+            b'%PDF-1.7\nprofessional eligibility',
+            content_type='application/pdf',
+        )
+        license_storage = ApplicantProfile._meta.get_field(
+            'professional_license_document'
+        ).storage
+        self.client.force_login(self.user)
+        with patch.object(
+            license_storage,
+            'save',
+            return_value='applicant_docs/professional_licenses/eligibility.pdf',
+        ):
+            response = self.client.post(
+                reverse('applicant-documents'),
+                {
+                    'valid_id_type': 'Government ID',
+                    'certification_agree': 'on',
+                    'professional_license_document': license_file,
+                },
+            )
+
+        self.assertRedirects(response, reverse('applicant-dashboard'))
+        self.profile.refresh_from_db()
+        self.assertEqual(
+            self.profile.professional_license_document.name,
+            'applicant_docs/professional_licenses/eligibility.pdf',
+        )
+        self.assertIsNotNone(self.profile.professional_license_uploaded_at)
+        notification = Notification.objects.get(
+            recipient=peso_admin,
+            notification_type='PROFILE_UPDATED',
+        )
+
+        self.client.force_login(peso_admin)
+        with patch.object(
+            license_storage,
+            'url',
+            return_value='/media/eligibility.pdf',
+        ):
+            verification_response = self.client.get(notification.target_url)
+
+        self.assertEqual(verification_response.status_code, 200)
+        self.assertContains(verification_response, 'Professional license / eligibility certificate')
+        self.assertContains(verification_response, '/media/eligibility.pdf')
+        self.assertContains(verification_response, 'Uploaded')
+
     def test_final_document_form_has_no_generic_supporting_document_fields(self):
         form = ApplicantDocumentsForm(instance=self.profile)
 
