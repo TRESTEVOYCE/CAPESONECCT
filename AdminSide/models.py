@@ -517,13 +517,6 @@ class ApplicantProfile(models.Model):
         null=True,
     )
     education_proof_uploaded_at = models.DateTimeField(blank=True, null=True)
-    technical_certification_document = models.FileField(
-        upload_to='applicant_docs/technical_certifications/',
-        storage=RawMediaCloudinaryStorage(),
-        blank=True,
-        null=True,
-    )
-    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
     professional_license_document = models.FileField(
         upload_to='applicant_docs/professional_licenses/',
         storage=RawMediaCloudinaryStorage(),
@@ -531,18 +524,6 @@ class ApplicantProfile(models.Model):
         null=True,
     )
     professional_license_uploaded_at = models.DateTimeField(blank=True, null=True)
-    
-
-    training_title_1 = models.CharField(max_length=255, blank=True, null=True)
-    training_hours_1 = models.IntegerField(blank=True, null=True)
-    training_institution_1 = models.CharField(max_length=255, blank=True, null=True)
-    training_date_1 = models.CharField(max_length=50, blank=True, null=True)
-
-    training_title_2 = models.CharField(max_length=255, blank=True, null=True)
-    training_hours_2 = models.IntegerField(blank=True, null=True)
-    training_institution_2 = models.CharField(max_length=255, blank=True, null=True)
-    training_date_2 = models.CharField(max_length=50, blank=True, null=True)
-
 
     pref_local = models.BooleanField(default=False)
     pref_overseas = models.BooleanField(default=False)
@@ -588,6 +569,54 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
+
+
+
+class ApplicantTraining(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='trainings'
+    )
+
+    training_title = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    training_hours = models.IntegerField(
+        blank=True,
+        null=True
+    )
+
+    training_institution = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    training_date = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    technical_certification_document = models.FileField(
+            upload_to='applicant_docs/technical_certifications/',
+            storage=RawMediaCloudinaryStorage(),
+            blank=True,
+            null=True,
+        )
+    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.training_title or "Untitled Training"
+
+    class Meta:
+        ordering = ['id']
+
 
 
 class ApplicantWorkExperience(models.Model):

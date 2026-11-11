@@ -19,8 +19,9 @@ from .forms import (
     ApplicantPersonalInfoForm, ApplicantAddressForm, ApplicantEducationForm,
     ApplicantTrainingForm, ApplicantPreferredJobForm, ApplicantWorkExperienceFormSet,
     ApplicantSkillsForm, ApplicantSkillFormSet, ApplicantDocumentsForm,
-    ProfilePictureForm, UpdateEmailForm, UpdatePasswordForm, UpdateUsernameForm,
+    ProfilePictureForm, UpdateEmailForm, UpdatePasswordForm, UpdateUsernameForm,ApplicantTrainingFormSet
 )
+from django.db import transaction
 from django.contrib.auth import update_session_auth_hash
 from AdminSide.utils import notify_admins
 from AdminSide.services.profile_sensitivity import (
@@ -376,69 +377,75 @@ class ApplicantEducationView(ApplicantProfileRequiredMixin, LoginRequiredMixin, 
         return redirect(self.get_success_url())
 
 
-class ApplicantTrainingView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+
+
+class ApplicantTrainingView(ApplicantProfileRequiredMixin,LoginRequiredMixin,UserPassesTestMixin,UpdateView):
     model = ApplicantProfile
-    form_class = ApplicantTrainingForm
     template_name = 'step_4_training.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_object(self, queryset=None):
-        return get_object_or_404(ApplicantProfile, user=self.request.user)
+        return get_object_or_404(
+            ApplicantProfile,
+            user=self.request.user
+        )
 
     def get_success_url(self):
         return reverse_lazy('applicant-preferred-job')
 
-    def form_valid(self, form):
-        profile = form.save(commit=False)
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
 
-        titles = self.request.POST.getlist('training_title[]')
-        hours = self.request.POST.getlist('training_hours[]')
-        institutions = self.request.POST.getlist('training_institution[]')
-        dates = self.request.POST.getlist('training_date[]')
+        training_formset = ApplicantTrainingFormSet(
+            instance=self.object,
+            prefix='trainings'
+        )
 
-        if len(titles) > 0 and titles[0].strip():
-            profile.training_title_1 = titles[0].strip()
-            profile.training_hours_1 = int(hours[0]) if len(hours) > 0 and hours[0].isdigit() else None
-            profile.training_institution_1 = institutions[0].strip() if len(institutions) > 0 else ''
-            profile.training_date_1 = dates[0] if len(dates) > 0 and dates[0] else None
-        else:
-            profile.training_title_1 = ''
-            profile.training_hours_1 = None
-            profile.training_institution_1 = ''
-            profile.training_date_1 = None
-
-        if len(titles) > 1 and titles[1].strip():
-            profile.training_title_2 = titles[1].strip()
-            profile.training_hours_2 = int(hours[1]) if len(hours) > 1 and hours[1].isdigit() else None
-            profile.training_institution_2 = institutions[1].strip() if len(institutions) > 1 else ''
-            profile.training_date_2 = dates[1] if len(dates) > 1 and dates[1] else None
-        else:
-            profile.training_title_2 = ''
-            profile.training_hours_2 = None
-            profile.training_institution_2 = ''
-            profile.training_date_2 = None
-
-        changes = capture_profile_changes(profile)
-        profile.save()
-        record_profile_changes(profile, self.request.user, changes)
-
-        _stamp_uploaded_profile_proofs(
-            profile,
+        return render(
+            request,
+            self.template_name,
             {
-                'technical_certification_document': 'technical_certification_uploaded_at',
-                'professional_license_document': 'professional_license_uploaded_at',
-            },
-            form.files,
+                'profile': self.object,
+                'training_formset': training_formset,
+            }
         )
-        _mark_applicant_for_reverification(
-            self.request,
-            profile,
-            form.changed_data,
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        training_formset = ApplicantTrainingFormSet(
+            request.POST,
+            request.FILES,
+            instance=self.object,
+            prefix='trainings'
         )
-        messages.success(self.request, 'Training information saved successfully.')
-        return redirect(self.get_success_url())
+
+        if training_formset.is_valid():
+            with transaction.atomic():
+                # Save all training records, uploaded certificates,
+                # and requested deletions.
+                training_formset.save()
+
+            messages.success(
+                request,
+                'Training information saved successfully.'
+            )
+
+            return redirect(self.get_success_url())
+
+        # If validation fails, return the submitted formset
+        # so the user's entries and validation errors remain visible.
+        return render(
+            request,
+            self.template_name,
+            {
+                'profile': self.object,
+                'training_formset': training_formset,
+            }
+        )
+
 
 
 class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
