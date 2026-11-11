@@ -1,9 +1,10 @@
 from django import forms
-from AdminSide.models import ApplicantProfile, ApplicantSkills, ApplicantWorkExperience, User
+from AdminSide.models import ApplicantProfile, ApplicantSkills, ApplicantWorkExperience, User,ApplicantProfile, ApplicantTraining
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from PIL import Image, UnidentifiedImageError
+from django.forms import inlineformset_factory
 
 
 TAILWIND_INPUT_CLASSES = {
@@ -334,30 +335,79 @@ class ApplicantEducationForm(forms.ModelForm):
         fields = [
             'school_status_yes', 'school_status_no',
             'school_university', 'course_program', 'year_graduated_attended',
-            'award_1', 'award_2', 'award_3',
+            'award_1', 'award_2', 'award_3','education_proof_document',
         ]
         widgets = {
             'year_graduated_attended': forms.DateInput(attrs={'type': 'month'}),
         }
 
 
+
+
+
 class ApplicantTrainingForm(forms.ModelForm):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
 
+        self.fields['technical_certification_document'].required = False
+
     class Meta:
-        model = ApplicantProfile
+        model = ApplicantTraining
+
         fields = [
-            'training_title_1', 'training_hours_1', 'training_institution_1', 'training_date_1',
-            'training_title_2', 'training_hours_2', 'training_institution_2', 'training_date_2',
+            'training_title',
+            'training_hours',
+            'training_institution',
+            'training_date',
+            'technical_certification_document',
         ]
+
         widgets = {
-            'training_hours_1': forms.NumberInput(attrs={'min': '0'}),
-            'training_hours_2': forms.NumberInput(attrs={'min': '0'}),
-            'training_date_1': forms.DateInput(attrs={'type': 'date'}),
-            'training_date_2': forms.DateInput(attrs={'type': 'date'}),
+            'training_hours': forms.NumberInput(attrs={
+                'min': '0',
+            }),
+
+            'training_date': forms.DateInput(attrs={
+                'type': 'date',
+            }),
+
+            'technical_certification_document': forms.ClearableFileInput(attrs={
+                'accept': '.pdf,.jpg,.jpeg,.png',
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        training_title = cleaned_data.get('training_title')
+        certificate = cleaned_data.get('technical_certification_document')
+
+        # Check whether this is an existing certificate or a newly uploaded one.
+        existing_certificate = (
+            self.instance.pk
+            and self.instance.technical_certification_document
+        )
+
+        # If a training title is provided, require a certificate
+        # unless an existing certificate is already saved.
+        if training_title and not certificate and not existing_certificate:
+            self.add_error(
+                'technical_certification_document',
+                'Training Certificate / Proof is required.'
+            )
+
+        return cleaned_data
+
+
+ApplicantTrainingFormSet = inlineformset_factory(
+    ApplicantProfile,
+    ApplicantTraining,
+    form=ApplicantTrainingForm,
+    extra=1,
+    can_delete=True,
+)
 
 
 class ApplicantPreferredJobForm(forms.ModelForm):
@@ -393,6 +443,7 @@ class ApplicantPreferredJobForm(forms.ModelForm):
             'pref_local', 'pref_overseas',
             'pref_occupation_1', 'pref_occupation_2', 'pref_occupation_3',
             'pref_salary',
+            
         ]
 
 
@@ -419,6 +470,7 @@ ApplicantWorkExperienceFormSet = forms.inlineformset_factory(
 # STEP 7
 # SKILLS
 # ============================================================
+
 
 class ApplicantSkillsForm(forms.ModelForm):
     skill_innovation = forms.BooleanField(required=False)
@@ -457,18 +509,19 @@ class ApplicantSkillsForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
         fields = [
-            'skill_innovation', 'skill_team_work', 'skill_multitasking', 'skill_work_ethics', 
-            'skill_self_motivation', 'skill_creative_problem_solving', 'skill_problem_solving', 
-            'skill_critical_thinking', 'skill_decision_making', 'skill_stress_tolerance', 
-            'skill_planning_organizing', 'skill_social_perceptiveness', 'skill_english_functional', 
+            'skill_innovation', 'skill_team_work', 'skill_multitasking',
+            'skill_work_ethics', 'skill_self_motivation',
+            'skill_creative_problem_solving', 'skill_problem_solving',
+            'skill_critical_thinking', 'skill_decision_making',
+            'skill_stress_tolerance', 'skill_planning_organizing',
+            'skill_social_perceptiveness', 'skill_english_functional',
             'skill_english_comprehension', 'skill_math_functional',
-            'skill_carpentry', 'skill_masonry', 'skill_welding', 'skill_auto_mechanic', 
-            'skill_plumbing', 'skill_driving', 'skill_gardening', 'skill_tailoring', 
-            'skill_photography', 'skill_hairdressing', 'skill_cooking', 'skill_baking',
+            'skill_carpentry', 'skill_masonry', 'skill_welding',
+            'skill_auto_mechanic', 'skill_plumbing', 'skill_driving',
+            'skill_gardening', 'skill_tailoring', 'skill_photography',
+            'skill_hairdressing', 'skill_cooking', 'skill_baking',
             'other_skills',
-            'technical_certification_document',
         ]
-
 
 class ApplicantSkillForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -491,11 +544,13 @@ ApplicantSkillFormSet = forms.modelformset_factory(
 class ApplicantDocumentsForm(forms.ModelForm):
     class Meta:
         model = ApplicantProfile
-        fields = ['applicant_id_picture_front', 'applicant_id_picture_back', 'certification_agree', 'resume_file', 'supporting_doc']
+        fields = ['valid_id_type','applicant_id_picture_front', 'applicant_id_picture_back', 'certification_agree', 'resume_file', 'supporting_doc','professional_license_document']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
+        
+        
 
 
 class ProfilePictureForm(forms.ModelForm):
@@ -525,3 +580,5 @@ class UpdateUsernameForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username']
+        
+

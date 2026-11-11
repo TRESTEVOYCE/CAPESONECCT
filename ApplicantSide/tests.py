@@ -10,7 +10,6 @@ from AdminSide.models import (
     EmployerProfile,
     Jobs,
     Notification,
-    ProfileChangeLog,
     User,
 )
 from .forms import ApplicantDocumentsForm, ApplicantEducationForm
@@ -129,27 +128,17 @@ class ApplicantProfileOnboardingTests(TestCase):
             admin_verification.context['applicant'].phone_number,
             '09987654321',
         )
-        change_log = ProfileChangeLog.objects.get(applicant=profile)
-        self.assertEqual(
-            change_log.changes['phone_number']['old'],
-            '09123456789',
-        )
-        self.assertEqual(
-            change_log.changes['phone_number']['new'],
-            '09987654321',
-        )
-        self.assertIsNone(change_log.reviewed_at)
         notification = Notification.objects.get(
             recipient=peso_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         admin_notification = Notification.objects.get(
             recipient=other_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         self.assertEqual(
             notification.title,
-            'Applicant Profile Updated - Re-Verification Required',
+            'Applicant Profile Updated',
         )
         self.assertEqual(
             notification.target_url,
@@ -174,6 +163,90 @@ class ApplicantProfileOnboardingTests(TestCase):
             item['id'] == str(admin_notification.id)
             for item in admin_role_header.json()['notifications']
         ))
+
+    def test_non_sensitive_address_update_notifies_peso_without_reverification(self):
+        peso_admin = User.objects.create_user(
+            username='address-update-peso',
+            email='address-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        profile = ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+            phone_number='09123456789',
+            house_street='Old Street',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            region='Region VIII',
+            zip_code='6529',
+            mobile_number_secondary='',
+            landline_number='',
+            email_address='',
+            status='approved',
+        )
+
+        response = self.client.post(reverse('applicant-address'), {
+            'house_street': 'New Street',
+            'barangay': 'Poblacion',
+            'municipality': 'Carigara',
+            'province': 'Leyte',
+            'region': 'Region VIII',
+            'zip_code': '6529',
+            'phone_number': '09123456789',
+            'mobile_number_secondary': '',
+            'landline_number': '',
+            'email_address': '',
+        })
+
+        self.assertRedirects(response, reverse('applicant-education'))
+        profile.refresh_from_db()
+        self.assertEqual(profile.house_street, 'New Street')
+        self.assertEqual(profile.status, 'approved')
+        self.assertTrue(Notification.objects.filter(
+            recipient=peso_admin,
+            notification_type='PROFILE_UPDATED',
+            target_url=reverse(
+                'AdminSide:applicant_verification',
+                kwargs={'uuid': profile.uuid},
+            ),
+        ).exists())
+
+    def test_training_formset_update_notifies_peso(self):
+        peso_admin = User.objects.create_user(
+            username='training-update-peso',
+            email='training-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        ApplicantProfile.objects.create(
+            user=self.applicant,
+            first_name='Test',
+            last_name='Applicant',
+            date_of_birth='1995-01-01',
+            sex='F',
+        )
+
+        response = self.client.post(reverse('applicant-training'), {
+            'trainings-TOTAL_FORMS': '1',
+            'trainings-INITIAL_FORMS': '0',
+            'trainings-MIN_NUM_FORMS': '0',
+            'trainings-MAX_NUM_FORMS': '1000',
+            'trainings-0-training_title': '',
+            'trainings-0-training_hours': '',
+            'trainings-0-training_institution': 'Updated Training Provider',
+            'trainings-0-training_date': '',
+        })
+
+        self.assertRedirects(response, reverse('applicant-preferred-job'))
+        self.assertTrue(Notification.objects.filter(
+            recipient=peso_admin,
+            notification_type='PROFILE_UPDATED',
+        ).exists())
 
     def test_sensitive_account_name_update_moves_approved_applicant_to_reverification_pending(self):
         profile = ApplicantProfile.objects.create(
@@ -232,7 +305,7 @@ class ApplicantProfileOnboardingTests(TestCase):
         self.assertEqual(profile.status, 'pending')
         notification = Notification.objects.get(
             recipient=peso_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         self.assertEqual(
             notification.target_url,
@@ -459,10 +532,6 @@ class ApplicantProofDocumentFormTests(TestCase):
             'applicant_docs/education_proofs/diploma.pdf',
         )
         self.assertIsNotNone(self.profile.education_proof_uploaded_at)
-        changes = ProfileChangeLog.objects.get(applicant=self.profile).changes
-        self.assertIn('edu_college_grad', changes)
-        self.assertIn('edu_hs_grad', changes)
-
     def test_final_document_form_has_no_generic_supporting_document_fields(self):
         form = ApplicantDocumentsForm(instance=self.profile)
 
@@ -539,17 +608,6 @@ class ApplicantNotificationTests(TestCase):
             'applicant_docs/education_proofs/current-proof.pdf'
         )
         self.profile.save()
-        ProfileChangeLog.objects.create(
-            applicant=self.profile,
-            changed_by=self.applicant,
-            changes={
-                'school_university': {
-                    'label': 'School University',
-                    'old': 'Old School',
-                    'new': 'New School',
-                },
-            },
-        )
         self.profile.education_proof_uploaded_at = timezone.now()
         self.profile.save(update_fields=['education_proof_uploaded_at'])
         admin_client = self.client_class()

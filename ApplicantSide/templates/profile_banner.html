@@ -6,7 +6,8 @@
         <!-- PROFILE PICTURE -->
         <div class="relative group">
 
-            <div class="w-20 h-20 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700 font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
+            <!-- Updated to bg-stone-900 and object-contain to display the ID card fully without cropping -->
+            <div class="w-20 h-20 rounded-xl bg-stone-900 flex items-center justify-center text-white font-bold text-2xl shadow-3xs overflow-hidden border border-stone-200">
 
                 {% if profile and profile.applicant_id_picture_front %}
 
@@ -14,7 +15,7 @@
                     <img
                         src="{{ profile.applicant_id_picture_front.url }}"
                         alt="Profile Picture"
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-contain"
                     >
 
                 {% elif user.profile_picture %}
@@ -23,7 +24,7 @@
                     <img
                         src="{{ user.profile_picture.url }}"
                         alt="Profile Picture"
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-contain"
                     >
 
                 {% else %}

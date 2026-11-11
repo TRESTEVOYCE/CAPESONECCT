@@ -329,7 +329,7 @@
         function validateLetters(input) {
             if (!input) return true;
             const val = input.value.trim();
-            const lettersRegex = /^[A-Za-zÑñ\s\-]+$/;
+            const validNameRegex = /^[A-Za-zÑñ\s\-\.]+$/;
             return val.length > 0 && lettersRegex.test(val);
         }
 

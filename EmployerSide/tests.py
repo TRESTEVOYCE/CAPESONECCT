@@ -10,7 +10,6 @@ from AdminSide.models import (
     EmployerProfile,
     Jobs,
     Notification,
-    ProfileChangeLog,
     User,
 )
 from AdminSide.signals import notify_admin_on_employer_registration
@@ -133,27 +132,17 @@ class EmployerNotificationTests(TestCase):
             admin_verification.context['employer'].mobile_number,
             '09987654321',
         )
-        change_log = ProfileChangeLog.objects.get(employer=self.employer)
-        self.assertEqual(
-            change_log.changes['mobile_number']['old'],
-            '09123456789',
-        )
-        self.assertEqual(
-            change_log.changes['mobile_number']['new'],
-            '09987654321',
-        )
-        self.assertIsNone(change_log.reviewed_at)
         notification = Notification.objects.get(
             recipient=peso_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         admin_notification = Notification.objects.get(
             recipient=other_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         self.assertEqual(
             notification.title,
-            'Employer Profile Updated - Re-Verification Required',
+            'Employer Profile Updated',
         )
         self.assertEqual(
             notification.target_url,
@@ -181,7 +170,7 @@ class EmployerNotificationTests(TestCase):
         admin_inbox = self.client.get(reverse('AdminSide:notifications_list'))
         self.assertContains(
             admin_inbox,
-            'Employer Profile Updated - Re-Verification Required',
+            'Employer Profile Updated',
         )
         self.assertContains(admin_inbox, 'fetchHeaderNotifications();')
         admin_employer_list = self.client.get(
@@ -199,6 +188,73 @@ class EmployerNotificationTests(TestCase):
         self.assertContains(employer_dashboard, 'Pending Re-Verification')
         job_creation_response = self.client.get(reverse('job_create'))
         self.assertEqual(job_creation_response.status_code, 403)
+
+    def test_non_sensitive_business_profile_update_notifies_peso_without_reverification(self):
+        peso_admin = User.objects.create_user(
+            username='position-update-peso',
+            email='position-update-peso@example.com',
+            password='test-password',
+            role='peso',
+        )
+        self.employer.business_name = 'Position Update Employer Ltd'
+        self.employer.trade_name = ''
+        self.employer.acronym = ''
+        self.employer.tin_number = ''
+        self.employer.line_of_business = ''
+        self.employer.street_address = ''
+        self.employer.barangay = 'Poblacion'
+        self.employer.municipality = 'Carigara'
+        self.employer.province = 'Leyte'
+        self.employer.owner_name = ''
+        self.employer.designation = ''
+        self.employer.contact_person = ''
+        self.employer.contact_position = ''
+        self.employer.telephone_number = ''
+        self.employer.mobile_number = ''
+        self.employer.email = ''
+        self.employer.public_doc_type = ''
+        self.employer.verification_status = 'verified'
+        self.employer.save()
+        self.client.force_login(self.employer_user)
+
+        response = self.client.post(
+            reverse('employer-profile-create'),
+            {
+                'business_name': self.employer.business_name,
+                'trade_name': '',
+                'acronym': '',
+                'office_type': 'main',
+                'tin_number': '',
+                'employer_type': 'direct_hire',
+                'total_workforce': 'micro',
+                'line_of_business': '',
+                'street_address': '',
+                'barangay': 'Poblacion',
+                'municipality': 'Carigara',
+                'province': 'Leyte',
+                'owner_name': '',
+                'designation': '',
+                'contact_person': '',
+                'contact_position': 'Human Resources Manager',
+                'telephone_number': '',
+                'mobile_number': '',
+                'email': '',
+                'public_doc_type': '',
+            },
+        )
+
+        self.assertRedirects(response, reverse('employer-home'))
+        self.employer.refresh_from_db()
+        self.assertEqual(self.employer.contact_position, 'Human Resources Manager')
+        self.assertEqual(self.employer.verification_status, 'verified')
+        self.assertTrue(Notification.objects.filter(
+            recipient=peso_admin,
+            notification_type='PROFILE_UPDATED',
+            target_url=reverse(
+                'AdminSide:employer_verification',
+                kwargs={'uuid': self.employer.uuid},
+            ),
+        ).exists())
 
     def test_sensitive_account_name_update_moves_verified_employer_to_reverification_pending(self):
         self.employer.verification_status = 'verified'
@@ -235,7 +291,7 @@ class EmployerNotificationTests(TestCase):
         self.assertEqual(self.employer.verification_status, 'pending')
         notification = Notification.objects.get(
             recipient=peso_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         self.assertEqual(
             notification.target_url,
@@ -277,13 +333,13 @@ class EmployerNotificationTests(TestCase):
         self.assertEqual(self.employer_user.username, 'updated-employer@example.com')
         notification = Notification.objects.get(
             recipient=peso_admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
         admin_notification = Notification.objects.get(
             recipient=admin,
-            notification_type='RESUBMISSION',
+            notification_type='PROFILE_UPDATED',
         )
-        self.assertEqual(admin_notification.notification_type, 'RESUBMISSION')
+        self.assertEqual(admin_notification.notification_type, 'PROFILE_UPDATED')
         self.assertEqual(
             notification.target_url,
             reverse(

@@ -1,0 +1,64 @@
+{% extends "SuperAdmin/base.html" %}
+
+{% block title %}View Account | Super Admin{% endblock %}
+{% block heading %}Account Details{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-3xl space-y-6">
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        <div class="border-b border-slate-200 px-6 py-5 sm:px-8">
+            <h2 class="text-lg font-bold text-slate-800">
+                Account Information
+            </h2>
+
+            <p class="mt-1 text-sm text-slate-500">
+                View the details associated with this account.
+            </p>
+        </div>
+
+        <div class="space-y-5 px-6 py-6 sm:px-8">
+
+            <div>
+                <p class="text-sm font-semibold text-slate-500">
+                    Username
+                </p>
+                <p class="mt-1 text-sm text-slate-800">
+                    {{ account.username|default:"Not available" }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm font-semibold text-slate-500">
+                    Email Address
+                </p>
+                <p class="mt-1 break-all text-sm text-slate-800">
+                    {{ account.email|default:"Not available" }}
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm font-semibold text-slate-500">
+                    Account Role
+                </p>
+
+                <span class="mt-2 inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                    {{ account.role|title }}
+                </span>
+            </div>
+
+            <div class="border-t border-slate-200 pt-5">
+                <a href="{% url 'superadmin-users' %}"
+                   class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Back to Manage Users
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

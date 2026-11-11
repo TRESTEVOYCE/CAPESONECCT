@@ -1,5 +1,4 @@
-
-{% load static %}
+ {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,6 +88,18 @@
                     Create MSWDO Account
                 </a>
 
+                <!-- Create PESO Account -->
+                <a href="{% url 'create_peso_account' %}"
+                   class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
+                   {% if request.resolver_match.url_name == 'create_peso_account' %}
+                       border-l-4 border-blue-400 bg-admin-sidebar text-white
+                   {% else %}
+                       text-slate-300
+                   {% endif %}">
+                    <span class="mr-3">＋</span>
+                    Create PESO Account
+                </a>
+
                 <!-- System Logs -->
                 <a href="{% url 'superadmin-system-logs' %}"
                    class="rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-admin-sidebar
@@ -115,6 +126,7 @@
                         Logout
                     </button>
                 </form>
+
             </nav>
 
             <!-- Sidebar footer -->
@@ -165,26 +177,6 @@
 
             <!-- Page content -->
             <div class="p-5 sm:p-8">
-
-                <!-- Django messages -->
-                {% if messages %}
-                    <div class="mb-6 space-y-3">
-                        {% for message in messages %}
-                            <div class="rounded-xl border px-4 py-3 text-sm
-                                {% if message.tags == 'success' %}
-                                    border-emerald-200 bg-emerald-50 text-emerald-800
-                                {% elif message.tags == 'error' %}
-                                    border-red-200 bg-red-50 text-red-800
-                                {% elif message.tags == 'warning' %}
-                                    border-amber-200 bg-amber-50 text-amber-800
-                                {% else %}
-                                    border-blue-200 bg-blue-50 text-blue-800
-                                {% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
 
                 {% block content %}{% endblock %}
 

@@ -73,6 +73,30 @@ def generate_complete_peso_matrix(target_year, target_month):
     dilp_total = dilp_qs.count()
     dilp_individual = dilp_qs.filter(project_category='individual').count()
     dilp_group = dilp_qs.filter(project_category='group').count()
+    dilp_individual_formation = dilp_qs.filter(
+        project_category='individual',
+        project_classification='formation',
+    ).count()
+    dilp_individual_enhancement = dilp_qs.filter(
+        project_category='individual',
+        project_classification='enhancement',
+    ).count()
+    dilp_individual_restoration = dilp_qs.filter(
+        project_category='individual',
+        project_classification='restoration',
+    ).count()
+    dilp_group_formation = dilp_qs.filter(
+        project_category='group',
+        project_classification='formation',
+    ).count()
+    dilp_group_enhancement = dilp_qs.filter(
+        project_category='group',
+        project_classification='enhancement',
+    ).count()
+    dilp_group_restoration = dilp_qs.filter(
+        project_category='group',
+        project_classification='restoration',
+    ).count()
 
     child_labor_total = 0
 
@@ -124,6 +148,12 @@ def generate_complete_peso_matrix(target_year, target_month):
         'dilp_total_workers': dilp_total,
         'individual_assistance_total': dilp_individual,
         'group_assistance_total': dilp_group,
+        'ind_formation': dilp_individual_formation,
+        'ind_enhancement': dilp_individual_enhancement,
+        'ind_restoration': dilp_individual_restoration,
+        'grp_formation': dilp_group_formation,
+        'grp_enhancement': dilp_group_enhancement,
+        'grp_restoration': dilp_group_restoration,
         'child_labor_total': child_labor_total,
         'pop_projected': pop_projected,
         'poor_pop': poor_pop,

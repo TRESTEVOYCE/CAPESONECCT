@@ -237,31 +237,85 @@
             </div>
 
             <!-- Profile Completion Card -->
+
+            <!-- Profile Readiness Card -->
             <div class="bg-white border border-stone-200/90 rounded-xl p-4 shadow-3xs space-y-3">
+
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">Readiness</h3>
-                    <span class="text-xs font-extrabold text-stone-900">{{ profile_strength }}%</span>
+                    <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                        Readiness
+                    </h3>
+
+                    <span class="text-xs font-extrabold text-stone-900">
+                        {{ profile_strength|default:0 }}%
+                    </span>
                 </div>
 
-                <div class="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden">
+                <!-- Progress Bar -->
+                <div
+                    class="w-full bg-stone-100 h-2 rounded-full overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow="{{ profile_strength|default:0 }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Applicant profile readiness"
+                >
                     {% if profile_strength >= 80 %}
-                        <div class="bg-emerald-600 h-full rounded-full" style="width: {{ profile_strength }}%;"></div>
+                        <div
+                            class="bg-emerald-600 h-full rounded-full transition-all duration-500"
+                            style="width: {{ profile_strength }}%;">
+                        </div>
+
                     {% elif profile_strength >= 50 %}
-                        <div class="bg-amber-500 h-full rounded-full" style="width: {{ profile_strength }}%;"></div>
+                        <div
+                            class="bg-amber-500 h-full rounded-full transition-all duration-500"
+                            style="width: {{ profile_strength }}%;">
+                        </div>
+
                     {% else %}
-                        <div class="bg-rose-500 h-full rounded-full" style="width: {{ profile_strength }}%;"></div>
+                        <div
+                            class="bg-rose-500 h-full rounded-full transition-all duration-500"
+                            style="width: {{ profile_strength|default:0 }}%;">
+                        </div>
                     {% endif %}
                 </div>
 
-                <p class="text-[11px] text-stone-500 leading-normal">
-                    Complete background details for accurate PESO algorithmic matching.
-                </p>
+                <!-- Dynamic Readiness Message -->
+                {% if profile_strength >= 100 %}
+                    <p class="text-[11px] text-emerald-700 leading-normal">
+                        <strong>Excellent!</strong> Your profile is complete and ready for job matching.
+                    </p>
 
-                <a href="{% url 'personal_info' %}"
-                   class="block text-center py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold transition-all">
-                    Update profile info
+                {% elif profile_strength >= 80 %}
+                    <p class="text-[11px] text-emerald-700 leading-normal">
+                        <strong>Almost there!</strong> Your profile is well completed. Review any remaining details.
+                    </p>
+
+                {% elif profile_strength >= 50 %}
+                    <p class="text-[11px] text-amber-700 leading-normal">
+                        <strong>Good progress!</strong> Add more information to improve your job recommendations.
+                    </p>
+
+                {% else %}
+                    <p class="text-[11px] text-rose-700 leading-normal">
+                        <strong>Get started!</strong> Complete your personal information, education, skills, and other profile details.
+                    </p>
+                {% endif %}
+
+                <!-- Update Profile Button -->
+                <a
+                    href="{% url 'personal_info' %}"
+                    class="block text-center py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold transition-all"
+                >
+                    {% if profile_strength >= 100 %}
+                        Review Profile
+                    {% else %}
+                        Complete Profile
+                    {% endif %}
                 </a>
+
             </div>
+
 
             <!-- PESO Note / Help block -->
             <div class="bg-stone-50 border border-stone-200/70 rounded-xl p-3.5 text-xs text-stone-600 space-y-0.5">

@@ -238,14 +238,22 @@
     <script>
         const STORAGE_PREFIX = "peso_emp_step1_";
 
-        // Restore values on load
+        function isGibberish(str) {
+            const clean = str.trim().toLowerCase();
+            if (clean.length < 2) return false;
+            const vowels = clean.match(/[aeiou]/g);
+            if (!vowels || vowels.length === 0) return true;
+            const consecutiveConsonants = /[bcdfghjklmnpqrstvwxyz]{4,}/;
+            if (consecutiveConsonants.test(clean)) return true;
+            return false;
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".save-state").forEach(input => {
                 const savedValue = sessionStorage.getItem(STORAGE_PREFIX + input.name);
                 if (savedValue !== null && input.value === '') {
                     input.value = savedValue;
                 }
-                // Save on change/input
                 input.addEventListener("input", function() {
                     sessionStorage.setItem(STORAGE_PREFIX + this.name, this.value);
                 });
@@ -254,51 +262,31 @@
 
         document.getElementById("employer-form").addEventListener("submit", function(e) {
             let isValid = true;
-            const hasNumberRegex = /\d/;
+            const validNameRegex = /^[A-Za-zÑñ\s\-\.]+$/;
 
-            // 1. Business Name
-            const busInput = document.getElementById("id_business_name");
-            const busError = document.getElementById("emp-business-error");
-            if (hasNumberRegex.test(busInput.value)) {
-                e.preventDefault();
-                busInput.classList.add("border-red-500", "bg-red-50/50");
-                busError.textContent = "Business name must not contain numbers.";
-                busError.classList.remove("hidden");
-                if(isValid) { busInput.focus(); isValid = false; }
-            } else {
-                busInput.classList.remove("border-red-500", "bg-red-50/50");
-                busError.classList.add("hidden");
-            }
 
-            // 2. Trade Name
-            const tradeInput = document.getElementById("id_trade_name");
-            const tradeError = document.getElementById("emp-trade-error");
-            if (tradeInput.value.trim() !== "" && hasNumberRegex.test(tradeInput.value)) {
-                e.preventDefault();
-                tradeInput.classList.add("border-red-500", "bg-red-50/50");
-                tradeError.textContent = "Trade name must not contain numbers.";
-                tradeError.classList.remove("hidden");
-                if(isValid) { tradeInput.focus(); isValid = false; }
-            } else {
-                tradeInput.classList.remove("border-red-500", "bg-red-50/50");
-                tradeError.classList.add("hidden");
-            }
 
-            // 3. Owner Name
+        // 1. Owner Name Validation
             const ownerInput = document.getElementById("id_owner_name");
             const ownerError = document.getElementById("emp-owner-error");
-            if (hasNumberRegex.test(ownerInput.value)) {
+            const ownerVal = ownerInput.value.trim();
+
+            if (!ownerVal || !validNameRegex.test(ownerVal) || isGibberish(ownerVal)) {
                 e.preventDefault();
                 ownerInput.classList.add("border-red-500", "bg-red-50/50");
-                ownerError.textContent = "Owner name must not contain numbers.";
+                ownerError.textContent = "Please enter a valid owner name (only letters, spaces, '.', and '-' allowed).";
                 ownerError.classList.remove("hidden");
-                if(isValid) { ownerInput.focus(); isValid = false; }
+                if (isValid) { 
+                    ownerInput.focus(); 
+                    isValid = false; 
+                }
             } else {
                 ownerInput.classList.remove("border-red-500", "bg-red-50/50");
                 ownerError.classList.add("hidden");
             }
 
-            // 4. Mobile Number
+
+            // 2. Mobile Number
             const phoneInput = document.getElementById("id_mobile_number");
             const phoneError = document.getElementById("emp-phone-error");
             const phoneVal = phoneInput.value.trim();
@@ -309,7 +297,7 @@
                 phoneInput.classList.add("border-red-500", "bg-red-50/50");
                 phoneError.textContent = "Mobile number must start with '09' and contain exactly 11 digits.";
                 phoneError.classList.remove("hidden");
-                if(isValid) { phoneInput.focus(); isValid = false; }
+                if (isValid) { phoneInput.focus(); isValid = false; }
             } else {
                 phoneInput.classList.remove("border-red-500", "bg-red-50/50");
                 phoneError.classList.add("hidden");

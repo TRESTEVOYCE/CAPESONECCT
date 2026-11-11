@@ -365,6 +365,7 @@ class ApplicantProfile(models.Model):
     ]
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    valid_id_type = models.CharField(max_length=100, blank=True, null=True)
 
     user = models.OneToOneField(
         User,
@@ -449,13 +450,55 @@ class ApplicantProfile(models.Model):
     award_2 = models.CharField(max_length=255, blank=True, null=True)
     award_3 = models.CharField(max_length=255, blank=True, null=True)
     
-    skill_computer = models.BooleanField(default=False)
+   
+    # ==========================================
+    # VII. 21st Century Skills
+    # ==========================================
+
+    skill_innovation = models.BooleanField(default=False)
+    skill_team_work = models.BooleanField(default=False)
+    skill_multitasking = models.BooleanField(default=False)
+    skill_work_ethics = models.BooleanField(default=False)
+    skill_self_motivation = models.BooleanField(default=False)
+    skill_creative_problem_solving = models.BooleanField(default=False)
+    skill_problem_solving = models.BooleanField(default=False)
+    skill_critical_thinking = models.BooleanField(default=False)
+    skill_decision_making = models.BooleanField(default=False)
+    skill_stress_tolerance = models.BooleanField(default=False)
+    skill_planning_organizing = models.BooleanField(default=False)
+    skill_social_perceptiveness = models.BooleanField(default=False)
+    skill_english_functional = models.BooleanField(default=False)
+    skill_english_comprehension = models.BooleanField(default=False)
+    skill_math_functional = models.BooleanField(default=False)
+
+    # ==========================================
+    # Technical Skills
+    # ==========================================
+
+    skill_carpentry = models.BooleanField(default=False)
+    skill_masonry = models.BooleanField(default=False)
+    skill_welding = models.BooleanField(default=False)
+    skill_auto_mechanic = models.BooleanField(default=False)
+    skill_plumbing = models.BooleanField(default=False)
     skill_driving = models.BooleanField(default=False)
+    skill_gardening = models.BooleanField(default=False)
+    skill_tailoring = models.BooleanField(default=False)
+    skill_photography = models.BooleanField(default=False)
+    skill_hairdressing = models.BooleanField(default=False)
+    skill_cooking = models.BooleanField(default=False)
+    skill_baking = models.BooleanField(default=False)
+
+    # Additional existing skills
+    skill_computer = models.BooleanField(default=False)
     skill_customer_service = models.BooleanField(default=False)
     skill_bookkeeping = models.BooleanField(default=False)
-    skill_carpentry = models.BooleanField(default=False)
-    skill_welding = models.BooleanField(default=False)
-    other_skills = models.CharField(max_length=500, blank=True, null=True)
+
+    other_skills = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True
+    )
+
     
     certification_agree = models.BooleanField(default=False)
     resume_file = models.FileField(upload_to='applicant_docs/resumes/', storage=RawMediaCloudinaryStorage(), blank=True, null=True)
@@ -474,13 +517,6 @@ class ApplicantProfile(models.Model):
         null=True,
     )
     education_proof_uploaded_at = models.DateTimeField(blank=True, null=True)
-    technical_certification_document = models.FileField(
-        upload_to='applicant_docs/technical_certifications/',
-        storage=RawMediaCloudinaryStorage(),
-        blank=True,
-        null=True,
-    )
-    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
     professional_license_document = models.FileField(
         upload_to='applicant_docs/professional_licenses/',
         storage=RawMediaCloudinaryStorage(),
@@ -488,18 +524,6 @@ class ApplicantProfile(models.Model):
         null=True,
     )
     professional_license_uploaded_at = models.DateTimeField(blank=True, null=True)
-    
-
-    training_title_1 = models.CharField(max_length=255, blank=True, null=True)
-    training_hours_1 = models.IntegerField(blank=True, null=True)
-    training_institution_1 = models.CharField(max_length=255, blank=True, null=True)
-    training_date_1 = models.CharField(max_length=50, blank=True, null=True)
-
-    training_title_2 = models.CharField(max_length=255, blank=True, null=True)
-    training_hours_2 = models.IntegerField(blank=True, null=True)
-    training_institution_2 = models.CharField(max_length=255, blank=True, null=True)
-    training_date_2 = models.CharField(max_length=50, blank=True, null=True)
-
 
     pref_local = models.BooleanField(default=False)
     pref_overseas = models.BooleanField(default=False)
@@ -545,6 +569,54 @@ class ApplicantProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.email}"
+
+
+
+class ApplicantTraining(models.Model):
+    applicant = models.ForeignKey(
+        ApplicantProfile,
+        on_delete=models.CASCADE,
+        related_name='trainings'
+    )
+
+    training_title = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    training_hours = models.IntegerField(
+        blank=True,
+        null=True
+    )
+
+    training_institution = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    training_date = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    technical_certification_document = models.FileField(
+            upload_to='applicant_docs/technical_certifications/',
+            storage=RawMediaCloudinaryStorage(),
+            blank=True,
+            null=True,
+        )
+    technical_certification_uploaded_at = models.DateTimeField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.training_title or "Untitled Training"
+
+    class Meta:
+        ordering = ['id']
+
 
 
 class ApplicantWorkExperience(models.Model):
@@ -932,6 +1004,7 @@ class Notification(models.Model):
         ('VERIFICATION_REJECTED', 'Verification Rejected'),
         ('APPLICATION_STATUS', 'Application Status Update'),
         ('NEW_REGISTRATION', 'New Registration Pending Verification'),
+        ('PROFILE_UPDATED', 'Profile Updated'),
         ('RESUBMISSION', 'Account Re-submitted for Verification'),
         ('NEW_APPLICANT', 'New Applicant'),
         ('NEW_EMPLOYER', 'New Employer'),
@@ -973,44 +1046,3 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action} - {self.user} ({self.timestamp})"
-
-class ProfileChangeLog(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='profile_change_logs')
-    field_name = models.CharField(max_length=100, blank=True, default='')
-    old_value = models.TextField(blank=True, null=True)
-    new_value = models.TextField(blank=True, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    applicant = models.ForeignKey(
-        ApplicantProfile,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='profile_change_logs',
-    )
-    employer = models.ForeignKey(
-        EmployerProfile,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='profile_change_logs',
-    )
-    changed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='changed_profile_logs',
-    )
-    changes = models.JSONField(default=dict, blank=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
-
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = "Profile Change Log"
-        verbose_name_plural = "Profile Change Logs"
-
-    def __str__(self):
-        actor = self.changed_by or self.user
-        return f"{actor} changed {self.field_name} at {self.created_at}"

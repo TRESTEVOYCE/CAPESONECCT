@@ -6,10 +6,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
 from AdminSide.services.profile_sensitivity import (
-    capture_profile_changes,
-    classify_profile_changes,
     mark_profile_for_reverification,
-    record_profile_changes,
 )
 from .forms import EmployerProfileForm,JobsForm,ProfilePictureForm
 from AdminSide.models import EmployerProfile, Jobs, AppliedJobs, ApplicantProfile, User
@@ -78,20 +75,34 @@ def send_support_message_api(request):
 from AdminSide.utils import get_admin_users, notify_admins
 
 
+def _notify_employer_profile_updated(request, profile):
+    notifications = notify_admins(
+        title='Employer Profile Updated',
+        message=(
+            f'{profile.business_name or profile.user.username} updated their profile. '
+            f'Current status: {profile.get_verification_status_display()}.'
+        ),
+        notification_type='PROFILE_UPDATED',
+        sender=request.user,
+        target_url=reverse(
+            'AdminSide:employer_verification',
+            kwargs={'uuid': profile.uuid},
+        ),
+    )
+    if not notifications:
+        messages.error(
+            request,
+            'Your update was saved, but no PESO administrator is configured to receive '
+            'the profile update notification.',
+        )
+
+
 def _mark_employer_for_reverification(
     request,
     profile,
     changed_fields,
     change_model=None,
 ):
-    classification = classify_profile_changes(
-        change_model or profile,
-        changed_fields,
-    )
-    should_notify_admins = (
-        classification.requires_reverification
-        and profile.verification_status in {'verified', 'pending', 'reverify_pending'}
-    )
     status_changed = mark_profile_for_reverification(
         profile,
         changed_fields,
@@ -103,26 +114,8 @@ def _mark_employer_for_reverification(
             'Your profile has been updated and is pending re-verification. '
             'Job posting is paused until it is approved again.',
         )
-    if should_notify_admins:
-        notifications = notify_admins(
-            title='Employer Profile Updated - Re-Verification Required',
-            message=(
-                f'{profile.business_name or profile.user.username} updated sensitive '
-                'business profile information. Review the profile changes and credentials.'
-            ),
-            notification_type='RESUBMISSION',
-            sender=request.user,
-            target_url=reverse(
-                'AdminSide:employer_verification',
-                kwargs={'uuid': profile.uuid},
-            ),
-        )
-        if not notifications:
-            messages.error(
-                request,
-                'Your update was saved, but no PESO administrator is configured to receive '
-                'the re-verification notification.',
-            )
+    if changed_fields:
+        _notify_employer_profile_updated(request, profile)
     return status_changed
 
 EMPLOYER_NOTIFICATION_TYPES = (
@@ -324,14 +317,14 @@ class EmployerProfilePictureView(LoginRequiredMixin, UserPassesTestMixin, Update
         return self.request.user
 
     def form_valid(self, form):
-        changes = capture_profile_changes(form.instance)
-        employer_profile = getattr(self.request.user, 'employer_profile', None)
+        changed_fields = form.changed_data
         response = super().form_valid(form)
-        if employer_profile:
-            record_profile_changes(
+        employer_profile = getattr(self.request.user, 'employer_profile', None)
+        if employer_profile and changed_fields:
+            _mark_employer_for_reverification(
+                self.request,
                 employer_profile,
-                self.request.user,
-                changes,
+                changed_fields,
                 change_model=User,
             )
         return response
@@ -353,9 +346,7 @@ class EmployerProfileCreateView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
 
     def form_valid(self, form):
         changed_fields = form.changed_data
-        changes = capture_profile_changes(form.instance)
         response = super().form_valid(form)
-        record_profile_changes(self.object, self.request.user, changes)
         _mark_employer_for_reverification(
             self.request,
             self.object,
@@ -707,15 +698,7 @@ class SettingsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             updated_name = full_name.strip()
             name_changed = request.user.username != updated_name
             request.user.username = updated_name
-            changes = capture_profile_changes(request.user) if name_changed else {}
             request.user.save()
-            if employer_profile:
-                record_profile_changes(
-                    employer_profile,
-                    request.user,
-                    changes,
-                    change_model=User,
-                )
             if employer_profile and name_changed:
                 _mark_employer_for_reverification(
                     request,
@@ -760,10 +743,25 @@ def employer_email_change_view(request):
             messages.error(request, "This email address is already registered to another account.")
         else:
             user = request.user
+            username_changed = user.username != session_email
+            email_changed = user.email != session_email
             user.email = session_email
             if hasattr(user, 'username'):
                 user.username = session_email
             user.save()
+            employer_profile = getattr(user, 'employer_profile', None)
+            changed_fields = set()
+            if email_changed:
+                changed_fields.add('email')
+            if username_changed:
+                changed_fields.add('username')
+            if employer_profile and changed_fields:
+                _mark_employer_for_reverification(
+                    request,
+                    employer_profile,
+                    changed_fields,
+                    change_model=User,
+                )
             
             request.session.pop('pending_new_email', None)
             request.session.pop('email_otp_code', None)

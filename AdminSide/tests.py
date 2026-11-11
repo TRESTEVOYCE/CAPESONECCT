@@ -1,33 +1,30 @@
 from datetime import datetime, timedelta
-
+from io import BytesIO
+from unittest.mock import patch
 from django.core import mail
+from openpyxl import load_workbook
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from unittest.mock import patch
 
 from .models import (
     AppliedJobs,
     ApplicantProfile,
     ApplicantSkills,
     ApplicantWorkExperience,
+    DisplacedInformalLaborProgram,
     EmployerProfile,
     GovernmentInternshipProgram,
     Jobs,
     Notification,
     OfferedJobs,
-    ProfileChangeLog,
     SpecialProgramForEmploymentOfStudents,
     User,
 )
 from .services.profile_sensitivity import (
-    capture_profile_changes,
     classify_profile_changes,
-    clear_profile_changes,
-    has_current_supporting_document,
     mark_profile_for_reverification,
-    record_profile_changes,
 )
 from .service import generate_complete_peso_matrix
 from .views import EnrollBeneficiaryView, SpecialProgramsListView
@@ -187,101 +184,6 @@ class ProfileReverificationStatusTests(TestCase):
         self.assertTrue(changed)
         self.employer.refresh_from_db()
         self.assertEqual(self.employer.verification_status, 'reverify_pending')
-
-    def test_profile_change_log_keeps_only_sensitive_changes_for_current_review(self):
-        self.applicant.phone_number = '09987654321'
-        changes = capture_profile_changes(self.applicant)
-        self.applicant.save()
-        change_log = record_profile_changes(
-            self.applicant,
-            self.applicant_user,
-            changes,
-        )
-
-        self.assertEqual(
-            change_log.changes['phone_number'],
-            {
-                'label': 'Phone Number',
-                'old': '',
-                'new': '09987654321',
-            },
-        )
-        self.assertIsNone(change_log.reviewed_at)
-
-        self.applicant.house_street = 'New Street'
-        non_sensitive_changes = capture_profile_changes(self.applicant)
-        self.assertEqual(set(non_sensitive_changes), {'house_street'})
-        self.applicant.save()
-        reviewed_log = record_profile_changes(
-            self.applicant,
-            self.applicant_user,
-            non_sensitive_changes,
-        )
-        self.assertIsNone(reviewed_log)
-        self.assertEqual(
-            ProfileChangeLog.objects.filter(applicant=self.applicant).count(),
-            1,
-        )
-
-    def test_profile_change_logs_are_cleared_after_approval(self):
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={'phone_number': {'label': 'Phone Number', 'old': '', 'new': '123'}},
-        )
-
-        clear_profile_changes(self.applicant)
-
-        self.assertFalse(ProfileChangeLog.objects.filter(applicant=self.applicant).exists())
-
-    def test_new_verified_profile_change_starts_a_fresh_audit_cycle(self):
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={'education_level': {'label': 'Education Level', 'old': 'High School', 'new': 'College'}},
-            reviewed_at=timezone.now(),
-        )
-        self.applicant.phone_number = '09123456789'
-        self.applicant.save()
-
-        fresh_log = record_profile_changes(
-            self.applicant,
-            self.applicant_user,
-            {'phone_number': {'label': 'Phone Number', 'old': '', 'new': '09123456789'}},
-        )
-
-        self.assertEqual(ProfileChangeLog.objects.filter(applicant=self.applicant).count(), 1)
-        self.assertEqual(
-            fresh_log.changes,
-            {'phone_number': {'label': 'Phone Number', 'old': '', 'new': '09123456789'}},
-        )
-
-    def test_education_proof_must_be_newer_than_unreviewed_education_changes(self):
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={
-                'school_university': {
-                    'label': 'School University',
-                    'old': 'Old School',
-                    'new': 'New School',
-                },
-            },
-        )
-        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
-            education_proof_document='applicant_docs/education_proofs/proof.pdf',
-            education_proof_uploaded_at=timezone.now() - timedelta(minutes=1),
-        )
-        self.applicant.refresh_from_db()
-
-        self.assertFalse(has_current_supporting_document(self.applicant))
-
-        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
-            education_proof_uploaded_at=timezone.now() + timedelta(seconds=1),
-        )
-        self.applicant.refresh_from_db()
-        self.assertTrue(has_current_supporting_document(self.applicant))
-
 
 @override_settings(
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
@@ -520,35 +422,6 @@ class ApplicantVerificationEmailTests(TestCase):
         self.assertEqual(notifications[0]['title'], 'Notification 10')
         self.assertNotIn('Notification 0', [item['title'] for item in notifications])
 
-    def test_employer_verification_shows_review_link_for_profile_change_logs(self):
-        employer_user = User.objects.create_user(
-            username='employer-verification-log-user',
-            email='employer-verification-log@example.com',
-            password='test-password',
-            role='employer',
-        )
-        employer = EmployerProfile.objects.create(
-            user=employer_user,
-            business_name='Verification Log Employer',
-            verification_status='reverify_pending',
-        )
-        ProfileChangeLog.objects.create(
-            user=employer_user,
-            field_name='business_name',
-            old_value='Old Business Name',
-            new_value='Verification Log Employer',
-        )
-
-        response = self.client.get(
-            reverse(
-                'AdminSide:employer_verification',
-                kwargs={'uuid': employer.uuid},
-            ),
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Review Updates')
-
     def test_verifying_applicant_sends_account_verified_email_once(self):
         url = reverse(
             'AdminSide:applicant_verification',
@@ -573,55 +446,19 @@ class ApplicantVerificationEmailTests(TestCase):
         self.client.post(url, {'action': 'verify'})
         self.assertEqual(len(mail.outbox), 1)
 
-    def test_applicant_modification_audit_opens_from_review_button_and_clears_on_approval(self):
+    def test_reverification_can_be_approved(self):
         self.applicant.status = 'reverify_pending'
         self.applicant.save(update_fields=['status'])
-        log = ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={
-                'phone_number': {
-                    'label': 'Phone Number',
-                    'old': '09123456789',
-                    'new': '09987654321',
-                },
-            },
-        )
         url = reverse(
             'AdminSide:applicant_verification',
             kwargs={'uuid': self.applicant.uuid},
         )
 
-        page = self.client.get(url)
-
-        self.assertContains(page, 'Review Updates')
-        self.assertContains(
-            page,
-            reverse(
-                'AdminSide:applicant_modification_audit',
-                kwargs={'uuid': self.applicant.uuid},
-            ),
-        )
-        self.assertNotContains(page, '09123456789')
-
-        audit_url = reverse(
-            'AdminSide:applicant_modification_audit',
-            kwargs={'uuid': self.applicant.uuid},
-        )
-        audit_page = self.client.get(audit_url)
-        self.assertContains(audit_page, 'Field')
-        self.assertContains(audit_page, 'Old Value')
-        self.assertContains(audit_page, 'New Value')
-        self.assertContains(audit_page, 'Date and Time')
-        self.assertContains(audit_page, 'Phone Number')
-        self.assertContains(audit_page, '09123456789')
-        self.assertContains(audit_page, '09987654321')
-
         response = self.client.post(url, {'action': 'verify'})
 
         self.assertRedirects(response, url)
-        self.assertFalse(ProfileChangeLog.objects.filter(pk=log.pk).exists())
-        self.assertNotContains(self.client.get(url), 'Review Updates')
+        self.applicant.refresh_from_db()
+        self.assertEqual(self.applicant.status, 'approved')
 
     def test_applicant_verification_displays_latest_education_form_values(self):
         ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
@@ -683,44 +520,7 @@ class ApplicantVerificationEmailTests(TestCase):
             'View diploma / transcript / graduation certificate',
         )
 
-    def test_reverification_approval_requires_current_education_proof(self):
-        self.applicant.status = 'reverify_pending'
-        self.applicant.save(update_fields=['status'])
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={
-                'school_university': {
-                    'label': 'School University',
-                    'old': 'Old School',
-                    'new': 'New School',
-                },
-            },
-        )
-        url = reverse(
-            'AdminSide:applicant_verification',
-            kwargs={'uuid': self.applicant.uuid},
-        )
-
-        blocked_response = self.client.post(url, {'action': 'verify'})
-
-        self.assertRedirects(blocked_response, url)
-        self.applicant.refresh_from_db()
-        self.assertEqual(self.applicant.status, 'reverify_pending')
-
-        upload_time = timezone.now()
-        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
-            education_proof_document='applicant_docs/education_proofs/proof.pdf',
-            education_proof_uploaded_at=upload_time,
-        )
-
-        response = self.client.post(url, {'action': 'verify'})
-
-        self.assertRedirects(response, url)
-        self.applicant.refresh_from_db()
-        self.assertEqual(self.applicant.status, 'approved')
-
-    def test_applicant_registry_cannot_bypass_supporting_document_approval_gate(self):
+    def test_applicant_registry_can_verify_reverification(self):
         self.applicant.status = 'reverify_pending'
         self.applicant.save(update_fields=['status'])
 
@@ -732,187 +532,9 @@ class ApplicantVerificationEmailTests(TestCase):
             },
         )
 
-        self.assertRedirects(
-            response,
-            reverse(
-                'AdminSide:applicant_verification',
-                kwargs={'uuid': self.applicant.uuid},
-            ),
-        )
+        self.assertRedirects(response, reverse('AdminSide:applicants_list'))
         self.applicant.refresh_from_db()
-        self.assertEqual(self.applicant.status, 'reverify_pending')
-
-    def test_employer_modification_audit_opens_from_review_button_and_clears_on_approval(self):
-        employer_user = User.objects.create_user(
-            username='employer-delta-user',
-            email='employer-delta@example.com',
-            password='test-password',
-            role='employer',
-        )
-        employer = EmployerProfile.objects.create(
-            user=employer_user,
-            business_name='Delta Employer',
-            verification_status='reverify_pending',
-        )
-        log = ProfileChangeLog.objects.create(
-            employer=employer,
-            changed_by=employer_user,
-            changes={
-                'mobile_number': {
-                    'label': 'Mobile Number',
-                    'old': '09123456789',
-                    'new': '09987654321',
-                },
-            },
-        )
-        url = reverse(
-            'AdminSide:employer_verification',
-            kwargs={'uuid': employer.uuid},
-        )
-
-        page = self.client.get(url)
-
-        self.assertContains(page, 'Review Updates')
-        audit_url = reverse(
-            'AdminSide:employer_modification_audit',
-            kwargs={'uuid': employer.uuid},
-        )
-        self.assertContains(page, audit_url)
-        self.assertNotContains(page, '09123456789')
-        audit_page = self.client.get(audit_url)
-        self.assertContains(audit_page, 'Mobile Number')
-        self.assertContains(audit_page, '09123456789')
-        self.assertContains(audit_page, '09987654321')
-
-        response = self.client.post(url, {'action': 'approve'})
-
-        self.assertRedirects(response, url)
-        self.assertFalse(ProfileChangeLog.objects.filter(pk=log.pk).exists())
-
-    def test_applicant_audit_shows_education_proof_beside_changed_information(self):
-        self.applicant.status = 'reverify_pending'
-        self.applicant.save(update_fields=['status'])
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={
-                'phone_number': {
-                    'label': 'Phone Number',
-                    'old': 'OLD VERIFIED VALUE',
-                    'new': 'OLD REVIEWED VALUE',
-                },
-            },
-            reviewed_at=timezone.now(),
-        )
-        ProfileChangeLog.objects.create(
-            applicant=self.applicant,
-            changed_by=self.applicant_user,
-            changes={
-                'school_university': {
-                    'label': 'School University',
-                    'old': 'Old University',
-                    'new': 'New University',
-                },
-                'supporting_doc': {
-                    'label': 'Supporting Document',
-                    'old': 'applicant_docs/supporting_docs/old.pdf',
-                    'new': 'applicant_docs/supporting_docs/new.pdf',
-                },
-                'education_proof_document': {
-                    'label': 'Education Proof Document',
-                    'old': '',
-                    'new': 'applicant_docs/education_proofs/diploma.pdf',
-                },
-            },
-        )
-        ApplicantProfile.objects.filter(pk=self.applicant.pk).update(
-            education_proof_document=(
-                'applicant_docs/education_proofs/diploma.pdf'
-            ),
-        )
-        storage = ApplicantProfile._meta.get_field(
-            'education_proof_document'
-        ).storage
-        audit_url = reverse(
-            'AdminSide:applicant_modification_audit',
-            kwargs={'uuid': self.applicant.uuid},
-        )
-
-        with patch.object(
-            storage,
-            'url',
-            side_effect=lambda name: f'https://files.example/{name}',
-        ):
-            page = self.client.get(audit_url)
-
-        self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'Supporting Document')
-        self.assertContains(page, 'href="https://files.example/applicant_docs/education_proofs/diploma.pdf"')
-        self.assertContains(page, 'New University')
-        self.assertNotContains(
-            page,
-            '<span class="text-slate-400">—</span>',
-        )
-        self.assertNotContains(page, 'applicant_docs/supporting_docs/old.pdf')
-        self.assertNotContains(page, 'applicant_docs/supporting_docs/new.pdf')
-        self.assertNotContains(page, 'Education Proof Document')
-        self.assertNotContains(page, 'OLD VERIFIED VALUE')
-        self.assertNotContains(page, 'OLD REVIEWED VALUE')
-
-    def test_employer_audit_shows_registration_document_beside_changed_information(self):
-        employer_user = User.objects.create_user(
-            username='employer-file-audit-user',
-            email='employer-file-audit@example.com',
-            password='test-password',
-            role='employer',
-        )
-        employer = EmployerProfile.objects.create(
-            user=employer_user,
-            business_name='File Audit Employer',
-            verification_status='reverify_pending',
-        )
-        ProfileChangeLog.objects.create(
-            employer=employer,
-            changed_by=employer_user,
-            changes={
-                'business_name': {
-                    'label': 'Business Name',
-                    'old': 'Old Business Name',
-                    'new': 'Updated Business Name',
-                },
-                'business_permit': {
-                    'label': 'Business Permit',
-                    'old': 'employer_docs/old-permit.pdf',
-                    'new': 'employer_docs/new-permit.pdf',
-                },
-            },
-        )
-        EmployerProfile.objects.filter(pk=employer.pk).update(
-            business_permit='employer_docs/new-permit.pdf',
-        )
-        storage = EmployerProfile._meta.get_field('business_permit').storage
-        audit_url = reverse(
-            'AdminSide:employer_modification_audit',
-            kwargs={'uuid': employer.uuid},
-        )
-
-        with patch.object(
-            storage,
-            'url',
-            side_effect=lambda name: f'https://files.example/{name}',
-        ):
-            page = self.client.get(audit_url)
-
-        self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'Supporting Document')
-        self.assertContains(page, 'href="https://files.example/employer_docs/new-permit.pdf"')
-        self.assertContains(page, 'Updated Business Name')
-        self.assertNotContains(
-            page,
-            '<span class="text-slate-400">—</span>',
-        )
-        self.assertNotContains(page, 'employer_docs/old-permit.pdf')
-        self.assertNotContains(page, 'Business Permit</th>')
+        self.assertEqual(self.applicant.status, 'approved')
 
     def test_applicant_approval_from_registry_sends_verified_email(self):
         response = self.client.post(
@@ -1236,6 +858,24 @@ class EnrollBeneficiaryViewTests(TestCase):
             is_absorbed_by_agency=True,
         )
 
+        DisplacedInformalLaborProgram.objects.create(
+            first_name='Mila',
+            last_name='Cruz',
+            sex='F',
+            date_of_birth='1985-03-03',
+            phone_number='09123456791',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            region='Region VIII',
+            zip_code='6519',
+            daily_salary='1200.00',
+            start_date='2024-01-01',
+            end_date='2024-02-01',
+            project_category='group',
+            project_classification='enhancement',
+        )
+
         current_year = timezone.now().year
         current_month = timezone.now().month
         metrics = generate_complete_peso_matrix(current_year, current_month)
@@ -1248,3 +888,101 @@ class EnrollBeneficiaryViewTests(TestCase):
         self.assertEqual(metrics['gip_female'], 1)
         self.assertEqual(metrics['gip_graduates_nc'], 1)
         self.assertEqual(metrics['gip_absorbed'], 1)
+        self.assertEqual(metrics['dilp_total_workers'], 1)
+        self.assertEqual(metrics['group_assistance_total'], 1)
+        self.assertEqual(metrics['grp_enhancement'], 1)
+
+    def test_peso_report_counts_dilp_project_classification_by_category_and_municipality(self):
+        project_types = (
+            ('individual', 'formation'),
+            ('individual', 'enhancement'),
+            ('individual', 'restoration'),
+            ('group', 'formation'),
+            ('group', 'enhancement'),
+            ('group', 'restoration'),
+        )
+        for index, (category, classification) in enumerate(project_types):
+            DisplacedInformalLaborProgram.objects.create(
+                first_name=f'DILP{index}',
+                last_name='Carigara',
+                sex='F',
+                date_of_birth='1980-01-01',
+                phone_number=f'0912345678{index}',
+                barangay='Poblacion',
+                municipality='Carigara',
+                province='Leyte',
+                region='Region VIII',
+                zip_code='6519',
+                daily_salary='1000.00',
+                start_date='2026-01-01',
+                end_date='2026-01-31',
+                project_category=category,
+                project_classification=classification,
+            )
+
+        DisplacedInformalLaborProgram.objects.create(
+            first_name='Outside',
+            last_name='Municipality',
+            sex='F',
+            date_of_birth='1980-01-01',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Ormoc',
+            province='Leyte',
+            region='Region VIII',
+            zip_code='6541',
+            daily_salary='1000.00',
+            start_date='2026-01-01',
+            end_date='2026-01-31',
+            project_category='individual',
+            project_classification='formation',
+        )
+
+        current_date = timezone.localdate()
+        year = current_date.year
+        month = current_date.month
+        report_response = self.client.get(
+            reverse('AdminSide:peso_monthly_report'),
+            {
+                'municipality': 'Carigara',
+                'month': month,
+                'year': year,
+                'action_generate': '',
+            },
+        )
+
+        self.assertEqual(report_response.status_code, 200)
+        metrics = report_response.context['metrics']
+        self.assertEqual(metrics['dilp_total_workers'], 6)
+        self.assertEqual(metrics['individual_assistance_total'], 3)
+        self.assertEqual(metrics['group_assistance_total'], 3)
+        self.assertEqual(metrics['ind_formation'], 1)
+        self.assertEqual(metrics['ind_enhancement'], 1)
+        self.assertEqual(metrics['ind_restoration'], 1)
+        self.assertEqual(metrics['grp_formation'], 1)
+        self.assertEqual(metrics['grp_enhancement'], 1)
+        self.assertEqual(metrics['grp_restoration'], 1)
+
+        excel_response = self.client.get(
+            reverse('AdminSide:peso_monthly_report_excel'),
+            {
+                'municipality': 'Carigara',
+                'month': month,
+                'year': year,
+            },
+        )
+        self.assertEqual(excel_response.status_code, 200)
+        workbook = load_workbook(BytesIO(excel_response.content), read_only=True)
+        worksheet = workbook.active
+        for row, expected in {
+            102: 6,
+            104: 3,
+            106: 1,
+            108: 1,
+            110: 1,
+            112: 3,
+            114: 1,
+            116: 1,
+            118: 1,
+        }.items():
+            self.assertEqual(worksheet.cell(row=row, column=6).value, expected)

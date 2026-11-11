@@ -244,6 +244,16 @@
     <script>
         const STORAGE_PREFIX = "peso_js_step1_";
 
+        function isGibberish(str) {
+            const clean = str.trim().toLowerCase();
+            if (clean.length < 2) return false;
+            const vowels = clean.match(/[aeiou]/g);
+            if (!vowels || vowels.length === 0) return true;
+            const consecutiveConsonants = /[bcdfghjklmnpqrstvwxyz]{4,}/;
+            if (consecutiveConsonants.test(clean)) return true;
+            return false;
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".save-state").forEach(input => {
                 const savedValue = sessionStorage.getItem(STORAGE_PREFIX + input.name);
@@ -261,15 +271,16 @@
 
         document.getElementById("jobseeker-form").addEventListener("submit", function(e) {
             let isValid = true;
-            const hasNumberRegex = /\d/;
+            const validNameRegex = /^[A-Za-zÑñ\s\-\.]+$/;
 
             // 1. First Name Validation
             const fNameInput = document.getElementById("id_first_name");
             const fNameError = document.getElementById("fname-error");
-            if (hasNumberRegex.test(fNameInput.value)) {
+            const fNameVal = fNameInput.value.trim();
+            if (!validNameRegex.test(fNameVal) || isGibberish(fNameVal)) {
                 e.preventDefault();
                 fNameInput.classList.add("border-red-500", "bg-red-50/50");
-                fNameError.textContent = "First name must not contain numbers.";
+                fNameError.textContent = "Please enter a valid first name (avoid random characters).";
                 fNameError.classList.remove("hidden");
                 if (isValid) { fNameInput.focus(); isValid = false; }
             } else {
@@ -280,10 +291,11 @@
             // 2. Middle Name Validation
             const mNameInput = document.getElementById("id_middle_name");
             const mNameError = document.getElementById("mname-error");
-            if (mNameInput.value.trim() !== "" && hasNumberRegex.test(mNameInput.value)) {
+            const mNameVal = mNameInput.value.trim();
+            if (mNameVal !== "" && (!validNameRegex.test(mNameVal) || isGibberish(mNameVal))) {
                 e.preventDefault();
                 mNameInput.classList.add("border-red-500", "bg-red-50/50");
-                mNameError.textContent = "Middle name must not contain numbers.";
+                mNameError.textContent = "Please enter a valid middle name (avoid random characters).";
                 mNameError.classList.remove("hidden");
                 if (isValid) { mNameInput.focus(); isValid = false; }
             } else {
@@ -294,10 +306,11 @@
             // 3. Last Name Validation
             const lNameInput = document.getElementById("id_last_name");
             const lNameError = document.getElementById("lname-error");
-            if (hasNumberRegex.test(lNameInput.value)) {
+            const lNameVal = lNameInput.value.trim();
+            if (!validNameRegex.test(lNameVal) || isGibberish(lNameVal)) {
                 e.preventDefault();
                 lNameInput.classList.add("border-red-500", "bg-red-50/50");
-                lNameError.textContent = "Last name must not contain numbers.";
+                lNameError.textContent = "Please enter a valid last name (avoid random characters).";
                 lNameError.classList.remove("hidden");
                 if (isValid) { lNameInput.focus(); isValid = false; }
             } else {

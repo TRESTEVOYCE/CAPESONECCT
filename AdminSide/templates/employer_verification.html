@@ -37,11 +37,6 @@
             </div>
 
             <div class="flex flex-nowrap items-end gap-3 overflow-x-auto">
-                {% if has_unreviewed_profile_changes %}
-                <a href="{% url 'AdminSide:employer_modification_audit' employer.uuid %}" class="inline-flex h-10 w-36 shrink-0 items-center justify-center rounded-lg bg-orange-500 px-4 text-center text-sm font-semibold text-white transition hover:bg-orange-600">
-                    Review Updates
-                </a>
-                {% endif %}
                 {% if employer.verification_status != 'verified' %}
                     <form method="POST" action="" class="shrink-0">
                         {% csrf_token %}

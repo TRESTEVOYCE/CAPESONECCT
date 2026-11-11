@@ -3,10 +3,94 @@
 {% block title %}PESO Monthly Monitoring Report{% endblock %}
 {% block content %}
 <style>
+    .report-page {
+        max-width: 1440px;
+    }
+
+    #report-area {
+        border: 1px solid #111827 !important;
+        border-radius: 0 !important;
+        color: #111827;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #report-area fieldset > div:first-child {
+        background: #fff !important;
+        border-bottom: 1px solid #111827 !important;
+        padding: 1rem 1.25rem !important;
+    }
+
+    #report-area fieldset > div:first-child h2 {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 1.35rem;
+        letter-spacing: 0.02em;
+    }
+
+    #report-area fieldset > div:first-child > div:last-child {
+        border-color: #111827 !important;
+        border-radius: 0 !important;
+    }
+
+    #report-area fieldset > div:first-child > div:last-child > div {
+        border-color: #777 !important;
+    }
+
+    #report-area fieldset > div:nth-child(2) {
+        overflow-x: auto;
+    }
+
+    #report-area table {
+        min-width: 900px;
+        table-layout: fixed;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+    }
+
+    #report-area th,
+    #report-area td {
+        border-color: #777 !important;
+        border-width: 1px !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    #report-area th:first-child,
+    #report-area td:first-child {
+        width: 48%;
+    }
+
+    #report-area th:nth-child(2),
+    #report-area td:nth-child(2) {
+        width: 36%;
+    }
+
+    #report-area th:nth-child(3),
+    #report-area td:nth-child(3) {
+        width: 16%;
+    }
+
+    #report-area thead tr {
+        background: #fff !important;
+        color: #111827 !important;
+    }
+
+    #report-area tbody tr.bg-slate-100 {
+        background: #b4c6e7 !important;
+        color: #111827 !important;
+    }
+
+    #report-area tbody tr.bg-slate-50 {
+        background: #d9e2f3 !important;
+        color: #111827 !important;
+    }
+
     #report-area input,
     #report-area textarea {
         pointer-events: none;
         cursor: default;
+        color: #111827 !important;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: inherit;
     }
 
     #report-area input:hover,
@@ -17,13 +101,48 @@
         outline: none !important;
         box-shadow: none !important;
     }
+
+    #report-area fieldset > div:last-child {
+        background: #fff !important;
+        border-top: 1px solid #111827 !important;
+    }
+
+    @media print {
+        .report-scope,
+        .report-actions {
+            display: none !important;
+        }
+
+        .report-page {
+            max-width: none;
+            padding: 0 !important;
+        }
+
+        #report-area {
+            border: 0 !important;
+            overflow: visible !important;
+        }
+
+        #report-area fieldset > div:nth-child(2) {
+            overflow: visible !important;
+        }
+
+        #report-area table {
+            min-width: 0;
+            font-size: 9px;
+        }
+
+        #report-area tr {
+            break-inside: avoid;
+        }
+    }
 </style>
-<div class="max-w-7xl mx-auto p-4 md:p-1 space-y-6">
+<div class="report-page max-w-7xl mx-auto p-4 md:p-1 space-y-6">
     <!-- MASTER OPERATION CONTROL FORM -->
     <form method="GET" action="" class="space-y-6">
 
         <!-- STEP 1: REPORT PARAMETERS TARGET SELECTOR -->
-       <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+       <div class="report-scope bg-white border border-slate-200 rounded-xl shadow-sm p-6">
             <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Report Scope Configuration</h3>
             
             <!-- Changed md:grid-cols-4 to md:grid-cols-3 so the 3 columns expand evenly across 100% width -->
@@ -241,7 +360,7 @@
                             <td class="py-1.5 px-6 border-r border-slate-300" colspan="3">1.4 JOBS FAIR</td>
                         </tr>
                         <tr class="font-semibold">
-                            <td class="py-1 px-8 border-r border-slate-300">4.1 Jobs Fairs conducted</td>
+                            <td class="py-1 px-8 border-r border-slate-300">1.4.1 Jobs Fairs conducted</td>
                             <td class="p-0 border-r border-slate-300"><input type="number" name="jobs_fairs_conducted" value="{{ metrics.jobs_fairs_conducted }}" class="w-full text-center p-1 bg-transparent border-0 outline-none font-bold" readonly></td>
                             <td class="p-1 text-center text-slate-400 font-semibold bg-slate-50/30">N/A</td>
                         </tr>
@@ -804,7 +923,7 @@
             </div>
             </fieldset>
         </div>
-        <div class="flex justify-end gap-3">
+        <div class="report-actions flex justify-end gap-3">
             <a href="{% url 'AdminSide:peso_monthly_report_excel' %}?month={{ selected_month }}&year={{ selected_year }}&municipality={{ selected_municipality|urlencode }}" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow transition">
                 Download Excel Report
             </a>

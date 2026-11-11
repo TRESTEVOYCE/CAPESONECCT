@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,7 +133,7 @@
             <!-- Logo Header (Centered Top Logo & Title) -->
             <div class="pt-6 pb-4 px-3 bg-sidebar-header flex flex-col items-center justify-center shrink-0">
                 <button id="sidebarToggleLogo" class="flex flex-col items-center justify-center text-center gap-2 focus:outline-none shrink-0 cursor-pointer w-full">
-                    <img src="https://owwamember.com/wp-content/uploads/2023/03/peso-office-logo-public-employment-service-office-768x768.jpg"
+                    <img src="{% static 'images/PESO_LOGO.jpg' %}"
                          alt="PESO Logo" 
                          class="h-12 w-12 shrink-0 object-contain bg-white rounded-full p-0.5 shadow-md transition-transform duration-200 hover:scale-105">
                     <div class="sidebar-text-node text-center w-full">
