@@ -297,6 +297,7 @@ class VerifyEmailView(TemplateView):
 
 
 @method_decorator(check_honeypot, name='dispatch')
+
 class SignInView(FormView):
     form_class = SignInForm
     template_name = 'LandingPage/signin.html'
@@ -308,7 +309,6 @@ class SignInView(FormView):
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
 
-        # Get the selected account type from the frontend.
         selected_role = self.request.POST.get('user_role')
 
         # Only allow Applicant and Employer login through this page.
@@ -327,7 +327,7 @@ class SignInView(FormView):
             form.add_error(None, 'Invalid email or password.')
             return self.form_invalid(form)
 
-        # IMPORTANT: Check whether the account matches the selected role.
+        # Check whether the account matches the selected role.
         if user.role != selected_role:
             form.add_error(
                 None,
@@ -350,6 +350,15 @@ class SignInView(FormView):
         # Log in verified users.
         login(self.request, user)
 
+        # Remember Me session handling.
+        remember_me = self.request.POST.get('remember_me')
+
+        if remember_me:
+            self.request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
+        else:
+            self.request.session.set_expiry(0)  # Browser session
+
+        # Redirect based on account role.
         if user.role == 'applicant':
             return redirect('applicant-dashboard')
 

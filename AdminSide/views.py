@@ -120,13 +120,17 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
     
 
 @method_decorator(check_honeypot, name='dispatch')
+
 class AdminLoginView(View):
     """Class-Based View handling administrator authentication."""
     template_name = 'login.html'
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated and (request.user.is_superuser or request.user.role == 'peso'):
+        if request.user.is_authenticated and (
+            request.user.is_superuser or request.user.role == 'peso'
+        ):
             return redirect('AdminSide:dashboard')
+
         return render(request, self.template_name)
 
     def post(self, request, *args, **kwargs):
@@ -134,13 +138,31 @@ class AdminLoginView(View):
         password_str = request.POST.get('password')
 
         list(get_messages(request))
-        user = authenticate(request, username=username_str, password=password_str)
+        user = authenticate(
+            request,
+            username=username_str,
+            password=password_str
+        )
 
-        if user is not None and (user.is_superuser or user.role == 'peso'):
+        if user is not None and (
+            user.is_superuser or user.role == 'peso'
+        ):
             login(request, user)
+
+            # Remember Me session handling.
+            remember_me = request.POST.get('remember_me')
+
+            if remember_me:
+                request.session.set_expiry(60 * 60 * 24 * 30)
+            else:
+                request.session.set_expiry(0)
+
             return redirect('AdminSide:dashboard')
-        
-        messages.error(request, "Invalid administrator credentials! Please Try Again.")
+
+        messages.error(
+            request,
+            "Invalid administrator credentials! Please Try Again."
+        )
         return render(request, self.template_name)
 
 class AdminLogoutView(View):
