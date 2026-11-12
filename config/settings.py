@@ -193,8 +193,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = timedelta(seconds=20)
+AXES_COOLOFF_TIME = timedelta(minutes=20)
 AXES_RESET_ON_SUCCESS = True
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+
 
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 
