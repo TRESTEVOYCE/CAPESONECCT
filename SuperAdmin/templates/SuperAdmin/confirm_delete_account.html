@@ -1,3 +1,4 @@
+
 {% extends 'SuperAdmin/base.html' %}
 
 {% block title %}Delete Account | Super Admin{% endblock %}
@@ -5,102 +6,111 @@
 
 {% block content %}
 
-<div class="mx-auto max-w-3xl space-y-6">
+<div class="mx-auto w-full max-w-3xl space-y-6 font-sans">
 
-    <!-- Page introduction -->
-    <div>
-        <p class="text-sm text-slate-500">
+    <!-- Page Introduction -->
+    <div class="border-b border-stone-200/80 pb-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-stone-500">
+            ACCOUNT ADMINISTRATION
+        </p>
+        <h1 class="mt-0.5 text-2xl font-bold tracking-tight text-stone-900">
+            Delete Account
+        </h1>
+        <p class="mt-1 text-xs sm:text-sm text-stone-600">
             Review the account details before confirming deletion.
         </p>
     </div>
 
-    <!-- Warning banner -->
-    <div class="flex items-start gap-4 rounded-xl border border-red-200 bg-red-50 p-5">
-        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-xl text-red-700">
-            !
+    <!-- Warning Banner -->
+    <div class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 sm:p-5">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 4h.01M10.3 3.86L2.9 16.16A2 2 0 004.63 19h14.74a2 2 0 001.73-2.84l-7.37-12.3a2 2 0 00-3.43 0z"/>
+            </svg>
         </div>
 
         <div>
-            <h2 class="font-semibold text-red-900">
+            <h2 class="text-sm font-bold text-rose-900">
                 Confirm Account Deletion
             </h2>
-
-            <p class="mt-1 text-sm leading-6 text-red-800">
-                You are about to delete an account. This action may be
-                irreversible and may affect related records.
-                Please verify the account information below.
+            <p class="mt-1 text-xs leading-relaxed text-rose-800">
+                You are about to permanently delete an account. This action may be irreversible and may affect related records. Please verify the account information below before proceeding.
             </p>
         </div>
     </div>
 
-    <!-- Account details card -->
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <!-- Account Details Card -->
+    <div class="overflow-hidden rounded-xl border border-stone-200/90 bg-white shadow-sm">
 
-        <div class="border-b border-slate-200 px-6 py-5 sm:px-8">
-            <h2 class="text-lg font-bold text-slate-800">
+        <!-- Card Header -->
+        <div class="border-b border-stone-100 px-5 py-4 sm:px-6">
+            <h2 class="text-sm font-bold text-stone-900">
                 Account Information
             </h2>
-
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-xs text-stone-500">
                 Confirm that this is the account you intend to delete.
             </p>
         </div>
 
-        <div class="space-y-5 px-6 py-6 sm:px-8">
+        <!-- Account Information -->
+        <div class="space-y-5 px-5 py-5 sm:px-6">
 
             <!-- Username -->
             <div>
-                <p class="text-sm font-semibold text-slate-500">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-500">
                     Username
                 </p>
-
-                <p class="mt-1 text-sm text-slate-800">
+                <p class="mt-1 text-sm font-semibold text-stone-900">
                     {{ account.username|default:"Not available" }}
                 </p>
             </div>
 
+            <div class="border-t border-stone-100"></div>
+
             <!-- Email -->
             <div>
-                <p class="text-sm font-semibold text-slate-500">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-500">
                     Email Address
                 </p>
-
-                <p class="mt-1 break-all text-sm text-slate-800">
+                <p class="mt-1 break-all text-sm text-stone-700">
                     {{ account.email|default:"Not available" }}
                 </p>
             </div>
 
+            <div class="border-t border-stone-100"></div>
+
             <!-- Role -->
             <div>
-                <p class="text-sm font-semibold text-slate-500">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-500">
                     Account Role
                 </p>
-
                 <div class="mt-2">
-                    <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700">
-                        {{ account.role }}
+                    <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                        {{ account.role|default:"Unknown" }}
                     </span>
                 </div>
             </div>
 
-            <!-- Confirmation form -->
+            <!-- Confirmation Form -->
             <form method="POST"
-                  class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
+                  class="flex flex-col-reverse gap-3 border-t border-stone-100 pt-5 sm:flex-row sm:justify-end">
 
                 {% csrf_token %}
 
                 <a href="{% url 'superadmin-users' %}"
-                   class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                   class="inline-flex items-center justify-center rounded-lg border border-stone-200 bg-white px-5 py-2.5 text-xs font-semibold text-stone-700 transition hover:bg-stone-50">
                     Cancel
                 </a>
 
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500/20">
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-500/20">
 
-                    <span>×</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-12 0h18"/>
+                    </svg>
+
                     Confirm Deletion
-
                 </button>
 
             </form>
@@ -108,13 +118,14 @@
         </div>
     </div>
 
-    <!-- Security note -->
-    <div class="flex items-start gap-3 px-1">
-        <span class="text-slate-400">ⓘ</span>
+    <!-- Security Note -->
+    <div class="flex items-start gap-2.5 rounded-lg border border-stone-200/70 bg-stone-50 p-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-4 w-4 shrink-0 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
 
-        <p class="text-xs leading-5 text-slate-500">
-            This action is restricted to Super Admin users.
-            The deletion will be recorded in the system audit logs.
+        <p class="text-[11px] leading-relaxed text-stone-600">
+            This action is restricted to Super Admin users. The deletion will be recorded in the system audit logs.
         </p>
     </div>
 

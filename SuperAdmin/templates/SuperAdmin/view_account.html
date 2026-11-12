@@ -1,3 +1,4 @@
+
 {% extends "SuperAdmin/base.html" %}
 
 {% block title %}View Account | Super Admin{% endblock %}
@@ -7,56 +8,93 @@
 
 <div class="mx-auto max-w-3xl space-y-6">
 
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <!-- Page introduction -->
+    <div>
+        <p class="text-sm text-stone-500">
+            Review account information and assigned system permissions.
+        </p>
+    </div>
 
-        <div class="border-b border-slate-200 px-6 py-5 sm:px-8">
-            <h2 class="text-lg font-bold text-slate-800">
-                Account Information
-            </h2>
+    <!-- Account details card -->
+    <div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
 
-            <p class="mt-1 text-sm text-slate-500">
-                View the details associated with this account.
-            </p>
+        <!-- Card header -->
+        <div class="border-b border-stone-200 px-6 py-5 sm:px-8">
+            <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM4 21a8 8 0 0116 0" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-bold text-stone-900">
+                        Account Information
+                    </h2>
+                    <p class="mt-1 text-sm text-stone-500">
+                        View the details associated with this account.
+                    </p>
+                </div>
+            </div>
         </div>
 
-        <div class="space-y-5 px-6 py-6 sm:px-8">
+        <!-- Account information -->
+        <div class="space-y-6 px-6 py-6 sm:px-8">
 
-            <div>
-                <p class="text-sm font-semibold text-slate-500">
+            <!-- Username -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
                     Username
                 </p>
-                <p class="mt-1 text-sm text-slate-800">
+                <p class="mt-2 text-sm font-semibold text-stone-800">
                     {{ account.username|default:"Not available" }}
                 </p>
             </div>
 
-            <div>
-                <p class="text-sm font-semibold text-slate-500">
+            <!-- Email -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
                     Email Address
                 </p>
-                <p class="mt-1 break-all text-sm text-slate-800">
+                <p class="mt-2 break-all text-sm font-semibold text-stone-800">
                     {{ account.email|default:"Not available" }}
                 </p>
             </div>
 
-            <div>
-                <p class="text-sm font-semibold text-slate-500">
+            <!-- Role -->
+            <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
                     Account Role
                 </p>
 
-                <span class="mt-2 inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {{ account.role|title }}
-                </span>
+                <div class="mt-2">
+                    <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                        {{ account.role|title }}
+                    </span>
+                </div>
             </div>
 
-            <div class="border-t border-slate-200 pt-5">
+            <!-- Actions -->
+            <div class="border-t border-stone-200 pt-5">
                 <a href="{% url 'superadmin-users' %}"
-                   class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                   class="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
                     Back to Manage Users
                 </a>
             </div>
 
         </div>
+    </div>
+
+    <!-- Information note -->
+    <div class="flex items-start gap-3 px-1">
+        <span class="text-stone-400">ⓘ</span>
+        <p class="text-xs leading-5 text-stone-500">
+            This page displays the account information currently available
+            in the system. Account details are shown for administrative reference.
+        </p>
     </div>
 
 </div>

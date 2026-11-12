@@ -53,6 +53,7 @@ class MSWDOAccountCreationForm(UserCreationForm):
 
         return user
 
+
 class PESOAccountCreationForm(UserCreationForm):
     class Meta:
         model = User
@@ -90,3 +91,4 @@ class PESOAccountCreationForm(UserCreationForm):
             self.save_m2m()
 
         return user
+

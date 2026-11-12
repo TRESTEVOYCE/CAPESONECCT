@@ -12,6 +12,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from honeypot.decorators import check_honeypot
+from datetime import timedelta
+from django.utils import timezone
+from axes.models import AccessFailureLog
+
 
 # ==========================================
 # SUPER ADMIN ACCESS CONTROL
@@ -89,20 +93,37 @@ class SuperAdminDashboard(SuperUserAdmin, TemplateView):
 
 
 class SuperAdminSystemLogs(SuperUserAdmin, ListView):
-    model = AccessAttempt
+    model = AccessFailureLog
     template_name = 'SuperAdmin/SuperAdminSystemLogs.html'
     context_object_name = 'logs'
     paginate_by = 25
 
     def get_queryset(self):
-        return AccessAttempt.objects.order_by('-pk')
+        queryset = AccessFailureLog.objects.all().order_by('-attempt_time')
+
+        time_filter = self.request.GET.get('period', 'all')
+
+        periods = {
+            '30m': timedelta(minutes=30),
+            '1h': timedelta(hours=1),
+            '12h': timedelta(hours=12),
+            '24h': timedelta(days=1),
+            '7d': timedelta(days=7),
+        }
+
+        if time_filter in periods:
+            start_time = timezone.now() - periods[time_filter]
+            queryset = queryset.filter(attempt_time__gte=start_time)
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_logs'] = AccessAttempt.objects.count()
-        context['axes_fields'] = [
-            field.name for field in AccessAttempt._meta.fields
-        ]
+
+        context['total_logs'] = AccessFailureLog.objects.count()
+        context['filtered_logs_count'] = context['page_obj'].paginator.count
+        context['selected_period'] = self.request.GET.get('period', 'all')
+
         return context
 
 
@@ -111,22 +132,30 @@ class SuperAdminSystemLogs(SuperUserAdmin, ListView):
 # SUPER ADMIN USERS
 # ==========================================
 
+
 class SuperAdminUsers(SuperUserAdmin, ListView):
     model = User
     template_name = 'SuperAdmin/SuperAdminUsers.html'
     context_object_name = 'users'
-    paginate_by = 25
+    paginate_by = 10
 
     def get_queryset(self):
-        return User.objects.filter(
-            role__in=[
-                'applicant',
-                'employer',
-                'peso',
-                'mswdo',
-                'admin',
-            ]
-        ).order_by('role', 'email')
+        queryset = User.objects.all().order_by('username')
+
+        role = self.request.GET.get('role', '').strip()
+
+        valid_roles = ['applicant', 'employer', 'peso', 'mswdo', 'admin']
+
+        if role in valid_roles:
+            queryset = queryset.filter(role=role)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['selected_role'] = self.request.GET.get('role', '')
+        return context
+
 
 # ==========================================
 # CREATE MSWDO ACCOUNT
@@ -154,27 +183,35 @@ class MSWDOAccountCreateView(SuperUserAdmin, FormView):
         return super().form_valid(form)
 
 
+
 class PESOAccountCreateView(SuperUserAdmin, FormView):
     form_class = PESOAccountCreationForm
     template_name = 'SuperAdmin/create-peso-account.html'
     success_url = reverse_lazy('create_peso_account')
 
     def form_valid(self, form):
-        peso_user = form.save()
+        try:
+            peso_user = form.save()
 
-        AuditLog.objects.create(
-            user=self.request.user,
-            action=f"Created PESO account: {peso_user.email}",
-        )
+            print("CREATED USER:", peso_user.pk, peso_user.username, peso_user.role)
 
-        from django.contrib import messages
+            AuditLog.objects.create(
+                user=self.request.user,
+                action=f"Created PESO account: {peso_user.email}",
+            )
 
-        messages.success(
-            self.request,
-            f'PESO account for {peso_user.email} created successfully.'
-        )
+            messages.success(
+                self.request,
+                f'PESO account for {peso_user.email} created successfully.'
+            )
 
-        return super().form_valid(form)
+            return super().form_valid(form)
+
+        except Exception as e:
+            print("PESO ACCOUNT CREATION ERROR:", str(e))
+            messages.error(self.request, f'Account creation failed: {str(e)}')
+            return self.form_invalid(form)
+
 # ==========================================
 # DELETE APPLICANT, EMPLOYER, PESO, AND MSWDO ACCOUNTS
 # ==========================================

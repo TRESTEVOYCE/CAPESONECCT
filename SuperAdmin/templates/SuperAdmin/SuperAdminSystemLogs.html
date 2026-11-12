@@ -1,3 +1,4 @@
+
 {% extends "SuperAdmin/base.html" %}
 
 {% block title %}System Logs | Super Admin{% endblock %}
@@ -5,149 +6,288 @@
 
 {% block content %}
 
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+<div class="space-y-6">
 
-    <div class="border-b border-slate-200 p-6">
-        <h2 class="text-lg font-bold text-slate-800">
-            Authentication Attempts
-        </h2>
-        <p class="mt-1 text-sm text-slate-500">
-            Review login attempts recorded by Django Axes, including user roles when identifiable.
+    <!-- Page Introduction -->
+    <div>
+        <p class="text-sm text-stone-500">
+            Monitor and review individual failed authentication attempts across CAPESCONNECT.
         </p>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        #
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Username
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Role
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        IP Address
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Attempt Time
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Failures
-                    </th>
-                </tr>
-            </thead>
+        <div class="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Total Failed Attempts
+            </p>
+            <h3 class="mt-2 text-2xl font-bold text-stone-900">
+                {{ total_logs|default:0 }}
+            </h3>
+            <p class="mt-1 text-xs text-stone-500">
+                All individually recorded failed login attempts
+            </p>
+        </div>
 
-            <tbody class="divide-y divide-slate-100 bg-white">
-                {% for log in logs %}
-                    <tr class="transition hover:bg-slate-50">
+        <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-800">
+                Filtered Results
+            </p>
+            <h3 class="mt-2 text-2xl font-bold text-amber-900">
+                {{ filtered_logs_count|default:0 }}
+            </h3>
+            <p class="mt-1 text-xs text-amber-700">
+                Matching the selected time period
+            </p>
+        </div>
 
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+    </div>
+
+    <!-- Authentication Logs Card -->
+    <div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+
+        <!-- Card Header -->
+        <div class="flex flex-col gap-2 border-b border-stone-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-stone-900">
+                    Authentication Attempts
+                </h2>
+                <p class="mt-1 text-sm text-stone-500">
+                    Individual failed login attempts recorded by Django Axes.
+                </p>
+            </div>
+
+            <span class="inline-flex w-fit items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                Security Monitoring
+            </span>
+        </div>
+
+        <!-- Time Filter -->
+        <div class="flex flex-col gap-3 border-b border-stone-200 bg-stone-50/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+                <h3 class="text-sm font-bold text-stone-800">
+                    Filter by Time Period
+                </h3>
+                <p class="mt-1 text-xs text-stone-500">
+                    Select how far back you want to review login attempts.
+                </p>
+            </div>
+
+            <form method="GET" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+
+                <select name="period"
+                        onchange="this.form.submit()"
+                        class="w-full rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100 sm:w-52">
+
+                    <option value="all" {% if selected_period == 'all' %}selected{% endif %}>
+                        All Records
+                    </option>
+
+                    <option value="30m" {% if selected_period == '30m' %}selected{% endif %}>
+                        Last 30 Minutes
+                    </option>
+
+                    <option value="1h" {% if selected_period == '1h' %}selected{% endif %}>
+                        Last 1 Hour
+                    </option>
+
+                    <option value="12h" {% if selected_period == '12h' %}selected{% endif %}>
+                        Last 12 Hours
+                    </option>
+
+                    <option value="24h" {% if selected_period == '24h' %}selected{% endif %}>
+                        Last 24 Hours
+                    </option>
+
+                    <option value="7d" {% if selected_period == '7d' %}selected{% endif %}>
+                        Last 1 Week
+                    </option>
+
+                </select>
+
+                <a href="{% url 'superadmin-system-logs' %}"
+                   class="rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-center text-xs font-semibold text-stone-600 transition hover:bg-stone-100">
+                    Reset Filter
+                </a>
+
+            </form>
+
+        </div>
+
+        <!-- Active Filter Information -->
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 px-6 py-3">
+
+            <p class="text-xs text-stone-500">
+                Showing
+                <span class="font-semibold text-stone-800">
+                    {{ filtered_logs_count|default:0 }}
+                </span>
+                individual failed authentication attempts.
+            </p>
+
+            <span class="inline-flex rounded-full bg-stone-100 px-3 py-1 text-[10px] font-semibold text-stone-600">
+                {% if selected_period == '30m' %}
+                    Last 30 Minutes
+                {% elif selected_period == '1h' %}
+                    Last 1 Hour
+                {% elif selected_period == '12h' %}
+                    Last 12 Hours
+                {% elif selected_period == '24h' %}
+                    Last 24 Hours
+                {% elif selected_period == '7d' %}
+                    Last 1 Week
+                {% else %}
+                    All Records
+                {% endif %}
+            </span>
+
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-stone-200">
+
+                <thead class="bg-stone-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-stone-500">
+                            #
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-stone-500">
+                            Email
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-stone-500">
+                            IP Address
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-stone-500">
+                            Attempt Time
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-stone-500">
+                            Lockout Status
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-stone-100 bg-white">
+
+                    {% for log in logs %}
+                    <tr class="transition hover:bg-stone-50">
+
+                        <!-- Number -->
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500">
                             {{ page_obj.start_index|add:forloop.counter0 }}
                         </td>
 
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-800">
+                        <!-- Username -->
+                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold text-stone-800">
                             {{ log.username|default:"Not recorded" }}
                         </td>
 
+                        <!-- IP Address -->
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-600">
+                            {{ log.ip_address|default:"Not recorded" }}
+                        </td>
+
+                        <!-- Attempt Time -->
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-600">
+                            {{ log.attempt_time|date:"M d, Y H:i:s" }}
+                        </td>
+
+                        <!-- Lockout Status -->
                         <td class="whitespace-nowrap px-6 py-4">
-                            {% if log.user_role == "admin" %}
-                                <span class="inline-flex rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                                    Admin
-                                </span>
-                            {% elif log.user_role == "applicant" %}
-                                <span class="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                                    Applicant
-                                </span>
-                            {% elif log.user_role == "employer" %}
-                                <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                    Employer
-                                </span>
-                            {% elif log.user_role == "peso" %}
-                                <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                                    PESO
-                                </span>
-                            {% elif log.user_role == "mswdo" %}
-                                <span class="inline-flex rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
-                                    MSWDO
+                            {% if log.locked_out %}
+                                <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+                                    Locked Out
                                 </span>
                             {% else %}
-                                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-                                    Unknown
+                                <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+                                    Failed Login
                                 </span>
                             {% endif %}
                         </td>
 
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                            {{ log.ip_address|default:"Not recorded" }}
-                        </td>
-
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                            {{ log.attempt_time|date:"M d, Y H:i:s" }}
-                        </td>
-
-                        <td class="whitespace-nowrap px-6 py-4">
-                            <span class="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                                {{ log.failures_since_start }}
-                            </span>
-                        </td>
-
                     </tr>
-                {% empty %}
+
+                    {% empty %}
                     <tr>
-                        <td colspan="6" class="px-6 py-14 text-center">
-                            <div class="text-3xl">✓</div>
-                            <p class="mt-3 font-semibold text-slate-700">
+                        <td colspan="5" class="px-6 py-14 text-center">
+
+                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-2xl text-amber-700">
+                                ✓
+                            </div>
+
+                            <p class="mt-3 font-semibold text-stone-800">
                                 No authentication attempts found
                             </p>
-                            <p class="mt-1 text-sm text-slate-500">
-                                Recorded attempts will appear here.
+
+                            <p class="mt-1 text-sm text-stone-500">
+                                No records were found for the selected time period.
                             </p>
+
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
+                    {% endfor %}
 
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
 
-    {% if is_paginated %}
-        <div class="flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row">
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex flex-col items-center justify-between gap-4 border-t border-stone-200 px-6 py-4 sm:flex-row">
 
-            <p class="text-sm text-slate-500">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            <p class="text-sm text-stone-500">
+                Page
+                <span class="font-semibold text-stone-800">
+                    {{ page_obj.number }}
+                </span>
+                of
+                <span class="font-semibold text-stone-800">
+                    {{ page_obj.paginator.num_pages }}
+                </span>
             </p>
 
             <div class="flex items-center gap-2">
+
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}"
-                       class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <a href="?page={{ page_obj.previous_page_number }}&period={{ selected_period|urlencode }}"
+                       class="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100">
                         Previous
                     </a>
                 {% else %}
-                    <span class="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-400">
+                    <span class="cursor-not-allowed rounded-xl border border-stone-200 px-4 py-2 text-sm text-stone-400">
                         Previous
                     </span>
                 {% endif %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}"
-                       class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    <a href="?page={{ page_obj.next_page_number }}&period={{ selected_period|urlencode }}"
+                       class="rounded-xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800">
                         Next
                     </a>
                 {% else %}
-                    <span class="rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-400">
+                    <span class="cursor-not-allowed rounded-xl bg-stone-100 px-4 py-2 text-sm text-stone-400">
                         Next
                     </span>
                 {% endif %}
-            </div>
 
+            </div>
         </div>
-    {% endif %}
+        {% endif %}
+
+    </div>
+
+    <!-- Security Note -->
+    <div class="flex items-start gap-3 px-1">
+        <span class="text-stone-400">ⓘ</span>
+        <p class="text-xs leading-5 text-stone-500">
+            Individual failed login attempts help administrators monitor
+            authentication activity and identify suspicious login behavior.
+            Records are displayed with the newest attempts first.
+        </p>
+    </div>
 
 </div>
 

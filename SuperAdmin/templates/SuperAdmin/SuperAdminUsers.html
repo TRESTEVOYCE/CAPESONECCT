@@ -1,3 +1,4 @@
+
 {% extends "SuperAdmin/base.html" %}
 
 {% block title %}Manage Users | Super Admin{% endblock %}
@@ -5,99 +6,192 @@
 
 {% block content %}
 
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+<div class="w-full space-y-6 font-sans">
 
-    <!-- Header -->
-    <div class="flex flex-col justify-between gap-4 border-b border-slate-200 p-6 sm:flex-row sm:items-center">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 pb-5">
         <div>
-            <h2 class="text-lg font-bold text-slate-800">
+            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                ACCOUNT ADMINISTRATION
+            </p>
+            <h1 class="text-2xl font-bold text-stone-900 tracking-tight mt-0.5">
                 Registered Users
-            </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            </h1>
+            <p class="text-xs sm:text-sm text-stone-600 mt-1">
                 View and manage applicant, employer, PESO, MSWDO, and Super Admin accounts.
             </p>
         </div>
 
-        <span class="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">
-            {{ page_obj.paginator.count }} users
+        <span class="inline-flex w-fit items-center rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-800">
+            {{ page_obj.paginator.count }} Users
         </span>
     </div>
 
-    <!-- Users Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
+    <!-- Users Table Card -->
+    <div class="overflow-hidden rounded-xl border border-stone-200/90 bg-white shadow-sm">
 
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        #
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Email
-                    </th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Role
-                    </th>
-                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Actions
-                    </th>
-                </tr>
-            </thead>
+        <!-- Table Header -->
+        <div class="flex flex-col justify-between gap-2 border-b border-stone-100 p-4 sm:flex-row sm:items-center sm:p-5">
+            <div>
+                <h2 class="text-sm font-bold text-stone-900">
+                    User Directory
+                </h2>
+                <p class="mt-1 text-xs text-stone-500">
+                    Account information and available management actions.
+                </p>
+            </div>
+        </div>
 
-            <tbody class="divide-y divide-slate-100 bg-white">
+        <!-- Role Filter -->
+        <div class="flex flex-col gap-3 border-b border-stone-100 bg-stone-50/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 
-                {% for user in users %}
-                    <tr class="transition hover:bg-slate-50">
+            <div>
+                <h3 class="text-xs font-bold text-stone-800">
+                    Filter Users by Role
+                </h3>
+                <p class="mt-1 text-[11px] text-stone-500">
+                    Select a role to display specific accounts.
+                </p>
+            </div>
+
+            <form method="GET" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+
+                <select name="role"
+                        onchange="this.form.submit()"
+                        class="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs font-medium text-stone-700 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100 sm:w-48">
+
+                    <option value="" {% if not selected_role %}selected{% endif %}>
+                        All Users
+                    </option>
+
+                    <option value="applicant" {% if selected_role == 'applicant' %}selected{% endif %}>
+                        Applicants
+                    </option>
+
+                    <option value="employer" {% if selected_role == 'employer' %}selected{% endif %}>
+                        Employers
+                    </option>
+
+                    <option value="peso" {% if selected_role == 'peso' %}selected{% endif %}>
+                        PESO
+                    </option>
+
+                    <option value="mswdo" {% if selected_role == 'mswdo' %}selected{% endif %}>
+                        MSWDO
+                    </option>
+
+                    <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>
+                        Super Admin
+                    </option>
+
+                </select>
+
+                <a href="{% url 'superadmin-users' %}"
+                   class="rounded-lg border border-stone-200 bg-white px-3 py-2 text-center text-xs font-semibold text-stone-600 transition hover:bg-stone-100">
+                    Reset Filter
+                </a>
+
+            </form>
+
+        </div>
+
+        <!-- Responsive Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-stone-200">
+
+                <thead class="bg-stone-50">
+                    <tr>
+                        <th class="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-stone-500 sm:px-5">
+                            #
+                        </th>
+                        <th class="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-stone-500 sm:px-5">
+                            Username
+                        </th>
+                        <th class="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-stone-500 sm:px-5">
+                            Email Address
+                        </th>
+                        <th class="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-stone-500 sm:px-5">
+                            Role
+                        </th>
+                        <th class="px-4 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-stone-500 sm:px-5">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-stone-100 bg-white">
+
+                    {% for user in users %}
+                    <tr class="transition-colors hover:bg-stone-50/80">
 
                         <!-- Number -->
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        <td class="whitespace-nowrap px-4 py-4 text-xs text-stone-500 sm:px-5">
                             {{ page_obj.start_index|add:forloop.counter0 }}
                         </td>
 
-                        <!-- Email -->
-                        <td class="whitespace-nowrap px-6 py-4">
-                            <div class="text-sm font-medium text-slate-800">
-                                {{ user.email|default:"No email provided" }}
+                        <!-- Username -->
+                        <td class="whitespace-nowrap px-4 py-4 sm:px-5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 border border-amber-100 text-xs font-bold text-amber-800">
+                                    {{ user.username|first|upper|default:"U" }}
+                                </div>
+                                <span class="text-xs font-semibold text-stone-800">
+                                    {{ user.username|default:"No username" }}
+                                </span>
                             </div>
                         </td>
 
+                        <!-- Email -->
+                        <td class="whitespace-nowrap px-4 py-4 sm:px-5">
+                            <span class="text-xs text-stone-600">
+                                {{ user.email|default:"No email provided" }}
+                            </span>
+                        </td>
+
                         <!-- Role -->
-                        <td class="whitespace-nowrap px-6 py-4">
+                        <td class="whitespace-nowrap px-4 py-4 sm:px-5">
+
                             {% if user.role == 'applicant' %}
-                                <span class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+                                <span class="inline-flex rounded-full bg-sky-50 border border-sky-100 px-2.5 py-1 text-[10px] font-semibold text-sky-700">
                                     Applicant
                                 </span>
+
                             {% elif user.role == 'employer' %}
-                                <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                <span class="inline-flex rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
                                     Employer
                                 </span>
+
                             {% elif user.role == 'peso' %}
-                                <span class="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+                                <span class="inline-flex rounded-full bg-violet-50 border border-violet-100 px-2.5 py-1 text-[10px] font-semibold text-violet-700">
                                     PESO
                                 </span>
+
                             {% elif user.role == 'mswdo' %}
-                                <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                <span class="inline-flex rounded-full bg-amber-50 border border-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-800">
                                     MSWDO
                                 </span>
+
                             {% elif user.role == 'admin' %}
-                                <span class="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                                <span class="inline-flex rounded-full bg-rose-50 border border-rose-100 px-2.5 py-1 text-[10px] font-semibold text-rose-700">
                                     Super Admin
                                 </span>
+
                             {% else %}
-                                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                <span class="inline-flex rounded-full bg-stone-100 border border-stone-200 px-2.5 py-1 text-[10px] font-semibold text-stone-600">
                                     {{ user.role|title }}
                                 </span>
                             {% endif %}
+
                         </td>
 
                         <!-- Actions -->
-                        <td class="whitespace-nowrap px-6 py-4">
+                        <td class="whitespace-nowrap px-4 py-4 sm:px-5">
                             <div class="flex items-center justify-center gap-2">
 
                                 <!-- View: PESO, MSWDO, and Super Admin -->
                                 {% if user.role == 'peso' or user.role == 'mswdo' or user.role == 'admin' %}
                                     <a href="{% url 'view_account' user.pk %}"
-                                       class="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">
+                                       class="inline-flex items-center justify-center rounded-lg border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-semibold text-stone-700 transition hover:bg-stone-100">
                                         View
                                     </a>
                                 {% endif %}
@@ -105,14 +199,14 @@
                                 <!-- Delete: Applicant, Employer, PESO, and MSWDO -->
                                 {% if user.role == 'applicant' or user.role == 'employer' or user.role == 'peso' or user.role == 'mswdo' %}
                                     <a href="{% url 'delete_account' user.pk %}"
-                                       class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                                       class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-rose-700">
                                         Delete
                                     </a>
                                 {% endif %}
 
                                 <!-- Protect Super Admin -->
                                 {% if user.role == 'admin' %}
-                                    <span class="inline-flex items-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500">
+                                    <span class="inline-flex items-center rounded-lg bg-stone-100 px-3 py-1.5 text-[10px] font-medium text-stone-500">
                                         Protected
                                     </span>
                                 {% endif %}
@@ -122,59 +216,68 @@
 
                     </tr>
 
-                {% empty %}
+                    {% empty %}
                     <tr>
-                        <td colspan="4" class="px-6 py-14 text-center">
-                            <div class="text-3xl">♙</div>
-                            <p class="mt-3 font-semibold text-slate-700">
+                        <td colspan="5" class="px-6 py-14 text-center">
+                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 18a4 4 0 00-8 0m8 0H8m8 0h4v-1a4 4 0 00-4-4h-1m-6 5H4v-1a4 4 0 014-4h1m7-6a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <p class="mt-3 text-sm font-semibold text-stone-800">
                                 No users found
                             </p>
-                            <p class="mt-1 text-sm text-slate-500">
-                                Registered accounts will appear here.
+                            <p class="mt-1 text-xs text-stone-500">
+                                No accounts match the selected role.
                             </p>
                         </td>
                     </tr>
-                {% endfor %}
+                    {% endfor %}
 
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Pagination -->
-    {% if is_paginated %}
-        <div class="flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row">
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex flex-col items-center justify-between gap-3 border-t border-stone-100 px-4 py-4 sm:flex-row sm:px-5">
 
-            <p class="text-sm text-slate-500">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            <p class="text-xs text-stone-500">
+                Showing page
+                <span class="font-semibold text-stone-800">{{ page_obj.number }}</span>
+                of
+                <span class="font-semibold text-stone-800">{{ page_obj.paginator.num_pages }}</span>
             </p>
 
             <div class="flex items-center gap-2">
 
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}"
-                       class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                        Previous
+                    <a href="?page={{ page_obj.previous_page_number }}{% if selected_role %}&role={{ selected_role|urlencode }}{% endif %}"
+                       class="rounded-lg border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-50">
+                        ← Previous
                     </a>
                 {% else %}
-                    <span class="cursor-not-allowed rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-400">
-                        Previous
+                    <span class="cursor-not-allowed rounded-lg border border-stone-100 px-3.5 py-2 text-xs text-stone-400">
+                        ← Previous
                     </span>
                 {% endif %}
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}"
-                       class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
-                        Next
+                    <a href="?page={{ page_obj.next_page_number }}{% if selected_role %}&role={{ selected_role|urlencode }}{% endif %}"
+                       class="rounded-lg bg-stone-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-stone-800">
+                        Next →
                     </a>
                 {% else %}
-                    <span class="cursor-not-allowed rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-400">
-                        Next
+                    <span class="cursor-not-allowed rounded-lg bg-stone-100 px-3.5 py-2 text-xs text-stone-400">
+                        Next →
                     </span>
                 {% endif %}
 
             </div>
         </div>
-    {% endif %}
+        {% endif %}
+
+    </div>
 
 </div>
 

@@ -6,65 +6,120 @@
 
 {% block content %}
 
-<div class="mb-8">
-    <h2 class="text-lg font-bold text-slate-800">
-        Welcome to your dashboard
-    </h2>
-    <p class="mt-1 text-sm text-slate-500">
-        Manage system users and monitor authentication activity.
-    </p>
-</div>
+<div class="w-full space-y-6 font-sans">
 
-<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-
-    <!-- User management card -->
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl text-blue-700">
-            ♙
+    <!-- Welcome Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 pb-5">
+        <div>
+            <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                ADMINISTRATION OVERVIEW
+            </p>
+            <h1 class="text-2xl font-bold text-stone-900 tracking-tight mt-0.5">
+                Welcome to your dashboard
+            </h1>
+            <p class="text-xs sm:text-sm text-stone-600 mt-1">
+                Manage system users and monitor authentication activity from one place.
+            </p>
         </div>
 
-        <h3 class="mt-5 text-lg font-bold text-slate-800">
-            User Management
-        </h3>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
-            View registered applicants and employers in your system.
-        </p>
-
-        <a href="{% url 'superadmin-users' %}"
-           class="mt-5 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
-            Manage Users <span class="ml-2">→</span>
-        </a>
+        <div class="shrink-0">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                Super Admin Portal
+            </span>
+        </div>
     </div>
 
-    <!-- System logs card -->
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-2xl text-emerald-700">
-            ≡
+    <!-- Dashboard Metrics / Quick Access -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <!-- User Management -->
+        <div class="bg-white border border-stone-200/90 rounded-xl p-5 shadow-sm hover:border-stone-300 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-800 border border-amber-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.196-2.04M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.04M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+
+                    <span class="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-1 rounded">
+                        ACCOUNT CONTROL
+                    </span>
+                </div>
+
+                <h3 class="mt-5 text-base font-bold text-stone-900">
+                    User Management
+                </h3>
+
+                <p class="mt-2 text-xs leading-relaxed text-stone-500">
+                    View and manage registered applicants and employers across the system.
+                </p>
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-stone-100">
+                <a href="{% url 'superadmin-users' %}"
+                   class="inline-flex items-center justify-center w-full rounded-lg bg-stone-900 hover:bg-stone-800 px-4 py-2.5 text-xs font-semibold text-white transition-all">
+                    Manage Users
+                    <span class="ml-2">→</span>
+                </a>
+            </div>
         </div>
 
-        <h3 class="mt-5 text-lg font-bold text-slate-800">
-            System Logs
-        </h3>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
-            Review authentication attempts recorded by Django Axes.
-        </p>
+        <!-- System Logs -->
+        <div class="bg-white border border-stone-200/90 rounded-xl p-5 shadow-sm hover:border-stone-300 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-stone-100 text-stone-700 border border-stone-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                        </svg>
+                    </div>
 
-        <a href="{% url 'superadmin-system-logs' %}"
-           class="mt-5 inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-            View Logs <span class="ml-2">→</span>
-        </a>
+                    <span class="text-[10px] font-semibold text-stone-600 bg-stone-100 px-2 py-1 rounded">
+                        SECURITY MONITORING
+                    </span>
+                </div>
+
+                <h3 class="mt-5 text-base font-bold text-stone-900">
+                    System Logs
+                </h3>
+
+                <p class="mt-2 text-xs leading-relaxed text-stone-500">
+                    Review authentication attempts and security activity recorded by Django Axes.
+                </p>
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-stone-100">
+                <a href="{% url 'superadmin-system-logs' %}"
+                   class="inline-flex items-center justify-center w-full rounded-lg border border-stone-200 bg-white hover:bg-stone-50 px-4 py-2.5 text-xs font-semibold text-stone-700 transition-all">
+                    View System Logs
+                    <span class="ml-2">→</span>
+                </a>
+            </div>
+        </div>
+
     </div>
 
-</div>
+    <!-- Administration Overview -->
+    <div class="bg-stone-50 border border-stone-200/80 rounded-xl p-5 sm:p-6">
+        <div class="flex items-start gap-3">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M10.29 3.86l-7.1 12.3A2 2 0 004.92 19h14.16a2 2 0 001.73-2.84l-7.1-12.3a2 2 0 00-3.46 0z" />
+                </svg>
+            </div>
 
-<div class="mt-8 rounded-2xl border border-blue-100 bg-blue-50 p-6">
-    <h3 class="font-bold text-blue-900">
-        Administration Overview
-    </h3>
-    <p class="mt-2 text-sm leading-6 text-blue-800">
-        Use the navigation menu to manage user accounts and review system
-        authentication records.
-    </p>
+            <div>
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                    Administration Overview
+                </h3>
+                <p class="mt-1.5 text-xs leading-relaxed text-stone-600">
+                    Use the navigation menu to manage user accounts, create authorized office accounts, and review system authentication records. Keep account access properly monitored to help maintain the security of CAPESCONNECT.
+                </p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}
