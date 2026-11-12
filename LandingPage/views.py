@@ -261,6 +261,7 @@ class UserEmployerAccountRegisterView(FormView):
 
         return redirect('verify-email')
 
+
 class VerifyEmailView(TemplateView):
     template_name = 'LandingPage/verify_email.html'
 
@@ -268,10 +269,30 @@ class VerifyEmailView(TemplateView):
         if request.user.is_authenticated and request.user.email_verified:
             if request.user.role == 'applicant':
                 return redirect('applicant-dashboard')
-            if request.user.role == 'employer':
+            elif request.user.role == 'employer':
                 return redirect('employer-home')
 
+        pending_user_id = request.session.get('pending_verification_user_id')
+
+        if pending_user_id:
+            user = User.objects.filter(
+                pk=pending_user_id,
+                email_verified=True,
+                is_active=True
+            ).first()
+
+            if user:
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                request.session.pop('pending_verification_user_id', None)
+                messages.success(request, 'Your email has been verified successfully! Welcome to CAPESCONNECT.')
+
+                if user.role == 'applicant':
+                    return redirect('applicant-dashboard')
+                elif user.role == 'employer':
+                    return redirect('employer-home')
+
         return super().dispatch(request, *args, **kwargs)
+
 
 
 
