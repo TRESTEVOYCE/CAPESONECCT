@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -5,198 +6,308 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email | CAPESCONNECT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    animation: {
-                        float: 'float 3s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'fade-in': 'fadeIn 0.5s ease-out forwards'
-                    },
-                    keyframes: {
-                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
-                    }
-                }
-            }
-        };
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-card { background: rgba(255,255,255,.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.7); }
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: #020617;
+        }
+
+        .grid-pattern {
+            background-image:
+                linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-glow {
+            box-shadow:
+                0 0 35px rgba(59, 130, 246, 0.12),
+                0 0 70px rgba(245, 158, 11, 0.06);
+        }
+
+        .logo-glow {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #ffffff, #bfdbfe, #fcd34d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.7s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .help-content {
+            display: none;
+        }
+
+        .help-content.show {
+            display: block;
+        }
     </style>
 </head>
 
-<body class="bg-slate-900 text-slate-800 min-h-screen flex items-center justify-center p-4 relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col relative overflow-x-hidden text-slate-800">
 
-    <!-- Background -->
+    <!-- Background Effects -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-1/4 -left-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div class="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse-slow" style="animation-delay:2s"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]"></div>
+        <div class="absolute top-1/3 -right-40 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute inset-0 grid-pattern"></div>
     </div>
 
-    <!-- Main Card -->
-    <main class="w-full max-w-md relative z-10 animate-fade-in">
-        <div class="glass-card rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+    <!-- Header -->
+    <header class="relative z-10 w-full px-5 sm:px-8 py-5">
+        <a href="{% url 'landing_page' %}"
+           class="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white transition">
+            <i class="fas fa-arrow-left"></i>
+            Back to Home
+        </a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 w-full flex-grow flex items-center justify-center px-4 py-8">
+
+        <div class="w-full max-w-md mx-auto animate-fade-in">
 
             <!-- Logo -->
-            <div class="flex justify-center mb-7 pt-2">
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
-                    <img src="{% static 'LandingPage/images/PESO_LOGO.png' %}" alt="PESO Logo" class="h-16 w-auto object-contain">
-                </div>
-            </div>
-
-            <!-- Email Icon -->
-            <div class="flex justify-center mb-6">
-                <div class="relative">
-                    <div class="w-20 h-20 bg-gradient-to-tr from-blue-50 to-indigo-100 rounded-3xl flex items-center justify-center text-blue-600 text-3xl shadow-inner animate-float">
-                        <i class="fa-regular fa-envelope"></i>
-                    </div>
-                    <span class="absolute -top-1 -right-1 flex h-5 w-5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span class="relative flex items-center justify-center rounded-full h-5 w-5 bg-blue-500 text-white text-[10px] font-bold">
-                            <i class="fa-solid fa-check text-[9px]"></i>
-                        </span>
-                    </span>
+            <div class="flex justify-center mb-5">
+                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border-4 border-blue-400/30 flex items-center justify-center p-2 logo-glow">
+                    <img
+                        src="{% static 'LandingPage/images/PESO_LOGO.jpg' %}"
+                        alt="PESO Logo"
+                        class="w-full h-full object-contain rounded-full"
+                    >
                 </div>
             </div>
 
             <!-- Heading -->
-            <div class="text-center mb-5">
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-3">Check Your Email</h1>
-                <p class="text-sm text-slate-600 leading-relaxed">
-                    Your CAPESCONNECT account has been created successfully. We've sent a verification link to your email address.
+            <div class="text-center mb-6">
+                <p class="text-blue-400 text-xs font-bold tracking-[0.3em] uppercase mb-2">
+                    CAPESCONNECT
+                </p>
+
+                <h1 class="text-3xl sm:text-4xl font-extrabold gradient-text">
+                    Verify Your Email
+                </h1>
+
+                <p class="text-slate-400 text-sm mt-2">
+                    One more step to secure your account.
                 </p>
             </div>
 
-            <!-- Django Messages -->
-            {% if messages %}
-                <div class="space-y-2 mb-5" aria-live="polite" role="status">
-                    {% for message in messages %}
-                        <div class="rounded-xl px-4 py-3 text-sm border {% if 'success' in message.tags %}bg-emerald-50 text-emerald-700 border-emerald-200{% elif 'error' in message.tags %}bg-red-50 text-red-700 border-red-200{% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %}">
-                            <div class="flex items-start gap-2">
-                                {% if 'success' in message.tags %}
-                                    <i class="fa-solid fa-circle-check mt-0.5"></i>
-                                {% elif 'error' in message.tags %}
-                                    <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+            <!-- Verification Card -->
+            <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-2xl glass-glow">
+
+                <!-- Email Icon -->
+                <div class="flex justify-center mb-4">
+                    <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-envelope-open-text text-3xl text-blue-600"></i>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-extrabold text-slate-800 text-center mb-2">
+                    Check Your Email
+                </h2>
+
+                <p class="text-sm text-slate-500 text-center leading-relaxed mb-5">
+                    We've sent a verification link to your email address.
+                    Please check your inbox and follow the instructions to verify your account.
+                </p>
+
+                <!-- Django Messages -->
+                {% if messages %}
+                    <div class="space-y-2 mb-5">
+                        {% for message in messages %}
+                            <div class="p-3 rounded-xl text-sm flex items-start gap-2
+                                {% if message.tags == 'success' %}
+                                    bg-green-50 text-green-700 border border-green-200
+                                {% elif message.tags == 'error' %}
+                                    bg-red-50 text-red-700 border border-red-200
                                 {% else %}
-                                    <i class="fa-solid fa-circle-info mt-0.5"></i>
-                                {% endif %}
+                                    bg-blue-50 text-blue-700 border border-blue-200
+                                {% endif %}">
+                                <i class="fas fa-info-circle mt-0.5"></i>
                                 <span>{{ message }}</span>
                             </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Information -->
+                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-bold text-blue-900 mb-1">
+                                Why verify your email?
+                            </p>
+                            <p class="text-xs text-blue-800 leading-relaxed">
+                                Email verification helps protect your account and confirms that you can access the email address associated with your account.
+                            </p>
                         </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <!-- Information -->
-            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
-                <div class="flex gap-3">
-                    <div class="w-9 h-9 shrink-0 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-envelope"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-bold text-slate-800 mb-1">Verification Email</h2>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Open your inbox and click the <strong>verification link</strong>. If you haven't received it, check your spam folder or request another email below.
-                        </p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Steps -->
-            <div class="mb-6">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">What happens next?</p>
-                <div class="space-y-3">
-                    <div class="flex items-start gap-3">
-                        <span class="w-7 h-7 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">1</span>
-                        <p class="text-xs text-slate-600 pt-1">Check your inbox and spam folder for the CAPESCONNECT verification email.</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-7 h-7 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">2</span>
-                        <p class="text-xs text-slate-600 pt-1">Open the email and click the verification link.</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="w-7 h-7 shrink-0 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">3</span>
-                        <p class="text-xs text-slate-600 pt-1">After verification, you'll automatically be logged in and redirected to your dashboard.</p>
+                <!-- Steps -->
+                <div class="mb-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3">
+                        <i class="fas fa-list-check text-blue-600 mr-2"></i>
+                        What to do next
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                1
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Open your email inbox.
+                            </p>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                2
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Find the verification email from CAPESCONNECT.
+                            </p>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                3
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Click the verification link to activate your account.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Open Gmail -->
-            <a href="https://mail.google.com" target="_blank" rel="noopener noreferrer"
-               class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 active:scale-[0.99]">
-                <i class="fa-brands fa-google"></i>
-                <span>Open Gmail</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
-            </a>
-
-            <!-- Resend Verification -->
-            <form method="POST" action="{% url 'resend-verification' %}" class="mt-3">
-                {% csrf_token %}
-                <button type="submit" class="w-full bg-white hover:bg-blue-50 text-blue-600 font-semibold py-3 px-4 rounded-xl border border-blue-200 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99]">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>Resend Verification Email</span>
-                </button>
-            </form>
-            <p class="mt-2 text-center text-[11px] text-slate-400">If you recently requested an email, please wait before requesting another.</p>
-
-            <!-- Troubleshooting -->
-            <div class="mt-5 border border-slate-200/70 rounded-2xl overflow-hidden bg-slate-50/50">
-                <button type="button" onclick="toggleHelp()" aria-expanded="false" aria-controls="help-content"
-                        class="w-full p-3 text-left flex items-center justify-between text-xs font-semibold text-slate-700 hover:bg-slate-100/60 transition-colors">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-regular fa-circle-question text-blue-600"></i>
-                        Didn't receive the email?
-                    </span>
-                    <i id="help-arrow" class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200"></i>
-                </button>
-
-                <div id="help-content" class="hidden px-3 pb-3 text-xs text-slate-600">
-                    <ul class="list-disc list-inside space-y-2 text-slate-500">
-                        <li>Check your spam or junk folder.</li>
-                        <li>Make sure you entered the correct email address.</li>
-                        <li>Wait a few minutes for the email to arrive.</li>
-                        <li>If the link has expired, click Resend Verification Email to request another.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Login -->
-            <div class="mt-6 text-center">
-                <a href="{% url 'signin' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
-                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                    Back to Login
+                <!-- Open Gmail -->
+                <a href="https://mail.google.com/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3 rounded-xl transition shadow-lg shadow-blue-600/20">
+                    <i class="fab fa-google"></i>
+                    Open Gmail
+                    <i class="fas fa-external-link-alt text-xs"></i>
                 </a>
+
+                <!-- Resend Verification -->
+                <div class="text-center mt-5">
+                    <p class="text-xs text-slate-500 mb-2">
+                        Didn't receive the email?
+                    </p>
+
+                    <form method="POST" action="{% url 'resend-verification' %}">
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="text-sm font-bold text-blue-600 hover:text-blue-800 transition">
+                            <i class="fas fa-redo-alt mr-1"></i>
+                            Resend Verification Email
+                        </button>
+                    </form>
+                </div>
+
+                <p class="text-[11px] text-slate-400 text-center mt-3">
+                    Please check your spam or junk folder if the email is missing.
+                </p>
+
+                <!-- Troubleshooting -->
+                <div class="border-t border-slate-100 mt-5 pt-4">
+                    <button type="button"
+                            onclick="toggleHelp()"
+                            class="w-full flex items-center justify-between text-xs font-bold text-slate-600 hover:text-blue-600 transition">
+                        <span>
+                            <i class="fas fa-question-circle mr-2"></i>
+                            Having trouble?
+                        </span>
+                        <i id="helpIcon" class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+
+                    <div id="helpContent" class="help-content mt-3">
+                        <div class="bg-slate-50 rounded-xl p-3 space-y-2">
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                <strong>Check your spam folder:</strong>
+                                Verification emails may sometimes be filtered as spam.
+                            </p>
+
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                <strong>Check your email address:</strong>
+                                Make sure you registered using the correct email address.
+                            </p>
+
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                <strong>Request another email:</strong>
+                                Use the resend option above if your verification link has expired or you haven't received it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back to Login -->
+                <div class="text-center mt-5">
+                    <a href="{% url 'signin' %}"
+                       class="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Sign In
+                    </a>
+                </div>
+
             </div>
 
-            <!-- Footer -->
-            <div class="mt-6 pt-5 border-t border-slate-200/60 text-center">
-                <p class="text-[10px] text-slate-400">CAPESCONNECT <span class="mx-1">•</span> PESO / MSWDO</p>
-            </div>
+            <!-- Security Note -->
+            <p class="text-center text-[11px] text-slate-500 mt-5 leading-relaxed">
+                <i class="fas fa-lock text-amber-400 mr-1"></i>
+                Your account security matters. Never share your verification link with anyone.
+            </p>
+
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="relative z-10 text-center px-4 py-5">
+        <p class="text-xs text-slate-500">
+            &copy; {% now "Y" %} CAPESCONNECT. All rights reserved.
+        </p>
+    </footer>
+
     <script>
         function toggleHelp() {
-            const content = document.getElementById('help-content');
-            const arrow = document.getElementById('help-arrow');
-            const button = arrow.closest('button');
-            const isHidden = content.classList.contains('hidden');
+            const content = document.getElementById('helpContent');
+            const icon = document.getElementById('helpIcon');
 
-            content.classList.toggle('hidden', !isHidden);
-            arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-            button.setAttribute('aria-expanded', String(isHidden));
+            content.classList.toggle('show');
+            icon.classList.toggle('rotate-180');
         }
     </script>
+
 </body>
 </html>

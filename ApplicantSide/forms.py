@@ -454,7 +454,7 @@ class ApplicantWorkExperienceForm(forms.ModelForm):
 
     class Meta:
         model = ApplicantWorkExperience
-        fields = ['company', 'address', 'position', 'dates', 'status']
+        fields = ['company', 'address', 'position', 'dates', 'status','proof_document']
 
 
 ApplicantWorkExperienceFormSet = forms.inlineformset_factory(

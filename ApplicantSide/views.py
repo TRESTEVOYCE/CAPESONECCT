@@ -483,6 +483,7 @@ class ApplicantPreferredJobView(ApplicantProfileRequiredMixin, LoginRequiredMixi
         return redirect(self.get_success_url())
 
 
+
 class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'step_6_work.html'
 
@@ -495,39 +496,58 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
         work_formset = ApplicantWorkExperienceFormSet(instance=profile)
-        return render(request, self.template_name, {'work_formset': work_formset})
+
+        return render(request, self.template_name, {
+            'work_formset': work_formset,
+        })
 
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
+
         work_formset = ApplicantWorkExperienceFormSet(
             request.POST,
             request.FILES,
             instance=profile,
         )
+
         if work_formset.is_valid():
             changed_fields = set()
+
             for form in work_formset.forms:
                 if form.has_changed():
                     changed_fields.update(form.changed_data)
+
                     if form.cleaned_data.get('DELETE'):
                         changed_fields.add('__deleted__')
+
             work_formset.save()
+
             uploaded_at = timezone.now()
-            for work_form in work_formset.forms:
-                if work_form.files.get(work_form.add_prefix('proof_document')):
-                    work_form.instance.proof_document_uploaded_at = uploaded_at
-                    work_form.instance.save(
-                        update_fields=['proof_document_uploaded_at'],
+
+            for form in work_formset.forms:
+                if form.cleaned_data.get('proof_document'):
+                    form.instance.proof_document_uploaded_at = uploaded_at
+                    form.instance.save(
+                        update_fields=['proof_document_uploaded_at']
                     )
+
             _mark_applicant_for_reverification(
                 request,
                 profile,
                 changed_fields,
                 ApplicantWorkExperience,
             )
-            messages.success(request, 'Work experience saved successfully.')
+
+            messages.success(
+                request,
+                'Work experience saved successfully.'
+            )
+
             return redirect('applicant-skills')
-        return render(request, self.template_name, {'work_formset': work_formset})
+
+        return render(request, self.template_name, {
+            'work_formset': work_formset,
+        })
 
 
 class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
