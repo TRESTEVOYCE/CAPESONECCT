@@ -112,7 +112,7 @@ def send_applicant_verified_email(applicant):
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """Custom mixin to ensure the user is both authenticated and a superuser."""
     def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_superuser
+        return self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.role == 'peso')
 
     def handle_no_permission(self):
         messages.error(self.request, "Unauthorized access. Superuser credentials required.")
@@ -125,7 +125,7 @@ class AdminLoginView(View):
     template_name = 'login.html'
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated and request.user.is_superuser:
+        if request.user.is_authenticated and (request.user.is_superuser or request.user.role == 'peso'):
             return redirect('AdminSide:dashboard')
         return render(request, self.template_name)
 
@@ -136,7 +136,7 @@ class AdminLoginView(View):
         list(get_messages(request))
         user = authenticate(request, username=username_str, password=password_str)
 
-        if user is not None and user.is_superuser:
+        if user is not None and (user.is_superuser or user.role == 'peso'):
             login(request, user)
             return redirect('AdminSide:dashboard')
         
