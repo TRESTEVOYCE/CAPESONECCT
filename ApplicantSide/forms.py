@@ -472,7 +472,9 @@ ApplicantWorkExperienceFormSet = forms.inlineformset_factory(
 # ============================================================
 
 
+
 class ApplicantSkillsForm(forms.ModelForm):
+
     skill_innovation = forms.BooleanField(required=False)
     skill_team_work = forms.BooleanField(required=False)
     skill_multitasking = forms.BooleanField(required=False)
@@ -523,7 +525,9 @@ class ApplicantSkillsForm(forms.ModelForm):
             'other_skills',
         ]
 
+
 class ApplicantSkillForm(forms.ModelForm):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_tailwind_widgets(self)
@@ -539,7 +543,6 @@ ApplicantSkillFormSet = forms.modelformset_factory(
     extra=1,
     can_delete=True
 )
-
 
 class ApplicantDocumentsForm(forms.ModelForm):
     class Meta:
