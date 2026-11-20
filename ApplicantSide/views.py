@@ -728,91 +728,122 @@ class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
         return super().post(request, *args, **kwargs)
 
 
+
 class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html'
-    context_object_name = 'matching_jobs'
+    context_object_name = 'available_jobs'
     login_url = reverse_lazy('signin')
 
     def test_func(self):
-        return self.request.user.is_authenticated and getattr(self.request.user, 'role', None) == 'applicant'
+        return (
+            self.request.user.is_authenticated
+            and getattr(self.request.user, 'role', None) == 'applicant'
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        applicant_profile = ApplicantProfile.objects.filter(user=self.request.user).first()
+
+        applicant_profile = ApplicantProfile.objects.filter(
+            user=self.request.user
+        ).first()
+
         context['applicant_profile'] = applicant_profile
 
+        # 1. ALL AVAILABLE JOBS
+        available_jobs = Jobs.objects.filter(
+            status='Active',
+            employer__verification_status='verified',
+        ).order_by('-created_at')  # Adjust if your date field has another name
+
+        context['available_jobs'] = available_jobs
+
+        # 2. RECOMMENDED / MATCHED JOBS
         matching_list = []
 
+        if applicant_profile and applicant_profile.status == 'approved':
+            try:
+                applicant_profile_text = build_applicant_profile_text(
+                    applicant_profile
+                )
+
+                collection = get_job_collection()
+
+                results = collection.query(
+                    query_texts=[applicant_profile_text],
+                    n_results=10,
+                )
+
+                job_uuids = [
+                    metadata['job_uuid']
+                    for metadata in results.get('metadatas', [[]])[0]
+                    if metadata and 'job_uuid' in metadata
+                ]
+
+                recommended_jobs = Jobs.objects.filter(
+                    uuid__in=job_uuids,
+                    status='Active',
+                    employer__verification_status='verified',
+                )
+
+                # Preserve the recommendation order from ChromaDB
+                jobs_by_uuid = {
+                    str(job.uuid): job
+                    for job in recommended_jobs
+                }
+
+                for job_uuid in job_uuids:
+                    job = jobs_by_uuid.get(str(job_uuid))
+
+                    if job:
+                        matching_list.append({
+                            'job': job,
+                            'score': 88,
+                            'edu_score': 100,
+                            'exp_score': 85,
+                            'skills_score': 80,
+                            'certs_score': 50,
+                        })
+
+            except Exception:
+                # Keep recommended jobs empty if vector search fails
+                pass
+
+        context['matching_jobs'] = matching_list
+
+        # 3. APPLICATION STATISTICS
         if applicant_profile:
-            matching_jobs = Jobs.objects.filter(
-                status='Active',
-                employer__verification_status='verified',
+            applications = AppliedJobs.objects.filter(
+                applicant=applicant_profile
             )
 
-            if applicant_profile.status == 'approved':
-                try:
-                    applicant_profile_text = build_applicant_profile_text(applicant_profile)
-                    collection = get_job_collection()
-                    results = collection.query(
-                        query_texts=[applicant_profile_text],
-                        n_results=10,
-                    )
-
-                    job_uuids = [
-                        metadata['job_uuid']
-                        for metadata in results.get('metadatas', [[]])[0]
-                        if metadata and 'job_uuid' in metadata
-                    ]
-
-                    recommended_jobs = Jobs.objects.filter(
-                        uuid__in=job_uuids,
-                        status='Active',
-                        employer__verification_status='verified',
-                    )
-
-                    if recommended_jobs.exists():
-                        matching_jobs = recommended_jobs
-                except Exception:
-                    # Fallback gracefully if vector DB fails/times out
-                    pass
-
-            for job in matching_jobs:
-                if job.pk:
-                    matching_list.append({
-                        'job': job,
-                        'score': 88,
-                        'edu_score': 100,
-                        'exp_score': 85,
-                        'skills_score': 80,
-                        'certs_score': 50,
-                    })
-
-            context['matching_jobs'] = matching_list
-
-            applications = AppliedJobs.objects.filter(applicant=applicant_profile)
             context['application_count'] = applications.count()
-            context['saved_jobs_count'] = SavedJobs.objects.filter(applicant=applicant_profile).count()
-            context['under_review_count'] = applications.filter(status__in=['pending', 'reviewed']).count()
-            context['shortlisted_count'] = applications.filter(status='for interview').count()
-            context['rejected_count'] = applications.filter(status='rejected').count()
-            context['withdrawn_count'] = applications.filter(status='withdrawn').count()
+
+            context['saved_jobs_count'] = SavedJobs.objects.filter(
+                applicant=applicant_profile
+            ).count()
+
+            context['under_review_count'] = applications.filter(
+                status__in=['pending', 'reviewed']
+            ).count()
+
+            context['shortlisted_count'] = applications.filter(
+                status='for interview'
+            ).count()
+
+            context['rejected_count'] = applications.filter(
+                status='rejected'
+            ).count()
+
+            context['withdrawn_count'] = applications.filter(
+                status='withdrawn'
+            ).count()
 
             context['profile_strength'] = calculate_profile_strength(
                 applicant_profile
             )
+
         else:
-            for job in Jobs.objects.filter(status='Active'):
-                if job.pk:
-                    matching_list.append({
-                        'job': job,
-                        'score': 75,
-                        'edu_score': 80,
-                        'exp_score': 70,
-                        'skills_score': 75,
-                        'certs_score': 40
-                    })
-            context['matching_jobs'] = matching_list
             context['application_count'] = 0
             context['saved_jobs_count'] = 0
             context['under_review_count'] = 0
@@ -821,11 +852,10 @@ class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             context['withdrawn_count'] = 0
             context['profile_strength'] = 0
 
-        context['total_jobs'] = Jobs.objects.filter(
-            status='Active',
-            employer__verification_status='verified',
-        ).count()
+        context['total_jobs'] = available_jobs.count()
+
         return context
+
 
 
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
