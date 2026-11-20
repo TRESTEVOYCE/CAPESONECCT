@@ -23,6 +23,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.views.generic import FormView
 from django.core.mail import send_mail
 from .service import generate_complete_peso_matrix
+from .services.program_eligibility import check_program_eligibility
 from .models import (
     User,
     ApplicantProfile, 
@@ -1170,6 +1171,38 @@ class EnrollBeneficiaryView(LoginRequiredMixin, View):
 
         if form.is_valid():
             beneficiary = form.save(commit=False)
+
+            if instance is None:
+                eligibility = check_program_eligibility(
+                    active_program,
+                    beneficiary,
+                    emergency_override=form.cleaned_data.get(
+                        'calamity_emergency_override',
+                        False,
+                    ),
+                    verified_group_project=form.cleaned_data.get(
+                        'verified_group_project',
+                        False,
+                    ),
+                )
+                if eligibility.blocked_reasons:
+                    for reason in eligibility.blocked_reasons:
+                        form.add_error(None, reason)
+                    context = {
+                        'form': form,
+                        'active_program': active_program,
+                        'program_name': config['name'],
+                        'badge_color': config['badge_color'],
+                        'available_programs': PROGRAM_CONFIG,
+                        'is_editing': False,
+                        'beneficiary': None,
+                    }
+                    return render(request, self.template_name, context)
+
+                for review_flag in eligibility.review_flags:
+                    messages.warning(request, review_flag)
+                for notice in eligibility.notices:
+                    messages.info(request, notice)
             
             # Explicitly set field attributes on model instance if needed
             if hasattr(beneficiary, 'municipality'):

@@ -210,6 +210,11 @@ class GovernmentInternshipProgramForm(forms.ModelForm):
 
 # 3. TUPAD FORM
 class TupadBeneficiaryForm(forms.ModelForm):
+    calamity_emergency_override = forms.BooleanField(
+        required=False,
+        label='Calamity/emergency override',
+    )
+
     class Meta:
         model = TupadBeneficiary
 
@@ -227,6 +232,11 @@ class TupadBeneficiaryForm(forms.ModelForm):
 
 # 4. DILP FORM
 class DisplacedInformalLaborProgramForm(forms.ModelForm):
+    verified_group_project = forms.BooleanField(
+        required=False,
+        label='Verified group/association project',
+    )
+
     class Meta:
         model = DisplacedInformalLaborProgram
 

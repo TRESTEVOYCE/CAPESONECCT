@@ -292,6 +292,17 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Community Project Name</label>
                                 <input type="text" name="project_name" value="{{ form.project_name.value|default:'' }}" class="w-full px-3 py-2 border rounded-lg text-xs border-slate-300 uppercase">
                             </div>
+                            <div class="md:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                {{ form.calamity_emergency_override }}
+                                <div>
+                                    <label for="{{ form.calamity_emergency_override.id_for_label }}" class="text-xs font-bold text-amber-900">
+                                        {{ form.calamity_emergency_override.label }}
+                                    </label>
+                                    <p class="mt-1 text-[11px] text-amber-800">
+                                        Use only with PESO authorization. This one-time override bypasses the current-year repeat TUPAD check.
+                                    </p>
+                                </div>
+                            </div>
                         {% endif %}
 
                         <!-- DILP SPECIFIC FIELDS -->
@@ -303,6 +314,17 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Classification Subtype *</label>
                                 {{ form.project_classification }}
+                            </div>
+                            <div class="md:col-span-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                                {{ form.verified_group_project }}
+                                <div>
+                                    <label for="{{ form.verified_group_project.id_for_label }}" class="text-xs font-bold text-emerald-900">
+                                        {{ form.verified_group_project.label }}
+                                    </label>
+                                    <p class="mt-1 text-[11px] text-emerald-800">
+                                        Required for a repeat DILP applicant entering a group/association project.
+                                    </p>
+                                </div>
                             </div>
                         {% endif %}
 

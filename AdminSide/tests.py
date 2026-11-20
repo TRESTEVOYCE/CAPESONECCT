@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 from unittest.mock import patch
 from django.core import mail
@@ -20,8 +20,10 @@ from .models import (
     Notification,
     OfferedJobs,
     SpecialProgramForEmploymentOfStudents,
+    TupadBeneficiary,
     User,
 )
+from .services.program_eligibility import check_program_eligibility
 from .services.profile_sensitivity import (
     classify_profile_changes,
     mark_profile_for_reverification,
@@ -1050,3 +1052,267 @@ class SpecialProgramBeneficiaryDeletionTests(TestCase):
         self.assertContains(response, 'Are you sure you want to permanently delete')
         self.assertContains(response, 'Delete Record')
         self.assertContains(response, self.delete_url)
+
+
+class ProgramEligibilityTests(TestCase):
+    def create_record(self, model, **kwargs):
+        current_year = timezone.localdate().year
+        defaults = {
+            'first_name': 'Alex',
+            'last_name': 'Applicant',
+            'sex': 'F',
+            'date_of_birth': date(2000, 1, 1),
+            'phone_number': '09123456789',
+            'barangay': 'Poblacion',
+            'municipality': 'Carigara',
+            'province': 'Leyte',
+            'region': 'Region VIII',
+            'zip_code': '6519',
+            'daily_salary': '1000.00',
+            'start_date': date(current_year, 1, 1),
+            'end_date': date(current_year, 12, 31),
+        }
+        defaults.update(kwargs)
+        return model.objects.create(**defaults)
+
+    def candidate(self, model=GovernmentInternshipProgram, **kwargs):
+        return model(
+            first_name='Alex',
+            last_name='Applicant',
+            date_of_birth=date(2000, 1, 1),
+            sex='F',
+            **kwargs,
+        )
+
+    def test_active_financial_program_blocks_another_but_not_career_guidance(self):
+        self.create_record(SpecialProgramForEmploymentOfStudents)
+        candidate = self.candidate()
+
+        result = check_program_eligibility('gip', candidate)
+        self.assertTrue(any('active or overlapping SPES' in reason for reason in result.blocked_reasons))
+
+        career_result = check_program_eligibility('career_guidance', candidate)
+        self.assertEqual(career_result.blocked_reasons, ())
+
+    def test_active_duplicate_in_same_program_is_blocked(self):
+        self.create_record(SpecialProgramForEmploymentOfStudents)
+
+        result = check_program_eligibility(
+            'spes',
+            self.candidate(SpecialProgramForEmploymentOfStudents),
+        )
+
+        self.assertTrue(any('duplicate SPES' in reason for reason in result.blocked_reasons))
+
+    def test_middle_name_mismatch_is_not_treated_as_confirmed_identity(self):
+        self.create_record(
+            SpecialProgramForEmploymentOfStudents,
+            middle_name='Marie',
+        )
+
+        result = check_program_eligibility(
+            'gip',
+            self.candidate(middle_name='Anne'),
+        )
+
+        self.assertEqual(result.blocked_reasons, ())
+        self.assertEqual(result.review_flags, ())
+
+    def test_blank_middle_name_is_reported_as_a_probable_match(self):
+        self.create_record(
+            SpecialProgramForEmploymentOfStudents,
+            middle_name='Marie',
+        )
+
+        result = check_program_eligibility('gip', self.candidate())
+
+        self.assertEqual(result.blocked_reasons, ())
+        self.assertTrue(any('probable identity match' in flag for flag in result.review_flags))
+
+    def test_completed_contract_with_overlapping_dates_blocks_concurrent_enrollment(self):
+        current_year = timezone.localdate().year
+        self.create_record(
+            SpecialProgramForEmploymentOfStudents,
+            is_done=True,
+            start_date=date(current_year, 1, 1),
+            end_date=date(current_year, 6, 30),
+        )
+        candidate = self.candidate(
+            start_date=date(current_year, 6, 1),
+            end_date=date(current_year, 7, 1),
+        )
+
+        result = check_program_eligibility('gip', candidate)
+
+        self.assertTrue(any('overlapping SPES' in reason for reason in result.blocked_reasons))
+
+    def test_tupad_shared_phone_is_flagged_even_for_a_different_identity(self):
+        self.create_record(
+            TupadBeneficiary,
+            first_name='Jamie',
+            last_name='Other',
+            date_of_birth=date(2002, 2, 2),
+            phone_number='09123456789',
+        )
+
+        result = check_program_eligibility(
+            'tupad',
+            self.candidate(
+                TupadBeneficiary,
+                phone_number='09123456789',
+                start_date=date(timezone.localdate().year, 2, 1),
+                end_date=date(timezone.localdate().year, 2, 20),
+            ),
+        )
+
+        self.assertEqual(result.blocked_reasons, ())
+        self.assertTrue(any('shares the applicant' in flag for flag in result.review_flags))
+
+    def test_enrollment_view_does_not_save_same_program_duplicate(self):
+        self.create_record(SpecialProgramForEmploymentOfStudents)
+        request = RequestFactory().post(
+            '/admin/special-programs/enroll/?program=spes',
+            {
+                'first_name': 'Alex',
+                'middle_name': '',
+                'last_name': 'Applicant',
+                'sex': 'F',
+                'date_of_birth': '2000-01-01',
+                'phone_number': '09123456789',
+                'barangay': 'Poblacion',
+                'municipality': 'Carigara',
+                'province': 'Leyte',
+                'region': 'Region VIII',
+                'zip_code': '6519',
+                'daily_salary': '1000.00',
+                'start_date': '2026-01-01',
+                'end_date': '2026-02-01',
+                'education_level': 'college',
+            },
+        )
+
+        with patch('AdminSide.views.render', return_value=object()) as render_form:
+            EnrollBeneficiaryView().post(request)
+
+        self.assertIn(
+            'duplicate SPES',
+            str(render_form.call_args.args[2]['form'].non_field_errors()),
+        )
+        self.assertEqual(SpecialProgramForEmploymentOfStudents.objects.count(), 1)
+
+    def test_enrollment_view_does_not_save_when_another_program_is_active(self):
+        self.create_record(SpecialProgramForEmploymentOfStudents)
+        request = RequestFactory().post(
+            '/admin/special-programs/enroll/?program=gip',
+            {
+                'first_name': 'Alex',
+                'middle_name': '',
+                'last_name': 'Applicant',
+                'sex': 'F',
+                'date_of_birth': '2000-01-01',
+                'phone_number': '09123456789',
+                'barangay': 'Poblacion',
+                'municipality': 'Carigara',
+                'province': 'Leyte',
+                'region': 'Region VIII',
+                'zip_code': '6519',
+                'daily_salary': '1000.00',
+                'start_date': '2026-01-01',
+                'end_date': '2026-02-01',
+                'education_level': 'college',
+            },
+        )
+
+        with patch('AdminSide.views.render', return_value=object()) as render_form:
+            EnrollBeneficiaryView().post(request)
+
+        self.assertIn(
+            'active or overlapping SPES',
+            str(render_form.call_args.args[2]['form'].non_field_errors()),
+        )
+        self.assertFalse(GovernmentInternshipProgram.objects.exists())
+
+    def test_completed_gip_is_a_lifetime_block(self):
+        self.create_record(GovernmentInternshipProgram, is_done=True)
+
+        result = check_program_eligibility('gip', self.candidate())
+
+        self.assertTrue(any('one lifetime availment' in reason for reason in result.blocked_reasons))
+
+    def test_completed_spes_is_flagged_for_gip_review_but_not_blocked(self):
+        self.create_record(SpecialProgramForEmploymentOfStudents, is_done=True)
+
+        result = check_program_eligibility('gip', self.candidate())
+
+        self.assertEqual(result.blocked_reasons, ())
+        self.assertTrue(any('LGU or government agency' in flag for flag in result.review_flags))
+        self.assertTrue(any('graduation status' in flag for flag in result.review_flags))
+        self.assertEqual(result.notices, ())
+
+    def test_household_tupad_repeat_is_blocked_unless_emergency_override_is_selected(self):
+        household_id = 'HH-100'
+        for username, first_name, last_name in (
+            ('program-applicant', 'Alex', 'Applicant'),
+            ('program-household-member', 'Jamie', 'Applicant'),
+        ):
+            user = User.objects.create_user(
+                username=username,
+                email=f'{username}@example.com',
+                password='test-password',
+                role='applicant',
+            )
+            ApplicantProfile.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+                date_of_birth=date(2000, 1, 1) if first_name == 'Alex' else date(2002, 2, 2),
+                sex='F',
+                household_id_no=household_id,
+                house_street='12 Main Street',
+                barangay='Poblacion',
+                municipality='Carigara',
+                province='Leyte',
+            )
+        self.create_record(
+            TupadBeneficiary,
+            first_name='Jamie',
+            date_of_birth=date(2002, 2, 2),
+        )
+
+        candidate = self.candidate(TupadBeneficiary)
+        blocked_result = check_program_eligibility('tupad', candidate)
+        override_result = check_program_eligibility(
+            'tupad',
+            candidate,
+            emergency_override=True,
+        )
+
+        self.assertTrue(any('household member' in reason for reason in blocked_result.blocked_reasons))
+        self.assertEqual(override_result.blocked_reasons, ())
+        self.assertTrue(any('Emergency TUPAD household override' in flag for flag in override_result.review_flags))
+
+    def test_completed_individual_dilp_blocks_repeat_individual_and_flags_group_transition(self):
+        self.create_record(
+            DisplacedInformalLaborProgram,
+            is_done=True,
+            project_category='individual',
+        )
+
+        individual_result = check_program_eligibility(
+            'dilp',
+            self.candidate(DisplacedInformalLaborProgram, project_category='individual'),
+        )
+        unverified_group_result = check_program_eligibility(
+            'dilp',
+            self.candidate(DisplacedInformalLaborProgram, project_category='group'),
+        )
+        verified_group_result = check_program_eligibility(
+            'dilp',
+            self.candidate(DisplacedInformalLaborProgram, project_category='group'),
+            verified_group_project=True,
+        )
+
+        self.assertTrue(any('Repeat individual grants are restricted' in reason for reason in individual_result.blocked_reasons))
+        self.assertTrue(any('verified before proceeding' in reason for reason in unverified_group_result.blocked_reasons))
+        self.assertEqual(verified_group_result.blocked_reasons, ())
+        self.assertTrue(any('supporting documents' in flag for flag in verified_group_result.review_flags))
