@@ -262,6 +262,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
                                     </svg>
                                 </a>
+                                <form method="post" action="{% url 'AdminSide:delete_beneficiary' active_program item.uuid %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="button" data-delete-beneficiary-button data-beneficiary-name="{{ item.first_name }} {{ item.last_name }}" class="p-1 text-rose-500 hover:text-rose-700 transition" title="Delete Record" aria-label="Delete {{ item.first_name }} {{ item.last_name }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-10 0V5a1 1 0 011-1h6a1 1 0 011 1v2m2 0-.8 13.2a2 2 0 01-2 1.8H8.8a2 2 0 01-2-1.8L6 7zm4 4v6m4-6v6"/>
+                                        </svg>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -291,4 +299,47 @@
         </div>
     </div>
 </div>
+
+<dialog id="deleteBeneficiaryModal" aria-labelledby="deleteBeneficiaryTitle" aria-describedby="deleteBeneficiaryMessage" class="w-full max-w-md rounded-2xl border-0 p-0 shadow-2xl backdrop:bg-slate-900/60">
+    <div class="p-6 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+        </div>
+        <h2 id="deleteBeneficiaryTitle" class="mt-4 text-lg font-bold text-slate-900">Delete beneficiary?</h2>
+        <p id="deleteBeneficiaryMessage" class="mt-2 text-sm text-slate-600">
+            Are you sure you want to permanently delete <span id="deleteBeneficiaryName" class="font-semibold text-slate-800"></span>? This action cannot be undone.
+        </p>
+        <div class="mt-6 flex justify-center gap-3">
+            <button type="button" id="cancelDeleteBeneficiary" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Cancel</button>
+            <button type="button" id="confirmDeleteBeneficiary" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700">Delete beneficiary</button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    (() => {
+        const dialog = document.getElementById('deleteBeneficiaryModal');
+        const beneficiaryName = document.getElementById('deleteBeneficiaryName');
+        const cancelButton = document.getElementById('cancelDeleteBeneficiary');
+        const confirmButton = document.getElementById('confirmDeleteBeneficiary');
+        let formToDelete = null;
+
+        document.querySelectorAll('[data-delete-beneficiary-button]').forEach(button => {
+            button.addEventListener('click', () => {
+                formToDelete = button.form;
+                beneficiaryName.textContent = button.dataset.beneficiaryName;
+                dialog.showModal();
+            });
+        });
+
+        cancelButton.addEventListener('click', () => dialog.close());
+        confirmButton.addEventListener('click', () => {
+            if (formToDelete) {
+                formToDelete.requestSubmit();
+            }
+        });
+    })();
+</script>
 {% endblock %}

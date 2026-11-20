@@ -19,13 +19,13 @@
     {% endif %}
 
     <!-- Header & Hero Search Section -->
-    <div class="bg-[#0b1329] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+    <div class="bg-[#0b1329] rounded-2xl p-8 text-white shadow-xl relative overflow-visible border border-slate-800">
         <div class="relative z-10 max-w-3xl mx-auto text-center space-y-4">
             <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">How can we help you today?</h1>
             <!-- Search Bar Wrapper (Using pt-8/pt-10 to bypass space-y margin override) -->
             <div class="pt-8 max-w-2xl mx-auto">
                 <!-- Relative Container matches input height exactly -->
-                <div class="relative">
+                <div id="helpSearchWrapper" class="relative">
                     <!-- SVG Icon Wrapper correctly centered with inset-y-0 -->
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,8 @@
                     </div>
                     
                     <!-- Input Field -->
-                    <input type="text" id="helpSearchInput" onkeyup="filterHelpTopics()" placeholder="Search help articles (e.g., 'change email', 'verify applicant', 'SPES', 'rule-based matching')..." class="w-full pl-11 pr-4 py-3.5 text-gray-900 bg-white border border-gray-200 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-base placeholder-gray-500">
+                    <input type="text" id="helpSearchInput" oninput="filterHelpTopics()" aria-label="Search help articles" aria-autocomplete="list" aria-controls="helpSearchResults" aria-expanded="false" autocomplete="off" placeholder="Search help articles (e.g., 'change email', 'verify applicant', 'SPES', 'rule-based matching')..." class="w-full pl-11 pr-4 py-3.5 text-gray-900 bg-white border border-gray-200 rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-base placeholder-gray-500">
+                    <div id="helpSearchResults" role="listbox" aria-label="Help article suggestions" class="hidden absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-xl border border-gray-200 bg-white text-left shadow-xl"></div>
                 </div>
             </div>
         </div>
@@ -346,7 +347,11 @@
 
 <!-- Interactive Tab & Search JavaScript -->
 <script>
+    let activeHelpCategory = 'faq-overview';
+
     function showCategory(categoryId) {
+        activeHelpCategory = categoryId;
+
         // Hide all category sections
         const sections = document.querySelectorAll('.help-category-section');
         sections.forEach(sec => sec.classList.add('hidden'));
@@ -374,6 +379,8 @@
     }
 
     function resetToFaq() {
+        activeHelpCategory = 'faq-overview';
+
         // Hide all category sections
         const sections = document.querySelectorAll('.help-category-section');
         sections.forEach(sec => sec.classList.add('hidden'));
@@ -415,27 +422,128 @@
     }
 
     function filterHelpTopics() {
-        const input = document.getElementById('helpSearchInput').value.toLowerCase().trim();
-        const articles = document.querySelectorAll('.help-article');
+        const searchInput = document.getElementById('helpSearchInput');
+        const resultsContainer = document.getElementById('helpSearchResults');
+        const query = searchInput.value.toLowerCase().trim();
+        const articles = Array.from(document.querySelectorAll('.help-article'));
         const sections = document.querySelectorAll('.help-category-section');
 
-        if (input.length > 0) {
-            // Unhide all sections while searching so matches across all categories appear
-            sections.forEach(sec => sec.classList.remove('hidden'));
-            
-            articles.forEach(article => {
-                const text = article.innerText.toLowerCase();
-                if (text.includes(input)) {
-                    article.style.display = 'block';
-                } else {
-                    article.style.display = 'none';
-                }
+        if (!query) {
+            articles.forEach(article => article.style.display = '');
+            sections.forEach(section => {
+                section.classList.toggle('hidden', section.id !== activeHelpCategory);
             });
-        } else {
-            // Restore all article displays when search is cleared
-            articles.forEach(article => article.style.display = 'block');
+
+            const mainContainer = document.getElementById('mainContentContainer');
+            const sideSupport = document.getElementById('sideSupportContainer');
+            const backBtnContainer = document.getElementById('backToFaqContainer');
+            const isFaqView = activeHelpCategory === 'faq-overview';
+            mainContainer.classList.toggle('lg:col-span-2', isFaqView);
+            mainContainer.classList.toggle('lg:col-span-3', !isFaqView);
+            sideSupport.classList.toggle('hidden', !isFaqView);
+            backBtnContainer.classList.toggle('hidden', isFaqView);
+            resultsContainer.replaceChildren();
+            resultsContainer.classList.add('hidden');
+            searchInput.setAttribute('aria-expanded', 'false');
+            return;
         }
+
+        const tokens = query.split(/\s+/);
+        const matches = [];
+        const matchedSections = new Set();
+
+        articles.forEach(article => {
+            const section = article.closest('.help-category-section');
+            const sectionTitle = section.querySelector('h2');
+            const titleElement = article.querySelector('h4, h3, h2, button');
+            const title = titleElement ? titleElement.textContent.replace(/\s+/g, ' ').trim() : '';
+            const sectionName = sectionTitle ? sectionTitle.textContent.replace(/\s+/g, ' ').trim() : '';
+            const articleText = article.textContent.replace(/\s+/g, ' ').trim();
+            const searchableText = `${sectionName} ${title} ${articleText}`.toLowerCase();
+            const isMatch = tokens.every(token => searchableText.includes(token));
+
+            article.style.display = isMatch ? '' : 'none';
+            if (isMatch) {
+                matchedSections.add(section);
+                matches.push({ article, section, sectionName, title, articleText });
+            }
+        });
+
+        sections.forEach(section => {
+            section.classList.toggle('hidden', !matchedSections.has(section));
+        });
+
+        const mainContainer = document.getElementById('mainContentContainer');
+        const sideSupport = document.getElementById('sideSupportContainer');
+        const backBtnContainer = document.getElementById('backToFaqContainer');
+        mainContainer.classList.remove('lg:col-span-2');
+        mainContainer.classList.add('lg:col-span-3');
+        sideSupport.classList.add('hidden');
+        backBtnContainer.classList.remove('hidden');
+
+        resultsContainer.replaceChildren();
+        if (matches.length === 0) {
+            const noResults = document.createElement('p');
+            noResults.className = 'px-4 py-3 text-sm text-gray-500';
+            noResults.textContent = 'No matching help articles found.';
+            resultsContainer.appendChild(noResults);
+        } else {
+            matches.forEach(match => {
+                const resultButton = document.createElement('button');
+                resultButton.type = 'button';
+                resultButton.setAttribute('role', 'option');
+                resultButton.className = 'block w-full border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none';
+
+                const resultTitle = document.createElement('span');
+                resultTitle.className = 'block truncate text-sm font-semibold text-gray-900';
+                resultTitle.textContent = match.title || match.sectionName;
+                resultButton.appendChild(resultTitle);
+
+                const resultLocation = document.createElement('span');
+                resultLocation.className = 'block text-xs font-medium text-blue-700';
+                resultLocation.textContent = match.sectionName;
+                resultButton.appendChild(resultLocation);
+
+                const firstToken = tokens[0];
+                const matchIndex = match.articleText.toLowerCase().indexOf(firstToken);
+                if (matchIndex >= 0) {
+                    const start = Math.max(0, matchIndex - 35);
+                    const end = Math.min(match.articleText.length, matchIndex + 95);
+                    const snippet = document.createElement('span');
+                    snippet.className = 'mt-1 block text-xs text-gray-500';
+                    snippet.textContent = `${start > 0 ? '...' : ''}${match.articleText.slice(start, end)}${end < match.articleText.length ? '...' : ''}`;
+                    resultButton.appendChild(snippet);
+                }
+
+                resultButton.addEventListener('click', () => {
+                    showCategory(match.section.id);
+                    if (match.article.querySelector('button[onclick="toggleFaq(this)"]')) {
+                        const faqToggle = match.article.querySelector('button[onclick="toggleFaq(this)"]');
+                        if (faqToggle.nextElementSibling.classList.contains('hidden')) {
+                            toggleFaq(faqToggle);
+                        }
+                    }
+                    resultsContainer.classList.add('hidden');
+                    searchInput.setAttribute('aria-expanded', 'false');
+                    match.article.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                resultsContainer.appendChild(resultButton);
+            });
+        }
+
+        resultsContainer.classList.remove('hidden');
+        searchInput.setAttribute('aria-expanded', 'true');
     }
+
+    document.addEventListener('click', event => {
+        const searchWrapper = document.getElementById('helpSearchWrapper');
+        const searchInput = document.getElementById('helpSearchInput');
+        const resultsContainer = document.getElementById('helpSearchResults');
+        if (!searchWrapper.contains(event.target)) {
+            resultsContainer.classList.add('hidden');
+            searchInput.setAttribute('aria-expanded', 'false');
+        }
+    });
 
     {% if support_modal_open %}
     document.getElementById('supportEmailModal').showModal();

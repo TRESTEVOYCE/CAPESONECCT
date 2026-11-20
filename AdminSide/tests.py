@@ -986,3 +986,67 @@ class EnrollBeneficiaryViewTests(TestCase):
             118: 1,
         }.items():
             self.assertEqual(worksheet.cell(row=row, column=6).value, expected)
+
+
+class SpecialProgramBeneficiaryDeletionTests(TestCase):
+    def setUp(self):
+        admin = User.objects.create_superuser(
+            username='delete-beneficiary-admin',
+            email='delete-beneficiary-admin@example.com',
+            password='test-password',
+        )
+        self.client.force_login(admin)
+        self.beneficiary = SpecialProgramForEmploymentOfStudents.objects.create(
+            first_name='Ana',
+            last_name='Rivera',
+            sex='F',
+            date_of_birth='2000-01-01',
+            phone_number='09123456789',
+            barangay='Poblacion',
+            municipality='Carigara',
+            province='Leyte',
+            region='Region VIII',
+            zip_code='6519',
+            daily_salary='1000.00',
+            start_date='2024-01-01',
+            end_date='2024-02-01',
+            education_level='college',
+        )
+        self.delete_url = reverse(
+            'AdminSide:delete_beneficiary',
+            kwargs={'program_type': 'spes', 'uuid': self.beneficiary.uuid},
+        )
+
+    def test_post_deletes_the_beneficiary_and_returns_to_its_program(self):
+        response = self.client.post(self.delete_url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('AdminSide:special_programs_list')}?program=spes",
+        )
+        self.assertFalse(
+            SpecialProgramForEmploymentOfStudents.objects.filter(
+                uuid=self.beneficiary.uuid,
+            ).exists()
+        )
+
+    def test_get_does_not_delete_the_beneficiary(self):
+        response = self.client.get(self.delete_url)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(
+            SpecialProgramForEmploymentOfStudents.objects.filter(
+                uuid=self.beneficiary.uuid,
+            ).exists()
+        )
+
+    def test_list_renders_delete_action_with_confirmation(self):
+        response = self.client.get(
+            reverse('AdminSide:special_programs_list'),
+            {'program': 'spes'},
+        )
+
+        self.assertContains(response, 'deleteBeneficiaryModal')
+        self.assertContains(response, 'Are you sure you want to permanently delete')
+        self.assertContains(response, 'Delete Record')
+        self.assertContains(response, self.delete_url)

@@ -14,7 +14,7 @@ from django.db.models import Count, Q, OuterRef, Subquery
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -1213,7 +1213,27 @@ class EnrollBeneficiaryView(LoginRequiredMixin, View):
             'beneficiary': instance,
         }
         return render(request, self.template_name, context)
-    
+
+
+class DeleteBeneficiaryView(LoginRequiredMixin, View):
+    def post(self, request, program_type, uuid, *args, **kwargs):
+        program_config = PROGRAM_CONFIG.get(program_type)
+        if program_config is None:
+            raise Http404("Special program not found.")
+
+        beneficiary = get_object_or_404(program_config['model'], uuid=uuid)
+        beneficiary_name = f"{beneficiary.first_name} {beneficiary.last_name}"
+        beneficiary.delete()
+
+        messages.success(
+            request,
+            f"{beneficiary_name} was deleted from {program_config['name']}.",
+        )
+        return redirect(
+            f"{reverse('AdminSide:special_programs_list')}?program={program_type}"
+        )
+
+
 class PesoMonthlyReportView(LoginRequiredMixin, View):
     template_name = 'report.html'
 
