@@ -51,3 +51,9 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+handler400 = "AdminSide.error_views.custom_400"
+handler403 = "AdminSide.error_views.custom_403"
+handler404 = "AdminSide.error_views.custom_404"
+handler500 = "AdminSide.error_views.custom_500"
