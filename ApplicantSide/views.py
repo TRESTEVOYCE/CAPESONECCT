@@ -1,11 +1,12 @@
 import json
 import random
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import ListView, TemplateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from JobMatchingEngine.database import get_job_collection, build_applicant_profile_text, query_matching_jobs
-from AdminSide.models import Jobs, ApplicantProfile, ApplicantWorkExperience, AppliedJobs, SavedJobs, ApplicantSkills, OfferedJobs, Notification, User, AuditLog
+from AdminSide.models import Jobs, ApplicantProfile, ApplicantWorkExperience, AppliedJobs, SavedJobs, ApplicantSkills, OfferedJobs, Notification, User, AuditLog,JobSkills
 from django.contrib.auth.views import LogoutView as DjangoLogoutView, PasswordChangeView
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
@@ -15,12 +16,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .forms import (
-    ApplicantPersonalInfoForm, ApplicantAddressForm, ApplicantEducationForm,
-    ApplicantTrainingForm, ApplicantPreferredJobForm, ApplicantWorkExperienceFormSet,
-    ApplicantSkillsForm, ApplicantSkillFormSet, ApplicantDocumentsForm,
-    ProfilePictureForm, UpdateEmailForm, UpdatePasswordForm, UpdateUsernameForm,ApplicantTrainingFormSet
-)
+from .forms import ApplicantPersonalInfoForm, ApplicantAddressForm, ApplicantEducationForm,ApplicantPreferredJobForm, ApplicantWorkExperienceFormSet,ApplicantSkillsForm, ApplicantSkillFormSet, ApplicantDocumentsForm,ProfilePictureForm,UpdateUsernameForm,ApplicantTrainingFormSet
 from django.db import transaction
 from django.contrib.auth import update_session_auth_hash
 from AdminSide.utils import notify_admins
@@ -28,7 +24,10 @@ from AdminSide.services.profile_sensitivity import (
     mark_profile_for_reverification,
 )
 from AdminSide.profile_completion import calculate_profile_strength
+from django.core.cache import cache
+from django.db.models import Count, Q, Prefetch
 
+logger = logging.getLogger(__name__) 
 
 def _stamp_uploaded_profile_proofs(profile, uploaded_fields, files):
     timestamp = timezone.now()
@@ -550,82 +549,126 @@ class ApplicantWorkExperienceView(ApplicantProfileRequiredMixin, LoginRequiredMi
         })
 
 
-class ApplicantSkillsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, View):
+
+class ApplicantSkillsView(
+    ApplicantProfileRequiredMixin,
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    View
+):
     template_name = 'step_7_skills.html'
 
     def test_func(self):
         return self.request.user.role == 'applicant'
 
     def get_profile(self):
-        return get_object_or_404(ApplicantProfile, user=self.request.user)
+        return get_object_or_404(
+            ApplicantProfile,
+            user=self.request.user
+        )
 
     def get(self, request, *args, **kwargs):
         profile = self.get_profile()
+
         form = ApplicantSkillsForm(instance=profile)
-        skill_formset = ApplicantSkillFormSet(queryset=profile.skills.all())
-        return render(request, self.template_name, {'form': form, 'skill_formset': skill_formset})
+
+        skill_formset = ApplicantSkillFormSet(
+            queryset=profile.skills.all()
+        )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                'form': form,
+                'skill_formset': skill_formset,
+            }
+        )
 
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
-        form = ApplicantSkillsForm(request.POST, request.FILES, instance=profile)
-        skill_formset = ApplicantSkillFormSet(
-            request.POST, queryset=profile.skills.all()
+
+        form = ApplicantSkillsForm(
+            request.POST,
+            request.FILES,
+            instance=profile
         )
+
+        skill_formset = ApplicantSkillFormSet(
+            request.POST,
+            queryset=profile.skills.all()
+        )
+
         form_valid = form.is_valid()
         skill_formset_valid = skill_formset.is_valid()
-        changed_skill_records = any(
-            skill_form.has_changed()
-            for skill_form in skill_formset.forms
-        )
-        if (
-            profile.status in {'approved', 'reverify_pending'}
-            and changed_skill_records
-            and not request.FILES.get('technical_certification_document')
-        ):
-            form.add_error(
-                None,
-                ApplicantSkillsForm.proof_required_message,
-            )
-            form_valid = False
+
         if form_valid and skill_formset_valid:
+
+            # Save predefined applicant skills.
             form.save()
+
+            # Save custom skills.
             skills = skill_formset.save()
+
+            # Associate custom skills with applicant.
             profile.skills.add(*skills)
-            _stamp_uploaded_profile_proofs(
-                profile,
-                {
-                    'technical_certification_document':
-                        'technical_certification_uploaded_at',
-                },
-                request.FILES,
-            )
+
+            # Track changed fields.
             changed_fields = set(form.changed_data)
+
+            changed_skill_records = any(
+                skill_form.has_changed()
+                for skill_form in skill_formset.forms
+            )
+
             for skill_form in skill_formset.forms:
                 if skill_form.has_changed():
                     changed_fields.update(skill_form.changed_data)
+
                     if skill_form.cleaned_data.get('DELETE'):
                         changed_fields.add('__deleted__')
+
+            # Handle applicant re-verification.
             _mark_applicant_for_reverification(
                 request,
                 profile,
                 changed_fields,
-                ApplicantSkills if any(
-                    skill_form.has_changed()
-                    for skill_form in skill_formset.forms
-                ) else ApplicantProfile,
+                ApplicantSkills if changed_skill_records
+                else ApplicantProfile,
             )
+
+            # Refresh job recommendations for approved applicants.
             if profile.status == 'approved':
                 try:
-                    matches = query_matching_jobs(applicant=profile, total_results=10)
-                    request.session['job_matches'] = matches.get('ids', [])
+                    matches = query_matching_jobs(
+                        applicant=profile,
+                        total_results=10
+                    )
+
+                    request.session['job_matches'] = matches.get(
+                        'ids', []
+                    )
+
                 except Exception:
                     request.session.pop('job_matches', None)
             else:
                 request.session.pop('job_matches', None)
-            messages.success(request, 'Skills information saved successfully.')
-            return redirect('applicant-documents')
-        return render(request, self.template_name, {'form': form, 'skill_formset': skill_formset})
 
+            messages.success(
+                request,
+                'Skills information saved successfully.'
+            )
+
+            return redirect('applicant-documents')
+
+        return render(
+            request,
+            self.template_name,
+            {
+                'form': form,
+                'skill_formset': skill_formset,
+            }
+        )
 
 class ApplicantDocumentsView(ApplicantProfileRequiredMixin, LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ApplicantProfile
@@ -728,134 +771,195 @@ class LogoutView(LoginRequiredMixin, UserPassesTestMixin, DjangoLogoutView):
         return super().post(request, *args, **kwargs)
 
 
-
 class DashBoardView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Jobs
     template_name = 'applicant-dashboard.html'
     context_object_name = 'available_jobs'
     login_url = reverse_lazy('signin')
+    paginate_by = 12
 
     def test_func(self):
+        return getattr(self.request.user, 'role', None) == 'applicant'
+
+    def get_queryset(self):
         return (
-            self.request.user.is_authenticated
-            and getattr(self.request.user, 'role', None) == 'applicant'
+            Jobs.objects
+            .filter(
+                status='Active',
+                employer__verification_status='verified',
+            )
+            .select_related('employer')
+            .prefetch_related(
+                Prefetch(
+                    'custom_skills',
+                    queryset=JobSkills.objects.only(
+                        'id', 'job_id', 'skill_name'
+                    )
+                )
+            )
+            .order_by('-posting_date')
         )
+
+    def get_applicant_profile(self):
+        if not hasattr(self, '_applicant_profile'):
+            self._applicant_profile = (
+                ApplicantProfile.objects
+                .filter(user=self.request.user)
+                .first()
+            )
+
+        return self._applicant_profile
+
+    def get_recommended_job_uuids(self, applicant_profile):
+        cache_key = (
+            f'applicant_job_matches_{applicant_profile.pk}_v1'
+        )
+
+        cached_uuids = cache.get(cache_key)
+
+        if cached_uuids is not None:
+            return cached_uuids
+
+        results = query_matching_jobs(
+            applicant_profile,
+            total_results=10,
+        )
+
+        job_uuids = results.get('ids', [])
+
+        # Handle both flat and nested ChromaDB result formats.
+        if job_uuids and isinstance(job_uuids[0], list):
+            job_uuids = job_uuids[0]
+
+        cache.set(cache_key, job_uuids, timeout=300)
+
+        return job_uuids
+
+    def get_matching_jobs(self, applicant_profile):
+        if not applicant_profile:
+            return []
+
+        # Only approved applicants receive recommendations.
+        if getattr(applicant_profile, 'status', None) != 'approved':
+            return []
+
+        try:
+            job_uuids = self.get_recommended_job_uuids(
+                applicant_profile
+            )
+
+            if not job_uuids:
+                return []
+
+            recommended_jobs = Jobs.objects.filter(
+                uuid__in=job_uuids,
+                status='Active',
+                employer__verification_status='verified',
+            ).select_related(
+                'employer'
+            ).prefetch_related(
+                'custom_skills'
+            )
+
+            # Convert UUID keys to strings to match ChromaDB IDs.
+            jobs_by_uuid = {
+                str(job.uuid): job
+                for job in recommended_jobs
+            }
+
+            matching_list = []
+
+            # Preserve ChromaDB recommendation ranking.
+            for job_uuid in job_uuids:
+                job = jobs_by_uuid.get(str(job_uuid))
+
+                if job:
+                    matching_list.append({
+                        'job': job,
+                    })
+
+            return matching_list
+
+        except Exception:
+            logger.exception(
+                'Error generating recommendations for applicant %s',
+                applicant_profile.pk,
+            )
+            return []
+
+    def get_application_statistics(self, applicant_profile):
+        if not applicant_profile:
+            return {
+                'application_count': 0,
+                'under_review_count': 0,
+                'shortlisted_count': 0,
+                'rejected_count': 0,
+                'withdrawn_count': 0,
+                'saved_jobs_count': 0,
+            }
+
+        stats = AppliedJobs.objects.filter(
+            applicant=applicant_profile
+        ).aggregate(
+            total=Count('pk'),
+            under_review=Count(
+                'pk',
+                filter=Q(status__in=['pending', 'reviewed']),
+            ),
+            shortlisted=Count(
+                'pk',
+                filter=Q(status='for interview'),
+            ),
+            rejected=Count(
+                'pk',
+                filter=Q(status='rejected'),
+            ),
+            withdrawn=Count(
+                'pk',
+                filter=Q(status='withdrawn'),
+            ),
+        )
+
+        return {
+            'application_count': stats['total'],
+            'under_review_count': stats['under_review'],
+            'shortlisted_count': stats['shortlisted'],
+            'rejected_count': stats['rejected'],
+            'withdrawn_count': stats['withdrawn'],
+            'saved_jobs_count': SavedJobs.objects.filter(
+                applicant=applicant_profile
+            ).count(),
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        applicant_profile = ApplicantProfile.objects.filter(
-            user=self.request.user
-        ).first()
+        applicant_profile = self.get_applicant_profile()
 
         context['applicant_profile'] = applicant_profile
 
-        # 1. ALL AVAILABLE JOBS
-        available_jobs = Jobs.objects.filter(
-            status='Active',
-            employer__verification_status='verified',
-        ).order_by('-created_at')  # Adjust if your date field has another name
+        # Recommended jobs
+        context['matching_jobs'] = self.get_matching_jobs(
+            applicant_profile
+        )
 
-        context['available_jobs'] = available_jobs
+        # Application statistics
+        context.update(
+            self.get_application_statistics(applicant_profile)
+        )
 
-        # 2. RECOMMENDED / MATCHED JOBS
-        matching_list = []
-
-        if applicant_profile and applicant_profile.status == 'approved':
-            try:
-                applicant_profile_text = build_applicant_profile_text(
-                    applicant_profile
-                )
-
-                collection = get_job_collection()
-
-                results = collection.query(
-                    query_texts=[applicant_profile_text],
-                    n_results=10,
-                )
-
-                job_uuids = [
-                    metadata['job_uuid']
-                    for metadata in results.get('metadatas', [[]])[0]
-                    if metadata and 'job_uuid' in metadata
-                ]
-
-                recommended_jobs = Jobs.objects.filter(
-                    uuid__in=job_uuids,
-                    status='Active',
-                    employer__verification_status='verified',
-                )
-
-                # Preserve the recommendation order from ChromaDB
-                jobs_by_uuid = {
-                    str(job.uuid): job
-                    for job in recommended_jobs
-                }
-
-                for job_uuid in job_uuids:
-                    job = jobs_by_uuid.get(str(job_uuid))
-
-                    if job:
-                        matching_list.append({
-                            'job': job,
-                            'score': 88,
-                            'edu_score': 100,
-                            'exp_score': 85,
-                            'skills_score': 80,
-                            'certs_score': 50,
-                        })
-
-            except Exception:
-                # Keep recommended jobs empty if vector search fails
-                pass
-
-        context['matching_jobs'] = matching_list
-
-        # 3. APPLICATION STATISTICS
+        # Applicant profile readiness
         if applicant_profile:
-            applications = AppliedJobs.objects.filter(
-                applicant=applicant_profile
-            )
-
-            context['application_count'] = applications.count()
-
-            context['saved_jobs_count'] = SavedJobs.objects.filter(
-                applicant=applicant_profile
-            ).count()
-
-            context['under_review_count'] = applications.filter(
-                status__in=['pending', 'reviewed']
-            ).count()
-
-            context['shortlisted_count'] = applications.filter(
-                status='for interview'
-            ).count()
-
-            context['rejected_count'] = applications.filter(
-                status='rejected'
-            ).count()
-
-            context['withdrawn_count'] = applications.filter(
-                status='withdrawn'
-            ).count()
-
             context['profile_strength'] = calculate_profile_strength(
                 applicant_profile
             )
-
         else:
-            context['application_count'] = 0
-            context['saved_jobs_count'] = 0
-            context['under_review_count'] = 0
-            context['shortlisted_count'] = 0
-            context['rejected_count'] = 0
-            context['withdrawn_count'] = 0
             context['profile_strength'] = 0
 
-        context['total_jobs'] = available_jobs.count()
+        # Total active jobs, independent of pagination.
+        context['total_jobs'] = self.get_queryset().count()
 
         return context
-
 
 
 class JobListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
